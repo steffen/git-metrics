@@ -34,7 +34,7 @@ curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metr
 # Unpack the archive
 tar -xzf git-metrics.tar.gz
 
-# Move it to a directory in your PATH (optional)
+# Optional: Move it to a directory in your PATH
 sudo mv git-metrics /usr/local/bin/
 ```
 
@@ -46,11 +46,11 @@ curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metr
 # Unzip the archive
 unzip git-metrics.zip
 
-# Remove quarantine attribute (required for macOS security)
-xattr -d com.apple.quarantine git-metrics
-
-# Move it to a directory in your PATH (optional)
+# Optional: Move it to a directory in your PATH
 sudo mv git-metrics /usr/local/bin/
+
+# When downloaded via browser: Remove quarantine attribute
+xattr -d com.apple.quarantine git-metrics
 ```
 
 ### Running the Application
