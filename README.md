@@ -8,10 +8,14 @@ A powerful Git repository analysis tool that provides detailed metrics, growth s
 
 Key features include:
 - Repository metadata analysis (first commit, age)
-- Year-by-year growth statistics for Git objects (commits, trees, blobs) and disk usage
+- Year-by-year growth statistics for Git objects (commits, trees, blobs) and their on-disk size
 - Identification of largest files in the repository
 - File extension distribution analysis
 - Future growth projections based on historical trends
+
+## "On-disk size" explained
+
+The on-disk size in `git-metrics`'s output shows the compressed size of commits (saved changes), trees (folder snapshots) and blobs (file versions) as stored in Git's object database (`.git/objects`). These objects are often stored using deltas (storing only changes between similar objects). Repacking the repository (e.g. `git gc`) can alter on-disk sizes of these objects by changing compression and deltas. `git-metrics` does not include the on-disk size of metadata such as pack file indexes (`.git/objects/pack/*.idx`), refs, or other auxiliary files which accounts for 5% to 10% of the overall on-disk size of a repository in most cases.
 
 ## Installation
 
