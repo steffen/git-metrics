@@ -69,8 +69,7 @@ jobs:
           # windows amd64
           mkdir -p windows-amd64
           cp git-metrics-windows-amd64.exe windows-amd64/git-metrics.exe
-          (cd windows-ad && zip ../git-metrics-darwin-arm64.zip git-metrics)
-
+          (cd windows-amd64 && zip ../git-metrics-windows-amd64.zip git-metrics)
           # windows arm64
           mkdir -p windows-arm64
           cp git-metrics-windows-arm64.exe windows-arm64/git-metrics.exe

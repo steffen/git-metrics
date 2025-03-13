@@ -19,8 +19,8 @@ func CheckRequirements() bool {
 	}
 
 	// Check bash on Windows
-	// We required bash git.GetGrowthStats rely on a pipe that only bash can handle
-	// We might remove this in the future
+	// Bash is required because git.GetGrowthStats relies on a pipe that only bash can handle
+	// We might remove this requirement in the future
 	if runtime.GOOS == "windows" {
 		if _, err := exec.LookPath("bash"); err != nil {
 			fmt.Println("bash is not installed or not in PATH")
