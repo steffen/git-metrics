@@ -196,6 +196,12 @@ func GetChipInformation() string {
 		}
 	}
 
+	if runtime.GOOS == "windows" {
+		if output, err := exec.Command("wmic", "cpu", "get", "name").Output(); err == nil {
+			return getWMICValue(output)
+		}
+	}
+
 	return "Unknown"
 }
 
@@ -217,6 +223,13 @@ func GetOperatingSystemInformation() string {
 	if runtime.GOOS == "linux" {
 		return "Linux"
 	}
+
+	if runtime.GOOS == "windows" {
+		if output, err := exec.Command("wmic", "os", "get", "caption").Output(); err == nil {
+			return getWMICValue(output)
+		}
+	}
+
 	return runtime.GOOS
 }
 
@@ -245,5 +258,27 @@ func GetMemoryInGigabytes() int {
 		return int(totalKilobytes / (1024 * 1024))
 	}
 
+	if runtime.GOOS == "windows" {
+		if output, err := exec.Command("wmic", "os", "get", "TotalVisibleMemorySize").Output(); err == nil {
+			var value = getWMICValue(output)
+
+			memorySize, err := strconv.ParseInt(strings.TrimSpace(string(value)), 10, 64)
+			if err == nil {
+				return int(memorySize / (1024 * 1024))
+			}
+		}
+	}
+
 	return 0
+}
+
+// getWMICValue extracts the value from the WMIC command output
+// assumes table format has been used, it would be better to use XML or CSV
+// returns empty string if the output is not in the expected format
+func getWMICValue(output []byte) string {
+	lines := strings.Split(string(output), "\n")
+	if len(lines) > 1 {
+		return strings.TrimSpace(lines[1])
+	}
+	return ""
 }
