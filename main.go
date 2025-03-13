@@ -15,6 +15,7 @@ import (
 	"git-metrics/pkg/git"
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/progress"
+	"git-metrics/pkg/requirements"
 	"git-metrics/pkg/utils"
 )
 
@@ -30,6 +31,11 @@ func main() {
 
 	// Set progress visibility based on --no-progress flag
 	progress.ShowProgress = !*noProgress
+
+	if !requirements.CheckRequirements() {
+		fmt.Println("\nRequirements not met. Please install listed dependencies above.")
+		os.Exit(9)
+	}
 
 	// Validate and change to repository directory
 	if err := git.ValidateRepository(*repositoryPath); err != nil {
