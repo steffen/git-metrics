@@ -34,6 +34,10 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -o git-metrics-darwin-amd64
           # macOS arm64
           GOOS=darwin GOARCH=arm64 go build -o git-metrics-darwin-arm64
+          # windows amd64
+          GOOS=windows GOARCH=amd64 go build -o git-metrics-windows-amd64.exe
+          # windows arm64
+          GOOS=windows GOARCH=arm64 go build -o git-metrics-windows-arm64.exe
 
       - name: Create archives with executable permissions
         run: |
@@ -62,6 +66,15 @@ jobs:
           chmod +x darwin-arm64/git-metrics
           (cd darwin-arm64 && zip ../git-metrics-darwin-arm64.zip git-metrics)
 
+          # windows amd64
+          mkdir -p windows-amd64
+          cp git-metrics-windows-amd64.exe windows-amd64/git-metrics.exe
+          (cd windows-amd64 && zip ../git-metrics-windows-amd64.zip git-metrics)
+          # windows arm64
+          mkdir -p windows-arm64
+          cp git-metrics-windows-arm64.exe windows-arm64/git-metrics.exe
+          (cd windows-arm64 && zip ../git-metrics-windows-arm64.zip git-metrics)
+
       - name: Generate release tag
         id: tag
         run: |
@@ -77,6 +90,8 @@ jobs:
             git-metrics-linux-arm64.tar.gz
             git-metrics-darwin-amd64.zip
             git-metrics-darwin-arm64.zip
+            git-metrics-windows-amd64.zip
+            git-metrics-windows-arm64.zip
           draft: false
           prerelease: false
         env:
