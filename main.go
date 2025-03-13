@@ -21,6 +21,10 @@ import (
 
 var debug bool
 
+const (
+	UnknownValue = "Unknown"
+)
+
 func main() {
 	startTime := time.Now()
 	repositoryPath := flag.String("r", ".", "Path to git repository")
@@ -58,7 +62,7 @@ func main() {
 	// Remote URL
 	fmt.Printf("Remote                     ... fetching\n")
 	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
-	remote := "Unknown"
+	remote := UnknownValue
 	if err == nil {
 		remote = strings.TrimSpace(string(remoteOutput))
 	}
@@ -73,7 +77,7 @@ func main() {
 	// Most recent commit
 	fmt.Printf("Most recent commit         ... fetching\n")
 	lastHashOutput, err := git.RunGitCommand(debug, "rev-parse", "--short", "HEAD")
-	lastCommit := "Unknown"
+	lastCommit := UnknownValue
 	if err == nil {
 		lastHash := strings.TrimSpace(string(lastHashOutput))
 		dateCommand := exec.Command("git", "show", "-s", "--format=%cD", lastHash)
@@ -88,8 +92,8 @@ func main() {
 	// First commit and age
 	fmt.Printf("First commit               ... fetching\n")
 	firstOutput, err := git.RunGitCommand(debug, "rev-list", "--max-parents=0", "HEAD", "--format=%cD")
-	firstCommit := "Unknown"
-	ageString := "Unknown"
+	firstCommit := UnknownValue
+	ageString := UnknownValue
 	var firstCommitTime time.Time
 	if err == nil {
 		lines := strings.Split(strings.TrimSpace(string(firstOutput)), "\n")
@@ -130,6 +134,13 @@ func main() {
 		}
 	}
 	fmt.Printf("\033[1A\033[2KFirst commit               %s\n", firstCommit)
+
+	// If there are no commits, exit early
+	if firstCommit == UnknownValue {
+		fmt.Println("\n\nNo commits found in the repository.")
+		os.Exit(2)
+	}
+
 	fmt.Printf("Age                        %s\n", ageString)
 
 	// Print growth table header first
