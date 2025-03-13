@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -75,7 +76,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 
 	// Build shell command with before and after dates.
 	commandString := fmt.Sprintf("git rev-list --objects --all --before %d-01-01 --after %d-12-31 | git cat-file --batch-check='%%(objecttype) %%(objectname) %%(objectsize:disk) %%(rest)'", year+1, year-1)
-	command := exec.Command("sh", "-c", commandString)
+	command := exec.Command(ShellToUse(), "-c", commandString)
 	output, err := command.Output()
 	if err != nil {
 		return currentStatistics, err
@@ -179,4 +180,10 @@ func CalculateEstimate(current models.GrowthStatistics, average models.GrowthSta
 		Compressed:   current.Compressed + average.Compressed,
 		LargestFiles: []models.FileInformation{}, // No estimate for largest files
 	}
+}
+func ShellToUse() string {
+	if runtime.GOOS == "windows" {
+		return "bash"
+	}
+	return "sh"
 }
