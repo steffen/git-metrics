@@ -39,17 +39,62 @@ func ValidateRepository(path string) error {
 		return fmt.Errorf("repository path does not exist: %s", path)
 	}
 
-	// Check if it's a git repository
+	// Try as regular repository first
 	gitDirectory := filepath.Join(path, ".git")
-	if _, err := os.Stat(gitDirectory); os.IsNotExist(err) {
-		return fmt.Errorf("not a git repository: %s", path)
+	if info, err := os.Stat(gitDirectory); err == nil && info.IsDir() {
+		return nil
 	}
 
-	return nil
+	// Try as bare repository - either ends with .git or contains git config
+	if strings.HasSuffix(path, ".git") {
+		if _, err := os.Stat(filepath.Join(path, "config")); err == nil {
+			return nil
+		}
+	}
+
+	// Check if the path itself is a git directory (bare repository)
+	if _, err := os.Stat(filepath.Join(path, "config")); err == nil {
+		if _, err := os.Stat(filepath.Join(path, "objects")); err == nil {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("not a git repository: %s", path)
 }
 
-// GetLastFetchTime returns the time of the last git fetch
-func GetLastFetchTime() string {
+// IsBareRepository checks if the given path is a bare git repository
+func IsBareRepository(path string) bool {
+	// Check if path ends with .git and has config file
+	if strings.HasSuffix(path, ".git") {
+		if _, err := os.Stat(filepath.Join(path, "config")); err == nil {
+			return true
+		}
+	}
+
+	// Check if path is a git directory itself (bare repository)
+	if _, err := os.Stat(filepath.Join(path, "config")); err == nil {
+		if _, err := os.Stat(filepath.Join(path, "objects")); err == nil {
+			// Make sure it's not a .git directory of a regular repository
+			if !strings.HasSuffix(path, ".git") && filepath.Base(path) != ".git" {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// GetLastUpdateTime returns the time of the last repository update
+func GetLastUpdateTime() string {
+	// For bare repos, check the repository folder's last modified date
+	if IsBareRepository(".") {
+		if info, err := os.Stat("."); err == nil {
+			return info.ModTime().Format("Mon, 02 Jan 2006 15:04 MST")
+		}
+		return "Unknown"
+	}
+
+	// For regular repos, check FETCH_HEAD and pack directory
 	fetchHead := filepath.Join(".git", "FETCH_HEAD")
 	packDirectory := filepath.Join(".git", "objects", "pack")
 
@@ -66,6 +111,12 @@ func GetLastFetchTime() string {
 	}
 
 	return "Unknown"
+}
+
+// GetLastFetchTime returns the time of the last git fetch or repo update for bare repos
+// Deprecated: Use GetLastUpdateTime instead
+func GetLastFetchTime() string {
+	return GetLastUpdateTime()
 }
 
 // GetGrowthStats calculates repository growth statistics for a given year
