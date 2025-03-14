@@ -58,8 +58,7 @@ jobs:
 
       - name: smoke test linux version
         run: |
-          echo "Running smoke tests for Linux version..."
-          ./${DIST_PATH}/${BINARY_NAME}-linux-amd64 .
+          ./${DIST_PATH}/${BINARY_NAME}-linux-amd64
 
       - name: Upload binaries
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
@@ -95,9 +94,9 @@ jobs:
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
             chmod +x ./${DIST_PATH}/${BINARY_NAME}-darwin-amd64
-            ./${DIST_PATH}/${BINARY_NAME}-darwin-amd64 .
+            ./${DIST_PATH}/${BINARY_NAME}-darwin-amd64
           elif [[ "$RUNNER_OS" == "Windows" ]]; then
-            ./${DIST_PATH}/${BINARY_NAME}-windows-amd64.exe .
+            ./${DIST_PATH}/${BINARY_NAME}-windows-amd64.exe
           fi
 
   release:
