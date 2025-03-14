@@ -59,6 +59,9 @@ func main() {
 	absolutePath, _ := filepath.Abs(".")
 	fmt.Printf("Path                       %s\n", absolutePath)
 
+	// Check if repository is bare
+	isBare := git.IsBareRepository(".")
+
 	// Remote URL
 	fmt.Printf("Remote                     ... fetching\n")
 	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
@@ -69,10 +72,17 @@ func main() {
 	// Replace the fetching line with the final value
 	fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
 
-	// Most recent fetch
-	fmt.Printf("Most recent fetch          ... fetching\n")
-	recentFetch := git.GetLastFetchTime()
-	fmt.Printf("\033[1A\033[2KMost recent fetch          %s\n", recentFetch)
+	recentUpdate := UnknownValue
+	recentFetch := UnknownValue
+	if isBare {
+		fmt.Printf("Most recent update         ... fetching\n")
+		recentUpdate = git.GetLastUpdateTime()
+		fmt.Printf("\033[1A\033[2KMost recent update         %s\n", recentUpdate)
+	} else {
+		fmt.Printf("Most recent fetch          ... fetching\n")
+		recentFetch = git.GetLastFetchTime()
+		fmt.Printf("\033[1A\033[2KMost recent fetch          %s\n", recentFetch)
+	}
 
 	// Most recent commit
 	fmt.Printf("Most recent commit         ... fetching\n")
@@ -206,6 +216,7 @@ func main() {
 	// Save repository information with totals
 	repositoryInformation := models.RepositoryInformation{
 		Remote:         remote,
+		IsBare:         isBare,
 		LastCommit:     lastCommit,
 		FirstCommit:    firstCommit,
 		Age:            ageString,
@@ -243,7 +254,11 @@ func main() {
 
 		fmt.Println("------------------------------------------------------------------------------------------------")
 		fmt.Println()
-		fmt.Printf("^ Current totals as of the last fetch on %s\n", recentFetch[:11])
+		if isBare {
+			fmt.Printf("^ Current totals as of the most recent update on %s\n", recentUpdate[:11])
+		} else {
+			fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:11])
+		}
 		fmt.Println("* Estimated growth based on the last five years")
 		fmt.Println("% Percentages show the increase relative to the current total (^)")
 	} else {
