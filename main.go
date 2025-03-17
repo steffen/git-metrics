@@ -77,9 +77,6 @@ func main() {
 		fmt.Printf("Last modified              %s\n", lastModified)
 	}
 
-	// Check if repository is bare
-	isBare := git.IsBareRepository(".")
-
 	// Remote URL - only show if there is one
 	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
 	remote := ""
@@ -226,7 +223,6 @@ func main() {
 	// Save repository information with totals
 	repositoryInformation := models.RepositoryInformation{
 		Remote:         remote,
-		IsBare:         isBare,
 		LastCommit:     lastCommit,
 		FirstCommit:    firstCommit,
 		Age:            ageString,

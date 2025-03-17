@@ -13,7 +13,6 @@ type RepositoryInformation struct {
 	TotalTrees     int
 	TotalBlobs     int
 	CompressedSize int64
-	IsBare         bool
 }
 
 // GrowthStatistics holds statistics about repository growth
