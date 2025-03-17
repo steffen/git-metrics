@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -41,8 +40,9 @@ func main() {
 		os.Exit(9)
 	}
 
-	// Validate and change to repository directory
-	if err := git.ValidateRepository(*repositoryPath); err != nil {
+	// Get Git directory and change to repository directory
+	gitDir, err := git.GetGitDirectory(*repositoryPath)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -56,20 +56,14 @@ func main() {
 
 	fmt.Println("\nREPOSITORY #####################################################################################")
 	fmt.Println()
-	fmt.Printf("Git directory              ... fetching\n")
-	gitDirOutput, err := git.RunGitCommand(debug, "rev-parse", "--git-dir")
-	gitDir := UnknownValue
+
+	// Get Git directory last modified time
 	lastModified := UnknownValue
-	if err == nil {
-		if absPath, err := filepath.Abs(strings.TrimSpace(string(gitDirOutput))); err == nil {
-			gitDir = absPath
-			// Get last modified time of the Git directory
-			if info, err := os.Stat(absPath); err == nil {
-				lastModified = info.ModTime().Format("Mon, 02 Jan 2006 15:04 MST")
-			}
-		}
+	if info, err := os.Stat(gitDir); err == nil {
+		lastModified = info.ModTime().Format("Mon, 02 Jan 2006 15:04 MST")
 	}
-	fmt.Printf("\033[1A\033[2KGit directory              %s\n", gitDir)
+
+	fmt.Printf("Git directory              %s\n", gitDir)
 
 	// Get fetch time before deciding whether to show last modified time
 	recentFetch := git.GetLastFetchTime(gitDir)

@@ -32,20 +32,38 @@ func GetGitVersion() string {
 	return "Unknown"
 }
 
-// ValidateRepository checks if the given path is a valid git repository
-func ValidateRepository(path string) error {
+// GetGitDirectory gets the path to the .git directory for a repository
+func GetGitDirectory(path string) (string, error) {
 	// Check if directory exists
 	if _, err := os.Stat(path); os.IsNotExist(err) {
-		return fmt.Errorf("repository path does not exist: %s", path)
+		return "", fmt.Errorf("repository path does not exist: %s", path)
 	}
 
-	// Check for .git directory
-	gitDirectory := filepath.Join(path, ".git")
-	if info, err := os.Stat(gitDirectory); err == nil && info.IsDir() {
-		return nil
+	// Run git rev-parse to get git directory
+	gitDir, err := RunGitCommand(false, "-C", path, "rev-parse", "--git-dir")
+	if err != nil {
+		return "", fmt.Errorf("not a git repository: %s", path)
 	}
 
-	return fmt.Errorf("not a git repository: %s", path)
+	// Get absolute paths for both the git dir and the repository path
+	absRepoPath, err := filepath.Abs(path)
+	if err != nil {
+		return "", fmt.Errorf("failed to get absolute repository path: %s", err)
+	}
+
+	gitDirPath := strings.TrimSpace(string(gitDir))
+	if !filepath.IsAbs(gitDirPath) {
+		// If git dir is relative, join it with the repository path
+		gitDirPath = filepath.Join(absRepoPath, gitDirPath)
+	}
+
+	// Convert to absolute path to clean it up
+	absPath, err := filepath.Abs(gitDirPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to get absolute path: %s", err)
+	}
+
+	return absPath, nil
 }
 
 // GetLastFetchTime returns the time of the last git fetch by checking FETCH_HEAD
