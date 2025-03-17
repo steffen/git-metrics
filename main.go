@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
@@ -41,8 +40,9 @@ func main() {
 		os.Exit(9)
 	}
 
-	// Validate and change to repository directory
-	if err := git.ValidateRepository(*repositoryPath); err != nil {
+	// Get Git directory and change to repository directory
+	gitDir, err := git.GetGitDirectory(*repositoryPath)
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -56,23 +56,34 @@ func main() {
 
 	fmt.Println("\nREPOSITORY #####################################################################################")
 	fmt.Println()
-	absolutePath, _ := filepath.Abs(".")
-	fmt.Printf("Path                       %s\n", absolutePath)
 
-	// Remote URL
-	fmt.Printf("Remote                     ... fetching\n")
-	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
-	remote := UnknownValue
-	if err == nil {
-		remote = strings.TrimSpace(string(remoteOutput))
+	// Get Git directory last modified time
+	lastModified := UnknownValue
+	if info, err := os.Stat(gitDir); err == nil {
+		lastModified = info.ModTime().Format("Mon, 02 Jan 2006 15:04 MST")
 	}
-	// Replace the fetching line with the final value
-	fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
 
-	// Most recent fetch
-	fmt.Printf("Most recent fetch          ... fetching\n")
-	recentFetch := git.GetLastFetchTime()
-	fmt.Printf("\033[1A\033[2KMost recent fetch          %s\n", recentFetch)
+	fmt.Printf("Git directory              %s\n", gitDir)
+
+	// Get fetch time before deciding whether to show last modified time
+	recentFetch := git.GetLastFetchTime(gitDir)
+	if recentFetch == "" {
+		fmt.Printf("Last modified              %s\n", lastModified)
+	}
+
+	// Remote URL - only show if there is one
+	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
+	remote := ""
+	if err == nil && len(strings.TrimSpace(string(remoteOutput))) > 0 {
+		fmt.Printf("Remote                     ... fetching\n")
+		remote = strings.TrimSpace(string(remoteOutput))
+		fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
+	}
+
+	if recentFetch != "" {
+		fmt.Printf("Most recent fetch          ... fetching\n")
+		fmt.Printf("\033[1A\033[2KMost recent fetch          %s\n", recentFetch)
+	}
 
 	// Most recent commit
 	fmt.Printf("Most recent commit         ... fetching\n")
@@ -243,7 +254,11 @@ func main() {
 
 		fmt.Println("------------------------------------------------------------------------------------------------")
 		fmt.Println()
-		fmt.Printf("^ Current totals as of the last fetch on %s\n", recentFetch[:11])
+		if recentFetch != "" {
+			fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:11])
+		} else {
+			fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:11])
+		}
 		fmt.Println("* Estimated growth based on the last five years")
 		fmt.Println("% Percentages show the increase relative to the current total (^)")
 	} else {
