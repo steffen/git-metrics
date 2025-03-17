@@ -110,6 +110,20 @@ func TestGetGitDirectory(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Valid bare repository",
+			setupFunc: func() string {
+				// Create a temporary directory and initialize a bare repo in it
+				tempDir, _ := os.MkdirTemp("", "git-repo-bare")
+				cmd := exec.Command("git", "init", "--bare", tempDir)
+				cmd.Run()
+				return tempDir
+			},
+			cleanupFunc: func(path string) {
+				os.RemoveAll(path)
+			},
+			wantErr: false,
+		},
 	}
 
 	for _, tt := range tests {
