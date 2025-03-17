@@ -114,14 +114,7 @@ func GetLastUpdateTime() string {
 }
 
 // GetLastFetchTime returns the time of the last git fetch by checking FETCH_HEAD
-func GetLastFetchTime() string {
-	// Get Git directory path
-	gitDirOutput, err := RunGitCommand(false, "rev-parse", "--git-dir")
-	if err != nil {
-		return ""
-	}
-
-	gitDir := strings.TrimSpace(string(gitDirOutput))
+func GetLastFetchTime(gitDir string) string {
 	fetchHead := filepath.Join(gitDir, "FETCH_HEAD")
 
 	// Check if FETCH_HEAD exists

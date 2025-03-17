@@ -72,7 +72,7 @@ func main() {
 	fmt.Printf("\033[1A\033[2KGit directory              %s\n", gitDir)
 
 	// Get fetch time before deciding whether to show last modified time
-	recentFetch := git.GetLastFetchTime()
+	recentFetch := git.GetLastFetchTime(gitDir)
 	if recentFetch == "" {
 		fmt.Printf("Last modified              %s\n", lastModified)
 	}
