@@ -2,4 +2,4 @@
 git-metrics
 
 # Editor files
-.vscode
+.vscode/launch.json
