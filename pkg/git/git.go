@@ -113,10 +113,23 @@ func GetLastUpdateTime() string {
 	return "Unknown"
 }
 
-// GetLastFetchTime returns the time of the last git fetch or repo update for bare repos
-// Deprecated: Use GetLastUpdateTime instead
+// GetLastFetchTime returns the time of the last git fetch by checking FETCH_HEAD
 func GetLastFetchTime() string {
-	return GetLastUpdateTime()
+	// Get Git directory path
+	gitDirOutput, err := RunGitCommand(false, "rev-parse", "--git-dir")
+	if err != nil {
+		return ""
+	}
+
+	gitDir := strings.TrimSpace(string(gitDirOutput))
+	fetchHead := filepath.Join(gitDir, "FETCH_HEAD")
+
+	// Check if FETCH_HEAD exists
+	if fetchInformation, err := os.Stat(fetchHead); err == nil {
+		return fetchInformation.ModTime().Format("Mon, 02 Jan 2006 15:04 MST")
+	}
+
+	return ""
 }
 
 // GetGrowthStats calculates repository growth statistics for a given year
