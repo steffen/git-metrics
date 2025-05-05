@@ -1,4 +1,4 @@
-# git-metrics
+<h1 align="center">git-metrics</h1>
 
 A powerful Git repository analysis tool that provides detailed metrics, growth statistics, and future projections for your Git repositories.
 
@@ -13,16 +13,12 @@ Key features include:
 - File extension distribution analysis
 - Future growth projections based on historical trends
 
-## "On-disk size" explained
-
-The on-disk size in `git-metrics`'s output shows the compressed size of commits (saved changes), trees (folder snapshots) and blobs (file versions) as stored in Git's object database (`.git/objects`). These objects are often stored using deltas (storing only changes between similar objects). Repacking the repository (e.g. `git gc`) can alter on-disk sizes of these objects by changing compression and deltas. `git-metrics` does not include the on-disk size of metadata such as pack file indexes (`.git/objects/pack/*.idx`), refs, or other auxiliary files which accounts for 5% to 10% of the overall on-disk size of a repository in most cases.
-
 ## Installation
 
 ### Prerequisites
 - Git
 
-### Download Prebuilt Binaries
+### Download prebuilt binaries
 
 The easiest way to install `git-metrics` is to download a prebuilt binary from the [GitHub releases page](https://github.com/steffen/git-metrics/releases).
 
@@ -53,7 +49,7 @@ sudo mv git-metrics /usr/local/bin/
 xattr -d com.apple.quarantine git-metrics
 ```
 
-### Running the Application
+### Running the tool
 
 ```bash
 # Analyze the current directory as a Git repository
@@ -63,7 +59,7 @@ git-metrics
 git-metrics -r /path/to/repository
 ```
 
-## Command Line Options
+## Command line options
 
 | Option | Description |
 |--------|-------------|
@@ -71,9 +67,9 @@ git-metrics -r /path/to/repository
 | `--debug` | Enable debug output |
 | `--no-progress` | Disable progress indicators |
 
-## Output Examples
+## Output examples
 
-`git-metrics` provides detailed output about your repository:
+### [`git/git`](https://github.com/git/git)
 
 ```
 
@@ -170,6 +166,8 @@ No Extension                           687  11.3 %          9,894   6.6 %       
 Finished in 11s with a memory footprint of 96.6 MB.
 ```
 
+### [`torvalds/linux`](https://github.com/torvalds/linux)
+
 ```
 RUN ############################################################################################
 
@@ -264,21 +262,26 @@ No Extension                        10,914   7.2 %        192,484   6.8 %       
 Finished in 3m18s with a memory footprint of 2.1 GB.
 ```
 
-## Understanding the Output
+## Understanding the output
 
 `git-metrics` provides several sections of output:
 
-1. **Repository Information**: Basic metadata about your repository including path, remote URL, and commit history.
+1. **Repository information**: Basic metadata about your repository including path, remote URL, and commit history.
 
-2. **Growth Statistics**: Year-by-year breakdown of Git object growth (commits, trees, blobs) and disk usage.
+2. **Growth statistics**: Year-by-year breakdown of Git object growth (commits, trees, blobs) and disk usage.
 
-3. **Growth Projections**: Estimation of future repository growth based on historical trends.
+3. **Growth projections**: Estimation of future repository growth based on historical trends.
 
-4. **Largest Files**: Identification of the largest files in your repository by compressed size.
+4. **Largest files**: Identification of the largest files in your repository by compressed size.
 
-5. **File Extensions**: Analysis of file extensions and their impact on repository size.
+5. **File extensions**: Analysis of file extensions and their impact on repository size.
 
-## Use Cases
+### "On-disk size" explained
+
+The on-disk size in `git-metrics`'s output shows the compressed size of commits (saved changes), trees (folder snapshots) and blobs (file versions) as stored in Git's object database (`.git/objects`). These objects are often stored using deltas (storing only changes between similar objects). Repacking the repository (e.g. `git gc`) can alter on-disk sizes of these objects by changing compression and deltas. `git-metrics` does not include the on-disk size of metadata such as pack file indexes (`.git/objects/pack/*.idx`), refs, or other auxiliary files which accounts for 5% to 10% of the overall on-disk size of a repository in most cases.
+
+
+## Use cases
 
 - Track repository growth over time
 - Identify large files that may impact clone and fetch times
@@ -293,7 +296,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 [MIT License](LICENSE.md)
 
-## Building from Source
+## Building from source
 
 If you prefer to build `git-metrics` from source, follow these steps:
 
