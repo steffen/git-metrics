@@ -78,12 +78,28 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 		percentageBlobs := float64(file.Blobs) / float64(totalBlobs) * 100
 
 		// Check if the path needs truncation and add footnote if needed
-		truncatedPath := utils.TruncatePath(file.Path, 44)
 		var displayPath string
-
+		truncatedPath := utils.TruncatePath(file.Path, 43)
 		if truncatedPath != file.Path {
 			footnoteIndex := len(footnotes) + 1
-			displayPath = fmt.Sprintf("%s [%d]", truncatedPath, footnoteIndex)
+			marker := fmt.Sprintf(" [%d]", footnoteIndex)
+			maxTruncatedLength := 43 - len(marker)
+			if maxTruncatedLength < 0 {
+				maxTruncatedLength = 0
+			}
+			truncatedForMarker := utils.TruncatePath(file.Path, maxTruncatedLength)
+			displayPath = truncatedForMarker + marker
+			// Ensure displayPath is at most 43 chars (trim from truncatedForMarker if needed)
+			if len(displayPath) > 43 {
+				// Remove excess from truncatedForMarker part
+				excess := len(displayPath) - 43
+				if excess < len(truncatedForMarker) {
+					truncatedForMarker = truncatedForMarker[:len(truncatedForMarker)-excess]
+				} else {
+					truncatedForMarker = ""
+				}
+				displayPath = truncatedForMarker + marker
+			}
 			footnotes = append(footnotes, struct {
 				index int
 				path  string
@@ -95,7 +111,7 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 			displayPath = truncatedPath
 		}
 
-		fmt.Printf("%-44s  %s  %13s %5.1f %%  %13s %5.1f %%\n",
+		fmt.Printf("%-43s   %s  %13s %5.1f %%  %13s %5.1f %%\n",
 			displayPath,
 			file.LastChange.Format("2006"),
 			utils.FormatNumber(file.Blobs),
@@ -109,7 +125,7 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 
 	// Print separator and selected files totals row
 	fmt.Println("------------------------------------------------------------------------------------------------")
-	fmt.Printf("%-44s  %s  %13s %5.1f %%  %13s %5.1f %%\n",
+	fmt.Printf("%-43s   %s  %13s %5.1f %%  %13s %5.1f %%\n",
 		fmt.Sprintf("├─ Top %s", utils.FormatNumber(len(files))),
 		"    ",
 		utils.FormatNumber(totalSelectedBlobs),
@@ -118,7 +134,7 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 		float64(totalSelectedSize)/float64(totalFilesSize)*100)
 
 	// Print grand totals row
-	fmt.Printf("%-44s  %s  %13s %5.1f %%  %13s %5.1f %%\n",
+	fmt.Printf("%-43s   %s  %13s %5.1f %%  %13s %5.1f %%\n",
 		fmt.Sprintf("└─ Out of %s", utils.FormatNumber(totalFiles)),
 		"    ",
 		utils.FormatNumber(totalBlobs),

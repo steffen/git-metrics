@@ -63,8 +63,15 @@ func TruncatePath(path string, maximumLength int) string {
 	if len(path) <= maximumLength {
 		return path
 	}
-	halfLength := (maximumLength - 3) / 2
-	return path[:halfLength] + "..." + path[len(path)-halfLength:]
+
+	// Calculate the available space for each side after reserving 3 chars for "..."
+	availableLength := maximumLength - 3
+
+	// Use ceiling for first half, floor for second half
+	firstHalfLength := (availableLength + 1) / 2 // Ceiling
+	secondHalfLength := availableLength / 2      // Floor
+
+	return path[:firstHalfLength] + "..." + path[len(path)-secondHalfLength:]
 }
 
 // CalculateYearsMonthsDays calculates the years, months, and days between two times

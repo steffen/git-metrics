@@ -2,6 +2,7 @@ package display
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -68,6 +69,76 @@ func TestPrintLargestFiles(t *testing.T) {
 		if !strings.Contains(output, expected) {
 			t.Errorf("Expected output to contain %q, but it doesn't.\nOutput: %s", expected, output)
 		}
+	}
+}
+
+func TestPrintLargestFiles_WithVeryLongFileName_ShouldIncludeFootnoteMarker(t *testing.T) {
+	longPaths := []string{
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-1.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-2.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-3.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-4.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-5.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-6.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-7.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-8.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-9.txt",
+		"a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-10.txt",
+	}
+	// File with a name that is exactly 44 characters long
+	exact44 := "this-file-name-is-exactly-44-chars-long.jpeg"
+
+	files := make([]models.FileInformation, 0, 12)
+	for i, path := range longPaths {
+		files = append(files, models.FileInformation{
+			Path:           path,
+			Blobs:          1,
+			CompressedSize: int64(100 + i),
+			LastChange:     time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+		})
+	}
+	files = append(files, models.FileInformation{
+		Path:           exact44,
+		Blobs:          1,
+		CompressedSize: 50,
+		LastChange:     time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+	})
+	files = append(files, models.FileInformation{
+		Path:           "README.md",
+		Blobs:          1,
+		CompressedSize: 60,
+		LastChange:     time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+	})
+	totalFilesCompressedSize := int64(0)
+	for _, f := range files {
+		totalFilesCompressedSize += f.CompressedSize
+	}
+	totalBlobs := len(files)
+	totalFiles := len(files)
+
+	output := captureOutput(func() {
+		PrintLargestFiles(files, totalFilesCompressedSize, totalBlobs, totalFiles)
+	})
+
+	// All long files should have a footnote marker and be truncated to 44 chars
+	for i := 1; i <= 10; i++ {
+		marker := fmt.Sprintf(" [%d]", i)
+		if !strings.Contains(output, marker) {
+			t.Errorf("Expected output to contain footnote marker %s for long file name. Output: %s", marker, output)
+		}
+	}
+	// The footnotes should include the full long paths
+	for _, path := range longPaths {
+		if !strings.Contains(output, path) {
+			t.Errorf("Expected output to contain the full long file path in the footnote. Output: %s", output)
+		}
+	}
+	// The file with exactly 44 chars should appear as-is, no marker
+	if !strings.Contains(output, exact44) {
+		t.Errorf("Expected output to contain the file name with exactly 44 chars. Output: %s", output)
+	}
+	if strings.Contains(output, exact44+" [") {
+		t.Errorf("Did not expect a footnote marker for the file name with exactly 44 chars. Output: %s", output)
 	}
 }
 
