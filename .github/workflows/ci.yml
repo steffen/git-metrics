@@ -6,11 +6,13 @@ on:
       - main
     paths-ignore:
       - 'README.md'
+      - '.github/dependabot.yml'
   pull_request:
     branches:
       - main
     paths-ignore:
       - 'README.md'
+      - '.github/dependabot.yml'
 
 permissions:
     contents: read
