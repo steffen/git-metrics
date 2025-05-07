@@ -16,10 +16,10 @@ git init -q
 # Create a README file
 echo "# Test Repository" > README.md
 git add README.md
-git commit -m "Add README file" -q
+GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add README file" -q
 
 # Create the long path file
 mkdir -p "$(dirname "$LONG_PATH")"
 echo "$FILE_CONTENT" > "$LONG_PATH"
 git add "$LONG_PATH"
-git commit -m "Add file with long path" -q
+GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add file with long path" -q
