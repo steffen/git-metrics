@@ -58,6 +58,12 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 	var totalSelectedBlobs int
 	var totalSelectedSize int64
 
+	// Track truncated paths for footnotes
+	var footnotes []struct {
+		index int
+		path  string
+	}
+
 	// Calculate total size of all files in repository
 	for _, file := range files {
 		// Get the last change date for the file
@@ -70,8 +76,27 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 
 		percentageSize := float64(file.CompressedSize) / float64(totalFilesSize) * 100
 		percentageBlobs := float64(file.Blobs) / float64(totalBlobs) * 100
+
+		// Check if the path needs truncation and add footnote if needed
+		truncatedPath := utils.TruncatePath(file.Path, 44)
+		var displayPath string
+
+		if truncatedPath != file.Path {
+			footnoteIndex := len(footnotes) + 1
+			displayPath = fmt.Sprintf("%s [%d]", truncatedPath, footnoteIndex)
+			footnotes = append(footnotes, struct {
+				index int
+				path  string
+			}{
+				index: footnoteIndex,
+				path:  file.Path,
+			})
+		} else {
+			displayPath = truncatedPath
+		}
+
 		fmt.Printf("%-44s  %s  %13s %5.1f %%  %13s %5.1f %%\n",
-			utils.TruncatePath(file.Path, 44),
+			displayPath,
 			file.LastChange.Format("2006"),
 			utils.FormatNumber(file.Blobs),
 			percentageBlobs,
@@ -100,6 +125,14 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 		100.0,
 		utils.FormatSize(totalFilesSize),
 		100.0)
+
+	// Print footnotes for truncated paths
+	if len(footnotes) > 0 {
+		fmt.Println()
+		for _, footnote := range footnotes {
+			fmt.Printf("[%d] %s\n", footnote.index, footnote.path)
+		}
+	}
 }
 
 // PrintTopFileExtensions prints the top file extensions by size
