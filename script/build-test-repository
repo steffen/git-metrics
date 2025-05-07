@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+
+cd "$(dirname "$0")/.."
+
+TEST_REPOSITORY="tmp/test-repository"
+LONG_PATH="a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name.txt"
+FILE_CONTENT="This is a test file with a very long path."
+
+# Clean up any previous test
+rm -rf "$TEST_REPOSITORY"
+mkdir -p "$TEST_REPOSITORY"
+cd "$TEST_REPOSITORY"
+git init -q
+
+# Create a README file
+echo "# Test Repository" > README.md
+git add README.md
+git commit -m "Add README file" -q
+
+# Create the long path file
+mkdir -p "$(dirname "$LONG_PATH")"
+echo "$FILE_CONTENT" > "$LONG_PATH"
+git add "$LONG_PATH"
+git commit -m "Add file with long path" -q

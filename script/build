@@ -1,0 +1,6 @@
+#!/bin/sh
+
+set -e
+
+echo "==> Building git-metrics…" >&2
+go build .

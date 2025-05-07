@@ -1,0 +1,24 @@
+#!/bin/sh
+
+cd "$(dirname "$0")/.."
+
+compare_files() {
+  local expected_file="$1"
+  local output_file="$2"
+
+  if ! diff -u "$expected_file" "$output_file"; then
+    echo "Error: The output ($output_file) does not match the expected results ($expected_file)." >&2
+    exit 1
+  fi
+}
+
+echo "=> Running git-metrics integration tests…" >&2
+
+echo "==> Building test repository…" >&2
+script/build-test-repository
+
+script/build
+
+echo "==> Comparing output…" >&2
+./git-metrics --no-progress --repository tmp/test-repository > tmp/git-metrics.md
+compare_files fixtures/git-metrics.md tmp/git-metrics.md
