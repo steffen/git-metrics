@@ -12,12 +12,12 @@ rm -rf "$TEST_REPOSITORY"
 mkdir -p "$TEST_REPOSITORY"
 cd "$TEST_REPOSITORY"
 
+git init
+
 git config --local user.email "test@example.com"
 git config --local user.name "Test user"
 
 git config --list --show-origin
-
-git init
 
 # Create a README file
 echo "# Test Repository" > README.md
