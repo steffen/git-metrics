@@ -4,7 +4,6 @@ RUN ############################################################################
 
 REPOSITORY #####################################################################################
 
-Git directory              /Users/steffen/GitHub/steffen/git-metrics/tmp/test-repository/.git
 Most recent commit         Wed, 01 Jan 2025 (9468501)
 First commit               Wed, 01 Jan 2025 (604c80)
 
