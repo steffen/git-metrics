@@ -17,9 +17,23 @@ echo "=> Running git-metrics integration tests…" >&2
 echo "==> Building test repository…" >&2
 script/build-test-repository
 
-script/build
+echo "==> Building git-metrics binary in Docker…" >&2
+docker run --rm \
+  -v "$(pwd)":/workspace \
+  -w /workspace \
+  --entrypoint /bin/sh \
+  golang:latest \
+  -c "chmod +x script/build && script/build"
 
 echo "==> Comparing output…" >&2
-./git-metrics --no-progress --repository tmp/test-repository > tmp/git-metrics.md
+docker run --rm \
+  --cpus 2 \
+  --memory 2g \
+  -v "$(pwd)":/workspace \
+  -w /workspace \
+  --entrypoint /workspace/git-metrics \
+  golang:latest \
+  --no-progress --repository tmp/test-repository > tmp/git-metrics.md
 script/remove-non-deterministic-rows tmp/git-metrics.md
 compare_files fixtures/git-metrics.md tmp/git-metrics.md
+echo "The output matches the expected results." >&2
