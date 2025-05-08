@@ -11,6 +11,10 @@ FILE_CONTENT="This is a test file with a very long path."
 rm -rf "$TEST_REPOSITORY"
 mkdir -p "$TEST_REPOSITORY"
 cd "$TEST_REPOSITORY"
+
+git config --local user.email "test@example.com"
+git config --local user.name "Test user"
+
 git init -q
 
 # Create a README file
