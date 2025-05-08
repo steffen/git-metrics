@@ -11,3 +11,6 @@ script/build
 
 echo "==> Running git-metrics and updating output…" >&2
 ./git-metrics --no-progress --repository tmp/test-repository > fixtures/git-metrics.md
+
+echo "==> Removing non-deterministic rows…" >&2
+script/remove-non-deterministic-rows fixtures/git-metrics.md

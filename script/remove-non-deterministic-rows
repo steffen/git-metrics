@@ -1,0 +1,37 @@
+#!/bin/sh
+
+# This script removes non-deterministic rows from the output of the `get-rows` command.
+# It takes the output of the `get-rows` command as input and writes the cleaned output to a file.
+
+
+# Usage: ./remove-non-deterministic-rows.sh <input_file>
+
+
+# Check if the correct number of arguments is provided
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <input_file>"
+  exit 1
+fi
+
+input_file="$1"
+
+
+# Check if the input file exists
+if [ ! -f "$input_file" ]; then
+  echo "Error: Input file '$input_file' not found."
+  exit 1
+fi
+
+# Remove non-deterministic rows from the input file and overwrite the input file
+temp_file="$(mktemp)"
+grep -Ev '^(Start time|Last modified|Age|Finished)' "$input_file" > "$temp_file"
+
+# Check if the temporary file was created successfully
+if [ $? -eq 0 ]; then
+  mv "$temp_file" "$input_file"
+  echo "Non-deterministic rows removed successfully. Output written to '$input_file'."
+else
+  echo "Error: Failed to process input file '$input_file'."
+  rm -f "$temp_file"
+  exit 1
+fi

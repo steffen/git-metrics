@@ -32,7 +32,7 @@ jobs:
         with:
           go-version-file: './go.mod'
 
-      - name: Run tests
+      - name: Run unit tests
         run: go test ./... -v
 
       - name: Build binaries
@@ -56,9 +56,10 @@ jobs:
             echo "Built ${OUTPUT}"
           done
 
-      - name: smoke test linux version
+      - name: Run integration tests
         run: |
-          ./${DIST_PATH}/${BINARY_NAME}-linux-amd64
+          ln -s "${DIST_PATH}/${BINARY_NAME}-linux-amd64" ./ghe-metrics
+          ./script/run-integration-tests
 
       - name: Upload binaries
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
