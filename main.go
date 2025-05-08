@@ -87,12 +87,7 @@ func main() {
 	}
 
 	if recentFetch != "" {
-		if progress.ShowProgress {
-			fmt.Printf("Most recent fetch          ... fetching\n")
-			fmt.Printf("\033[1A\033[2KMost recent fetch          %s\n", recentFetch)
-		} else {
-			fmt.Printf("Most recent fetch          %s\n", recentFetch)
-		}
+		fmt.Printf("Most recent fetch          %s\n", recentFetch)
 	}
 
 	// Most recent commit
