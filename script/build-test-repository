@@ -22,7 +22,7 @@ git config --list --show-origin
 # Create a README file
 echo "# Test Repository" > README.md
 git add README.md
-GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add README file"
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add README file"
 
 # Output details of the latest commit
 git log -1 --stat --pretty=fuller
@@ -34,10 +34,10 @@ for i in $(seq 1 11); do
     echo "$FILE_CONTENT $i" > "$LONG_PATH_FILE"
     git add "$LONG_PATH_FILE"
 done
-GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add 11 files with long paths"
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add 11 files with long paths"
 
 # Create a file with a name that is exactly 44 characters long
 EXACT44_FILE="this-file-name-is-exactly-44-chars-long.jpeg"
 echo "$FILE_CONTENT exact44" > "$EXACT44_FILE"
 git add "$EXACT44_FILE"
-GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add file with exactly 44 chars in name"
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add file with exactly 44 chars in name"
