@@ -15,12 +15,14 @@ cd "$TEST_REPOSITORY"
 git config --local user.email "test@example.com"
 git config --local user.name "Test user"
 
-git init -q
+git config --list --show-origin
+
+git init
 
 # Create a README file
 echo "# Test Repository" > README.md
 git add README.md
-GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add README file" -q
+GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add README file"
 
 # Create 11 long path files
 for i in $(seq 1 11); do
@@ -29,10 +31,10 @@ for i in $(seq 1 11); do
     echo "$FILE_CONTENT $i" > "$LONG_PATH_FILE"
     git add "$LONG_PATH_FILE"
 done
-GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add 11 files with long paths" -q
+GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add 11 files with long paths"
 
 # Create a file with a name that is exactly 44 characters long
 EXACT44_FILE="this-file-name-is-exactly-44-chars-long.jpeg"
 echo "$FILE_CONTENT exact44" > "$EXACT44_FILE"
 git add "$EXACT44_FILE"
-GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add file with exactly 44 chars in name" -q
+GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add file with exactly 44 chars in name"
