@@ -24,12 +24,12 @@ File path                              Last commit          Blobs           On-d
 this-file-name-is-...44-chars-long.jpeg [1]   2025              1   7.7 %         0.1 KB   8.7 %
 a/very/long/path/t...g-file-name-10.txt [2]   2025              1   7.7 %         0.1 KB   8.0 %
 a/very/long/path/t...g-file-name-11.txt [3]   2025              1   7.7 %         0.1 KB   8.0 %
-a/very/long/path/t...ng-file-name-3.txt [4]   2025              1   7.7 %         0.1 KB   7.9 %
-a/very/long/path/t...ng-file-name-6.txt [5]   2025              1   7.7 %         0.1 KB   7.9 %
-a/very/long/path/t...ng-file-name-1.txt [6]   2025              1   7.7 %         0.1 KB   7.9 %
+a/very/long/path/t...ng-file-name-1.txt [4]   2025              1   7.7 %         0.1 KB   7.9 %
+a/very/long/path/t...ng-file-name-2.txt [5]   2025              1   7.7 %         0.1 KB   7.9 %
+a/very/long/path/t...ng-file-name-3.txt [6]   2025              1   7.7 %         0.1 KB   7.9 %
 a/very/long/path/t...ng-file-name-4.txt [7]   2025              1   7.7 %         0.1 KB   7.9 %
-a/very/long/path/t...ng-file-name-9.txt [8]   2025              1   7.7 %         0.1 KB   7.9 %
-a/very/long/path/t...ng-file-name-5.txt [9]   2025              1   7.7 %         0.1 KB   7.9 %
+a/very/long/path/t...ng-file-name-5.txt [8]   2025              1   7.7 %         0.1 KB   7.9 %
+a/very/long/path/t...ng-file-name-6.txt [9]   2025              1   7.7 %         0.1 KB   7.9 %
 a/very/long/path/t...g-file-name-7.txt [10]   2025              1   7.7 %         0.1 KB   7.9 %
 ------------------------------------------------------------------------------------------------
 ├─ Top 10                                                      10  76.9 %         0.6 KB  79.7 %
@@ -38,12 +38,12 @@ a/very/long/path/t...g-file-name-7.txt [10]   2025              1   7.7 %       
 [1] this-file-name-is-exactly-44-chars-long.jpeg
 [2] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-10.txt
 [3] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-11.txt
-[4] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-3.txt
-[5] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-6.txt
-[6] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-1.txt
+[4] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-1.txt
+[5] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-2.txt
+[6] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-3.txt
 [7] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-4.txt
-[8] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-9.txt
-[9] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-5.txt
+[8] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-5.txt
+[9] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-6.txt
 [10] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-7.txt
 
 LARGEST FILE EXTENSIONS ########################################################################

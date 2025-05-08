@@ -23,3 +23,4 @@ echo "==> Comparing output…" >&2
 ./git-metrics --no-progress --repository tmp/test-repository > tmp/git-metrics.md
 script/remove-non-deterministic-rows tmp/git-metrics.md
 compare_files fixtures/git-metrics.md tmp/git-metrics.md
+echo "The output matches the expected results." >&2

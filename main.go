@@ -285,9 +285,12 @@ func main() {
 
 	// Use the final statistics for largest files
 	largestFiles := totalStatistics.LargestFiles
-	// Sort by compressed size descending and take top 10.
+	// Sort by compressed size descending, then by path ascending, and take top 10.
 	sort.Slice(largestFiles, func(i, j int) bool {
-		return largestFiles[i].CompressedSize > largestFiles[j].CompressedSize
+		if largestFiles[i].CompressedSize != largestFiles[j].CompressedSize {
+			return largestFiles[i].CompressedSize > largestFiles[j].CompressedSize
+		}
+		return largestFiles[i].Path < largestFiles[j].Path
 	})
 
 	// Calculate total compressed size from all files
