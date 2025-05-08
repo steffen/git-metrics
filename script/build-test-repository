@@ -12,7 +12,7 @@ rm -rf "$TEST_REPOSITORY"
 mkdir -p "$TEST_REPOSITORY"
 cd "$TEST_REPOSITORY"
 
-git init
+git init --initial-branch=main
 
 git config --local user.email "test@example.com"
 git config --local user.name "Test user"
@@ -23,6 +23,9 @@ git config --list --show-origin
 echo "# Test Repository" > README.md
 git add README.md
 GIT_AUTHOR_DATE="2025-01-01T00:00:00" GIT_COMMITTER_DATE="2025-01-01T00:00:00" git commit -m "Add README file"
+
+# Output details of the latest commit
+git log -1 --stat --pretty=fuller
 
 # Create 11 long path files
 for i in $(seq 1 11); do
