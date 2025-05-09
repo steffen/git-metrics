@@ -1,0 +1,1 @@
+- Don't use abbreviations in the codebase. For example, use `user` instead of `usr`.

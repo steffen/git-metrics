@@ -1,0 +1,8 @@
+#!/bin/sh
+
+cd "$(dirname "$0")/.."
+
+script/build
+
+echo "==> Running git-metrics…" >&2
+./git-metrics --repository tmp/test-repository

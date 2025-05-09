@@ -1,5 +1,8 @@
 # Binary
-git-metrics*
+/git-metrics*
 
 # Editor files
 .vscode/launch.json
+
+# Temporary files
+/tmp/

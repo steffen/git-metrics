@@ -93,7 +93,7 @@ func TestTruncatePath(t *testing.T) {
 			name:         "Long path",
 			path:         "very/long/path/to/some/file.txt",
 			maxLength:    20,
-			expectedPath: "very/lon...file.txt",
+			expectedPath: "very/long...file.txt",
 		},
 		{
 			name:         "Exactly at max",

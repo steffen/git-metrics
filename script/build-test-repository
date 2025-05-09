@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+
+cd "$(dirname "$0")/.."
+
+TEST_REPOSITORY="tmp/test-repository"
+FILE_CONTENT="This is a test file with a very long path."
+
+# Clean up any previous test
+rm -rf "$TEST_REPOSITORY"
+mkdir -p "$TEST_REPOSITORY"
+cd "$TEST_REPOSITORY"
+
+git init --initial-branch=main
+
+git config --local user.email "test@example.com"
+git config --local user.name "Test user"
+
+git config --list --show-origin
+
+# Create a README file
+echo "# Test Repository" > README.md
+git add README.md
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add README file"
+
+# Output details of the latest commit
+git log -1 --stat --pretty=fuller
+
+# Create 11 long path files
+for i in $(seq 1 11); do
+    LONG_PATH_FILE="a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-$i.txt"
+    mkdir -p "$(dirname "$LONG_PATH_FILE")"
+    echo "$FILE_CONTENT $i" > "$LONG_PATH_FILE"
+    git add "$LONG_PATH_FILE"
+done
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add 11 files with long paths"
+
+# Create a file with a name that is exactly 44 characters long
+EXACT44_FILE="this-file-name-is-exactly-44-chars-long.jpeg"
+echo "$FILE_CONTENT exact44" > "$EXACT44_FILE"
+git add "$EXACT44_FILE"
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add file with exactly 44 chars in name"

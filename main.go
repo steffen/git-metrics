@@ -75,18 +75,25 @@ func main() {
 	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
 	remote := ""
 	if err == nil && len(strings.TrimSpace(string(remoteOutput))) > 0 {
-		fmt.Printf("Remote                     ... fetching\n")
+		if progress.ShowProgress {
+			fmt.Printf("Remote                     ... fetching\n")
+		}
 		remote = strings.TrimSpace(string(remoteOutput))
-		fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
+		if progress.ShowProgress {
+			fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
+		} else {
+			fmt.Printf("Remote                     %s\n", remote)
+		}
 	}
 
 	if recentFetch != "" {
-		fmt.Printf("Most recent fetch          ... fetching\n")
-		fmt.Printf("\033[1A\033[2KMost recent fetch          %s\n", recentFetch)
+		fmt.Printf("Most recent fetch          %s\n", recentFetch)
 	}
 
 	// Most recent commit
-	fmt.Printf("Most recent commit         ... fetching\n")
+	if progress.ShowProgress {
+		fmt.Printf("Most recent commit         ... fetching\n")
+	}
 	lastHashOutput, err := git.RunGitCommand(debug, "rev-parse", "--short", "HEAD")
 	lastCommit := UnknownValue
 	if err == nil {
@@ -98,10 +105,16 @@ func main() {
 			lastCommit = fmt.Sprintf("%s (%s)", lastDate.Format("Mon, 02 Jan 2006"), lastHash)
 		}
 	}
-	fmt.Printf("\033[1A\033[2KMost recent commit         %s\n", lastCommit)
+	if progress.ShowProgress {
+		fmt.Printf("\033[1A\033[2KMost recent commit         %s\n", lastCommit)
+	} else {
+		fmt.Printf("Most recent commit         %s\n", lastCommit)
+	}
 
 	// First commit and age
-	fmt.Printf("First commit               ... fetching\n")
+	if progress.ShowProgress {
+		fmt.Printf("First commit               ... fetching\n")
+	}
 	firstOutput, err := git.RunGitCommand(debug, "rev-list", "--max-parents=0", "HEAD", "--format=%cD")
 	firstCommit := UnknownValue
 	ageString := UnknownValue
@@ -144,7 +157,11 @@ func main() {
 			ageString = strings.Join(parts, " ")
 		}
 	}
-	fmt.Printf("\033[1A\033[2KFirst commit               %s\n", firstCommit)
+	if progress.ShowProgress {
+		fmt.Printf("\033[1A\033[2KFirst commit               %s\n", firstCommit)
+	} else {
+		fmt.Printf("First commit               %s\n", firstCommit)
+	}
 
 	// If there are no commits, exit early
 	if firstCommit == UnknownValue {
@@ -268,9 +285,12 @@ func main() {
 
 	// Use the final statistics for largest files
 	largestFiles := totalStatistics.LargestFiles
-	// Sort by compressed size descending and take top 10.
+	// Sort by compressed size descending, then by path ascending, and take top 10.
 	sort.Slice(largestFiles, func(i, j int) bool {
-		return largestFiles[i].CompressedSize > largestFiles[j].CompressedSize
+		if largestFiles[i].CompressedSize != largestFiles[j].CompressedSize {
+			return largestFiles[i].CompressedSize > largestFiles[j].CompressedSize
+		}
+		return largestFiles[i].Path < largestFiles[j].Path
 	})
 
 	// Calculate total compressed size from all files
