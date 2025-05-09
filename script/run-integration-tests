@@ -15,7 +15,7 @@ compare_files() {
 echo "=> Running git-metrics integration tests…" >&2
 
 echo "==> Building test repository…" >&2
-bash -x script/build-test-repository
+script/build-test-repository
 
 script/build
 
