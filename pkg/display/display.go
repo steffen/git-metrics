@@ -15,6 +15,143 @@ import (
 	"git-metrics/pkg/utils"
 )
 
+// PrintLargestDirectories prints the largest root and subdirectories by size and object count
+func PrintLargestDirectories(files []models.FileInformation, totalCommits, totalTrees, totalBlobs int, totalCompressedSize int64) {
+	type dirStats struct {
+		Path           string
+		Commits        int
+		Trees          int
+		Blobs          int
+		CompressedSize int64
+		Children       map[string]*dirStats // for subdirectories
+		IsRoot         bool
+	}
+
+	// Helper to get root dir or (root files)
+	getRoot := func(path string) string {
+		if !strings.Contains(path, "/") {
+			return "(root files)"
+		}
+		return strings.SplitN(path, "/", 2)[0]
+	}
+
+	// Aggregate stats for root directories and root files
+	rootStats := make(map[string]*dirStats)
+	for _, file := range files {
+		root := getRoot(file.Path)
+		if _, ok := rootStats[root]; !ok {
+			rootStats[root] = &dirStats{
+				Path:     root,
+				Children: make(map[string]*dirStats),
+				IsRoot:   true,
+			}
+		}
+		stat := rootStats[root]
+		stat.Blobs += file.Blobs
+		stat.CompressedSize += file.CompressedSize
+		// Commits and Trees are not tracked per file, so leave as 0 for now
+
+		// For subdirectories within root
+		if root != "(root files)" {
+			sub := ""
+			parts := strings.SplitN(file.Path, "/", 3)
+			if len(parts) > 2 {
+				sub = parts[1]
+				if _, ok := stat.Children[sub]; !ok {
+					stat.Children[sub] = &dirStats{
+						Path:   sub,
+						IsRoot: false,
+					}
+				}
+				subStat := stat.Children[sub]
+				subStat.Blobs += file.Blobs
+				subStat.CompressedSize += file.CompressedSize
+			}
+		}
+	}
+
+	// Convert to slice and sort by size
+	var roots []*dirStats
+	for _, stat := range rootStats {
+		roots = append(roots, stat)
+	}
+	sort.Slice(roots, func(i, j int) bool {
+		if roots[i].CompressedSize != roots[j].CompressedSize {
+			return roots[i].CompressedSize > roots[j].CompressedSize
+		}
+		return roots[i].Path < roots[j].Path
+	})
+	if len(roots) > 10 {
+		roots = roots[:10]
+	}
+
+	// Print header
+	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
+	fmt.Println()
+	fmt.Println("Path                    Commits             Trees             Blobs         On-disk size")
+	fmt.Println("------------------------------------------------------------------------------------------------")
+
+	// Print root entries
+	for _, stat := range roots {
+		// Calculate percentages
+		percentBlobs := 0.0
+		percentSize := 0.0
+		if totalBlobs > 0 {
+			percentBlobs = float64(stat.Blobs) / float64(totalBlobs) * 100
+		}
+		if totalCompressedSize > 0 {
+			percentSize = float64(stat.CompressedSize) / float64(totalCompressedSize) * 100
+		}
+		// Print root
+		fmt.Printf("%-24s %13s   %2s %%  %13s   %2s %%  %13s   %2s %%  %13s  %2s %%\n",
+			stat.Path,
+			"", // Commits (not tracked per dir)
+			"", // Commits %
+			"", // Trees (not tracked per dir)
+			"", // Trees %
+			utils.FormatNumber(stat.Blobs),
+			fmt.Sprintf("%d", int(percentBlobs+0.5)),
+			utils.FormatSize(stat.CompressedSize),
+			fmt.Sprintf("%d", int(percentSize+0.5)),
+		)
+		// Print up to 10 largest subdirs for this root
+		var children []*dirStats
+		for _, child := range stat.Children {
+			children = append(children, child)
+		}
+		sort.Slice(children, func(i, j int) bool {
+			if children[i].CompressedSize != children[j].CompressedSize {
+				return children[i].CompressedSize > children[j].CompressedSize
+			}
+			return children[i].Path < children[j].Path
+		})
+		if len(children) > 10 {
+			children = children[:10]
+		}
+		for _, child := range children {
+			percentBlobs := 0.0
+			percentSize := 0.0
+			if stat.Blobs > 0 {
+				percentBlobs = float64(child.Blobs) / float64(stat.Blobs) * 100
+			}
+			if stat.CompressedSize > 0 {
+				percentSize = float64(child.CompressedSize) / float64(stat.CompressedSize) * 100
+			}
+			fmt.Printf("├─ %-21s %13s   %2s %%  %13s   %2s %%  %13s   %2s %%  %13s  %2s %%\n",
+				child.Path,
+				"", // Commits (not tracked per dir)
+				"", // Commits %
+				"", // Trees (not tracked per dir)
+				"", // Trees %
+				utils.FormatNumber(child.Blobs),
+				fmt.Sprintf("%d", int(percentBlobs+0.5)),
+				utils.FormatSize(child.CompressedSize),
+				fmt.Sprintf("%d", int(percentSize+0.5)),
+			)
+		}
+	}
+}
+
 // PrintGrowthTableHeader prints the header for the growth table
 func PrintGrowthTableHeader() {
 	fmt.Println()
