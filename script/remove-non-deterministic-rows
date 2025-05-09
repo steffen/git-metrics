@@ -4,12 +4,12 @@
 # It takes the output of the `get-rows` command as input and writes the cleaned output to a file.
 
 
-# Usage: ./remove-non-deterministic-rows.sh <input_file>
+# Usage: ./remove-non-deterministic-rows <input_file>
 
 
 # Check if the correct number of arguments is provided
 if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <input_file>"
+  echo "Usage: ./remove-non-deterministic-rows <input_file>"
   exit 1
 fi
 
