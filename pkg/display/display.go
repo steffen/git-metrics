@@ -77,38 +77,17 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 		percentageSize := float64(file.CompressedSize) / float64(totalFilesSize) * 100
 		percentageBlobs := float64(file.Blobs) / float64(totalBlobs) * 100
 
-		// Check if the path needs truncation and add footnote if needed
-		var displayPath string
-		truncatedPath := utils.TruncatePath(file.Path, 43)
-		if truncatedPath != file.Path {
-			footnoteIndex := len(footnotes) + 1
-			marker := fmt.Sprintf(" [%d]", footnoteIndex)
-			maxTruncatedLength := 43 - len(marker)
-			if maxTruncatedLength < 0 {
-				maxTruncatedLength = 0
-			}
-			truncatedForMarker := utils.TruncatePath(file.Path, maxTruncatedLength)
-			displayPath = truncatedForMarker + marker
-			// Ensure displayPath is at most 43 chars (trim from truncatedForMarker if needed)
-			if len(displayPath) > 43 {
-				// Remove excess from truncatedForMarker part
-				excess := len(displayPath) - 43
-				if excess < len(truncatedForMarker) {
-					truncatedForMarker = truncatedForMarker[:len(truncatedForMarker)-excess]
-				} else {
-					truncatedForMarker = ""
-				}
-				displayPath = truncatedForMarker + marker
-			}
+		// Use FormatDisplayPath for consistent truncation and footnote logic
+		result := FormatDisplayPath(file.Path, 43, len(footnotes))
+		displayPath := result.DisplayPath
+		if result.FootnoteIndex > 0 {
 			footnotes = append(footnotes, struct {
 				index int
 				path  string
 			}{
-				index: footnoteIndex,
-				path:  file.Path,
+				index: result.FootnoteIndex,
+				path:  result.FullPath,
 			})
-		} else {
-			displayPath = truncatedPath
 		}
 
 		fmt.Printf("%-43s   %s  %13s %5.1f %%  %13s %5.1f %%\n",
