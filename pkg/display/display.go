@@ -37,6 +37,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 
 	// Aggregate stats for root directories and root files
 	rootStats := make(map[string]*dirStats)
+	// For each file, update root and immediate children (subdirectories or files)
 	for _, file := range files {
 		root := getRoot(file.Path)
 		if _, ok := rootStats[root]; !ok {
@@ -49,23 +50,46 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 		stat := rootStats[root]
 		stat.Blobs += file.Blobs
 		stat.CompressedSize += file.CompressedSize
-		// Commits and Trees are not tracked per file, so leave as 0 for now
 
-		// For subdirectories within root
-		if root != "(root files)" {
-			sub := ""
+		// For immediate children: subdirectories or files directly under root
+		if root == "(root files)" {
+			// Files at root: each file is a child
+			if _, ok := stat.Children[file.Path]; !ok {
+				stat.Children[file.Path] = &dirStats{
+					Path:   file.Path,
+					IsRoot: false,
+				}
+			}
+			child := stat.Children[file.Path]
+			child.Blobs += file.Blobs
+			child.CompressedSize += file.CompressedSize
+		} else {
+			// For files under a root directory
 			parts := strings.SplitN(file.Path, "/", 3)
-			if len(parts) > 2 {
-				sub = parts[1]
+			if len(parts) == 2 {
+				// File directly under root dir
+				name := parts[1]
+				if _, ok := stat.Children[name]; !ok {
+					stat.Children[name] = &dirStats{
+						Path:   name,
+						IsRoot: false,
+					}
+				}
+				child := stat.Children[name]
+				child.Blobs += file.Blobs
+				child.CompressedSize += file.CompressedSize
+			} else if len(parts) > 2 {
+				// File in a subdirectory: immediate child is the subdir
+				sub := parts[1]
 				if _, ok := stat.Children[sub]; !ok {
 					stat.Children[sub] = &dirStats{
 						Path:   sub,
 						IsRoot: false,
 					}
 				}
-				subStat := stat.Children[sub]
-				subStat.Blobs += file.Blobs
-				subStat.CompressedSize += file.CompressedSize
+				child := stat.Children[sub]
+				child.Blobs += file.Blobs
+				child.CompressedSize += file.CompressedSize
 			}
 		}
 	}
@@ -116,7 +140,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 			percentSize,
 		)
 
-		// Print up to 10 largest subdirs for this root
+		// Print up to 10 largest immediate children (subdirs or files) for this root
 		var children []*dirStats
 		for _, child := range stat.Children {
 			children = append(children, child)
