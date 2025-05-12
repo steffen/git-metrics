@@ -133,11 +133,11 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 		for _, child := range children {
 			percentBlobs := 0.0
 			percentSize := 0.0
-			if stat.Blobs > 0 {
-				percentBlobs = float64(child.Blobs) / float64(stat.Blobs) * 100
+			if totalBlobs > 0 {
+				percentBlobs = float64(child.Blobs) / float64(totalBlobs) * 100
 			}
-			if stat.CompressedSize > 0 {
-				percentSize = float64(child.CompressedSize) / float64(stat.CompressedSize) * 100
+			if totalCompressedSize > 0 {
+				percentSize = float64(child.CompressedSize) / float64(totalCompressedSize) * 100
 			}
 			fmt.Printf("├─ %-48s %13s%6.1f %%  %13s%6.1f %%\n",
 				child.Path,
