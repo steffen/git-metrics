@@ -88,7 +88,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 	// Print header
 	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
 	fmt.Println()
-	fmt.Println("Path                    Commits             Trees             Blobs         On-disk size")
+	fmt.Println("Path                                                        Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
 	// Print root entries
@@ -103,12 +103,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 			percentSize = float64(stat.CompressedSize) / float64(totalCompressedSize) * 100
 		}
 		// Print root
-		fmt.Printf("%-24s %13s   %2s %%  %13s   %2s %%  %13s   %2s %%  %13s  %2s %%\n",
+		fmt.Printf("%-51s %13s   %2s %%  %13s  %2s %%\n",
 			stat.Path,
-			"", // Commits (not tracked per dir)
-			"", // Commits %
-			"", // Trees (not tracked per dir)
-			"", // Trees %
 			utils.FormatNumber(stat.Blobs),
 			fmt.Sprintf("%d", int(percentBlobs+0.5)),
 			utils.FormatSize(stat.CompressedSize),
@@ -137,12 +133,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 			if stat.CompressedSize > 0 {
 				percentSize = float64(child.CompressedSize) / float64(stat.CompressedSize) * 100
 			}
-			fmt.Printf("├─ %-21s %13s   %2s %%  %13s   %2s %%  %13s   %2s %%  %13s  %2s %%\n",
+			fmt.Printf("├─ %-48s %13s   %2s %%  %13s  %2s %%\n",
 				child.Path,
-				"", // Commits (not tracked per dir)
-				"", // Commits %
-				"", // Trees (not tracked per dir)
-				"", // Trees %
 				utils.FormatNumber(child.Blobs),
 				fmt.Sprintf("%d", int(percentBlobs+0.5)),
 				utils.FormatSize(child.CompressedSize),
