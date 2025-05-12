@@ -311,6 +311,11 @@ func main() {
 	// New call to display top 10 largest file extensions using accumulated blob data.
 	display.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
+	// Print top 10 commit authors
+	if topAuthors, err := git.GetTopCommitAuthors(10); err == nil && len(topAuthors) > 0 {
+		display.PrintTopCommitAuthors(topAuthors)
+	}
+
 	// Get memory statistics for final output
 	var memoryStatistics runtime.MemStats
 	runtime.ReadMemStats(&memoryStatistics)

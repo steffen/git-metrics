@@ -512,3 +512,14 @@ func PrintMachineInformation() {
 		utils.GetChipInformation())
 	fmt.Printf("Git version                %s\n", git.GetGitVersion())
 }
+
+// PrintTopCommitAuthors prints the top commit authors by number of commits
+func PrintTopCommitAuthors(authors [][2]string) {
+	fmt.Println("\nAUTHORS WITH MOST COMMITS #######################################################################")
+	fmt.Println()
+	fmt.Println("Author                                 Commits")
+	fmt.Println("------------------------------------------------------------------------------------------------")
+	for _, entry := range authors {
+		fmt.Printf("%-38s %8s\n", entry[0], entry[1])
+	}
+}

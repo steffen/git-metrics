@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -248,4 +249,47 @@ func ShellToUse() string {
 		return "bash"
 	}
 	return "sh"
+}
+
+// GetTopCommitAuthors returns the top N commit authors by number of commits
+func GetTopCommitAuthors(n int) ([][2]string, error) {
+	// Get all commit author names
+	command := exec.Command("git", "rev-list", "--all", "--pretty=format:%an")
+	output, err := command.Output()
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(output), "\n")
+	authorCount := make(map[string]int)
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "commit ") {
+			continue
+		}
+		authorCount[line]++
+	}
+	// Convert to slice and sort
+	type authorEntry struct {
+		Name  string
+		Count int
+	}
+	var authors []authorEntry
+	for name, count := range authorCount {
+		authors = append(authors, authorEntry{Name: name, Count: count})
+	}
+	sort.Slice(authors, func(i, j int) bool {
+		if authors[i].Count == authors[j].Count {
+			return authors[i].Name < authors[j].Name
+		}
+		return authors[i].Count > authors[j].Count
+	})
+	// Prepare result
+	var result [][2]string
+	for i, author := range authors {
+		if i >= n {
+			break
+		}
+		result = append(result, [2]string{author.Name, strconv.Itoa(author.Count)})
+	}
+	return result, nil
 }
