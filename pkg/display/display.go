@@ -115,6 +115,10 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 	fmt.Println("Path                                                        Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
+	// Track totals for displayed roots (top 10)
+	var totalSelectedBlobs int
+	var totalSelectedSize int64
+
 	// Print root entries
 	for i, stat := range roots {
 		// Print separator after each root except the last
@@ -139,6 +143,9 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 			utils.FormatSize(stat.CompressedSize),
 			percentSize,
 		)
+
+		totalSelectedBlobs += stat.Blobs
+		totalSelectedSize += stat.CompressedSize
 
 		// Print up to 10 largest immediate children (subdirs or files) for this root
 		var children []*dirStats
@@ -178,7 +185,20 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 		}
 	}
 
+	// Print separator and summary rows for roots (whole table)
 	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
+		fmt.Sprintf("├─ Top %s", utils.FormatNumber(len(roots))),
+		utils.FormatNumber(totalSelectedBlobs),
+		float64(totalSelectedBlobs)/float64(totalBlobs)*100,
+		utils.FormatSize(totalSelectedSize),
+		float64(totalSelectedSize)/float64(totalCompressedSize)*100)
+	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
+		fmt.Sprintf("└─ Out of %s", utils.FormatNumber(len(rootStats))),
+		utils.FormatNumber(totalBlobs),
+		100.0,
+		utils.FormatSize(totalCompressedSize),
+		100.0)
 }
 
 // PrintGrowthTableHeader prints the header for the growth table
