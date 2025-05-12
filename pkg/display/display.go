@@ -16,7 +16,7 @@ import (
 )
 
 // PrintLargestDirectories prints the largest root and subdirectories by size and object count
-func PrintLargestDirectories(files []models.FileInformation, totalCommits, totalTrees int, totalCompressedSize int64) {
+func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, totalCompressedSize int64) {
 	type dirStats struct {
 		Path           string
 		Blobs          int
