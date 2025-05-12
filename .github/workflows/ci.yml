@@ -59,9 +59,7 @@ jobs:
           done
 
       - name: Run integration tests
-        run: |
-          ln -s "${DIST_PATH}/${BINARY_NAME}-linux-amd64" ./ghe-metrics
-          ./script/run-integration-tests
+        run: ./script/run-integration-tests
 
       - name: Upload binaries
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

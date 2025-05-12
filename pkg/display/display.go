@@ -15,6 +15,196 @@ import (
 	"git-metrics/pkg/utils"
 )
 
+// PrintLargestDirectories prints the largest root and subdirectories by size and object count
+func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, totalCompressedSize int64) {
+	type dirStats struct {
+		Path           string
+		Blobs          int
+		CompressedSize int64
+		Children       map[string]*dirStats // for subdirectories
+		IsRoot         bool
+	}
+
+	// Helper to get root dir or (root files)
+	getRoot := func(path string) string {
+		if !strings.Contains(path, "/") {
+			return "(root files)"
+		}
+		return strings.SplitN(path, "/", 2)[0]
+	}
+
+	// Aggregate stats for root directories and root files
+	rootStats := make(map[string]*dirStats)
+	// For each file, update root and immediate children (subdirectories or files)
+	for _, file := range files {
+		root := getRoot(file.Path)
+		if _, ok := rootStats[root]; !ok {
+			rootStats[root] = &dirStats{
+				Path:     root,
+				Children: make(map[string]*dirStats),
+				IsRoot:   true,
+			}
+		}
+		stat := rootStats[root]
+		stat.Blobs += file.Blobs
+		stat.CompressedSize += file.CompressedSize
+
+		// For immediate children: subdirectories or files directly under root
+		if root == "(root files)" {
+			// Files at root: each file is a child
+			if _, ok := stat.Children[file.Path]; !ok {
+				stat.Children[file.Path] = &dirStats{
+					Path:   file.Path,
+					IsRoot: false,
+				}
+			}
+			child := stat.Children[file.Path]
+			child.Blobs += file.Blobs
+			child.CompressedSize += file.CompressedSize
+		} else {
+			// For files under a root directory
+			parts := strings.SplitN(file.Path, "/", 3)
+			if len(parts) == 2 {
+				// File directly under root dir
+				name := parts[1]
+				if _, ok := stat.Children[name]; !ok {
+					stat.Children[name] = &dirStats{
+						Path:   name,
+						IsRoot: false,
+					}
+				}
+				child := stat.Children[name]
+				child.Blobs += file.Blobs
+				child.CompressedSize += file.CompressedSize
+			} else if len(parts) > 2 {
+				// File in a subdirectory: immediate child is the subdir
+				sub := parts[1]
+				if _, ok := stat.Children[sub]; !ok {
+					stat.Children[sub] = &dirStats{
+						Path:   sub,
+						IsRoot: false,
+					}
+				}
+				child := stat.Children[sub]
+				child.Blobs += file.Blobs
+				child.CompressedSize += file.CompressedSize
+			}
+		}
+	}
+
+	// Convert to slice and sort by size
+	var roots []*dirStats
+	for _, stat := range rootStats {
+		roots = append(roots, stat)
+	}
+	sort.Slice(roots, func(i, j int) bool {
+		if roots[i].CompressedSize != roots[j].CompressedSize {
+			return roots[i].CompressedSize > roots[j].CompressedSize
+		}
+		return roots[i].Path < roots[j].Path
+	})
+	if len(roots) > 10 {
+		roots = roots[:10]
+	}
+
+	// Print header
+	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
+	fmt.Println()
+	fmt.Println("Path                                                        Blobs           On-disk size")
+	fmt.Println("------------------------------------------------------------------------------------------------")
+
+	// Calculate the total compressed size of all blobs (sum of all file.CompressedSize)
+	var totalBlobsCompressedSize int64
+	for _, file := range files {
+		totalBlobsCompressedSize += file.CompressedSize
+	}
+
+	// Track totals for displayed roots (top 10)
+	var totalSelectedBlobs int
+	var totalSelectedSize int64
+
+	// Print root entries
+	for i, stat := range roots {
+		// Print separator after each root except the last
+		if i > 0 {
+			fmt.Println("------------------------------------------------------------------------------------------------")
+		}
+
+		// Calculate percentages
+		percentBlobs := 0.0
+		percentSize := 0.0
+		if totalBlobs > 0 {
+			percentBlobs = float64(stat.Blobs) / float64(totalBlobs) * 100
+		}
+		if totalBlobsCompressedSize > 0 {
+			percentSize = float64(stat.CompressedSize) / float64(totalBlobsCompressedSize) * 100
+		}
+		// Print root
+		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
+			stat.Path,
+			utils.FormatNumber(stat.Blobs),
+			percentBlobs,
+			utils.FormatSize(stat.CompressedSize),
+			percentSize,
+		)
+
+		totalSelectedBlobs += stat.Blobs
+		totalSelectedSize += stat.CompressedSize
+
+		// Print up to 10 largest immediate children (subdirs or files) for this root
+		var children []*dirStats
+		for _, child := range stat.Children {
+			children = append(children, child)
+		}
+		sort.Slice(children, func(i, j int) bool {
+			if children[i].CompressedSize != children[j].CompressedSize {
+				return children[i].CompressedSize > children[j].CompressedSize
+			}
+			return children[i].Path < children[j].Path
+		})
+		if len(children) > 10 {
+			children = children[:10]
+		}
+		for idx, child := range children {
+			percentBlobs := 0.0
+			percentSize := 0.0
+			if totalBlobs > 0 {
+				percentBlobs = float64(child.Blobs) / float64(totalBlobs) * 100
+			}
+			if totalBlobsCompressedSize > 0 {
+				percentSize = float64(child.CompressedSize) / float64(totalBlobsCompressedSize) * 100
+			}
+			prefix := "├─"
+			if idx == len(children)-1 {
+				prefix = "└─"
+			}
+			fmt.Printf("%s %-48s %13s%6.1f %%  %13s%6.1f %%\n",
+				prefix,
+				child.Path,
+				utils.FormatNumber(child.Blobs),
+				percentBlobs,
+				utils.FormatSize(child.CompressedSize),
+				percentSize,
+			)
+		}
+	}
+
+	// Print separator and summary rows for roots (whole table)
+	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
+		fmt.Sprintf("├─ Top %s", utils.FormatNumber(len(roots))),
+		utils.FormatNumber(totalSelectedBlobs),
+		float64(totalSelectedBlobs)/float64(totalBlobs)*100,
+		utils.FormatSize(totalSelectedSize),
+		float64(totalSelectedSize)/float64(totalBlobsCompressedSize)*100)
+	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
+		fmt.Sprintf("└─ Out of %s", utils.FormatNumber(len(rootStats))),
+		utils.FormatNumber(totalBlobs),
+		100.0,
+		utils.FormatSize(totalBlobsCompressedSize),
+		100.0)
+}
+
 // PrintGrowthTableHeader prints the header for the growth table
 func PrintGrowthTableHeader() {
 	fmt.Println()

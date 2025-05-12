@@ -302,6 +302,10 @@ func main() {
 	if len(largestFiles) > 10 {
 		largestFiles = largestFiles[:10]
 	}
+
+	// Print largest directories section before largest files
+	display.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
+
 	display.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
 	// New call to display top 10 largest file extensions using accumulated blob data.
