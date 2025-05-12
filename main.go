@@ -304,7 +304,7 @@ func main() {
 	}
 
 	// Print largest directories section before largest files
-	display.PrintLargestDirectories(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
+	display.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
 	display.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
