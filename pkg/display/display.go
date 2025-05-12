@@ -92,7 +92,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
 	// Print root entries
-	for _, stat := range roots {
+	for i, stat := range roots {
+		// Print separator after each root except the last
+		if i > 0 {
+			fmt.Println("------------------------------------------------------------------------------------------------")
+		}
+
 		// Calculate percentages
 		percentBlobs := 0.0
 		percentSize := 0.0
@@ -110,6 +115,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 			utils.FormatSize(stat.CompressedSize),
 			percentSize,
 		)
+
 		// Print up to 10 largest subdirs for this root
 		var children []*dirStats
 		for _, child := range stat.Children {
@@ -142,6 +148,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 			)
 		}
 	}
+
+	fmt.Println("------------------------------------------------------------------------------------------------")
 }
 
 // PrintGrowthTableHeader prints the header for the growth table
