@@ -154,7 +154,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 		if len(children) > 10 {
 			children = children[:10]
 		}
-		for _, child := range children {
+		for idx, child := range children {
 			percentBlobs := 0.0
 			percentSize := 0.0
 			if totalBlobs > 0 {
@@ -163,7 +163,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 			if totalCompressedSize > 0 {
 				percentSize = float64(child.CompressedSize) / float64(totalCompressedSize) * 100
 			}
-			fmt.Printf("├─ %-48s %13s%6.1f %%  %13s%6.1f %%\n",
+			prefix := "├─"
+			if idx == len(children)-1 {
+				prefix = "└─"
+			}
+			fmt.Printf("%s %-48s %13s%6.1f %%  %13s%6.1f %%\n",
+				prefix,
 				child.Path,
 				utils.FormatNumber(child.Blobs),
 				percentBlobs,
