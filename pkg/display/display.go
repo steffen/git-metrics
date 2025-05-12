@@ -115,6 +115,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 	fmt.Println("Path                                                        Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
+	// Calculate the total compressed size of all blobs (sum of all file.CompressedSize)
+	var totalBlobsCompressedSize int64
+	for _, file := range files {
+		totalBlobsCompressedSize += file.CompressedSize
+	}
+
 	// Track totals for displayed roots (top 10)
 	var totalSelectedBlobs int
 	var totalSelectedSize int64
@@ -132,8 +138,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 		if totalBlobs > 0 {
 			percentBlobs = float64(stat.Blobs) / float64(totalBlobs) * 100
 		}
-		if totalCompressedSize > 0 {
-			percentSize = float64(stat.CompressedSize) / float64(totalCompressedSize) * 100
+		if totalBlobsCompressedSize > 0 {
+			percentSize = float64(stat.CompressedSize) / float64(totalBlobsCompressedSize) * 100
 		}
 		// Print root
 		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
@@ -167,8 +173,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 			if totalBlobs > 0 {
 				percentBlobs = float64(child.Blobs) / float64(totalBlobs) * 100
 			}
-			if totalCompressedSize > 0 {
-				percentSize = float64(child.CompressedSize) / float64(totalCompressedSize) * 100
+			if totalBlobsCompressedSize > 0 {
+				percentSize = float64(child.CompressedSize) / float64(totalBlobsCompressedSize) * 100
 			}
 			prefix := "├─"
 			if idx == len(children)-1 {
@@ -192,12 +198,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalCommits, total
 		utils.FormatNumber(totalSelectedBlobs),
 		float64(totalSelectedBlobs)/float64(totalBlobs)*100,
 		utils.FormatSize(totalSelectedSize),
-		float64(totalSelectedSize)/float64(totalCompressedSize)*100)
+		float64(totalSelectedSize)/float64(totalBlobsCompressedSize)*100)
 	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
 		fmt.Sprintf("└─ Out of %s", utils.FormatNumber(len(rootStats))),
 		utils.FormatNumber(totalBlobs),
 		100.0,
-		utils.FormatSize(totalCompressedSize),
+		utils.FormatSize(totalBlobsCompressedSize),
 		100.0)
 }
 
