@@ -18,12 +18,12 @@ import (
 // PrintLargestDirectories prints the largest root and subdirectories by size and object count
 func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, totalCompressedSize int64) {
 	type dirStats struct {
-		Path            string
-		Blobs           int
-		CompressedSize  int64
-		Children        map[string]*dirStats // for subdirectories
-		IsRoot          bool
-		ExistsInDefault bool // Whether the directory exists in default branch
+		Path                  string
+		Blobs                 int
+		CompressedSize        int64
+		Children              map[string]*dirStats // for subdirectories
+		IsRoot                bool
+		ExistsInDefaultBranch bool // Whether the directory exists in default branch
 	}
 
 	// Helper to get root dir or (root files)
@@ -41,7 +41,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	}
 
 	// Check if directory exists in default branch
-	dirExistsInDefault := func(dirPath string) bool {
+	dirExistsInDefaultBranch := func(dirPath string) bool {
 		// If we couldn't get default branch files, assume everything exists
 		if err != nil || defaultBranchFiles == nil {
 			return true
@@ -75,10 +75,10 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		root := getRoot(file.Path)
 		if _, ok := rootStats[root]; !ok {
 			rootStats[root] = &dirStats{
-				Path:            root,
-				Children:        make(map[string]*dirStats),
-				IsRoot:          true,
-				ExistsInDefault: dirExistsInDefault(root),
+				Path:                  root,
+				Children:              make(map[string]*dirStats),
+				IsRoot:                true,
+				ExistsInDefaultBranch: dirExistsInDefaultBranch(root),
 			}
 		}
 		stat := rootStats[root]
@@ -89,11 +89,11 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		if root == "(root files)" {
 			// Files at root: each file is a child
 			if _, ok := stat.Children[file.Path]; !ok {
-				exists := err == nil && defaultBranchFiles[file.Path]
+				existsInDefaultBranch := err == nil && defaultBranchFiles[file.Path]
 				stat.Children[file.Path] = &dirStats{
-					Path:            file.Path,
-					IsRoot:          false,
-					ExistsInDefault: exists,
+					Path:                  file.Path,
+					IsRoot:                false,
+					ExistsInDefaultBranch: existsInDefaultBranch,
 				}
 			}
 			child := stat.Children[file.Path]
@@ -107,11 +107,11 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				name := parts[1]
 				fullPath := root + "/" + name
 				if _, ok := stat.Children[name]; !ok {
-					exists := err == nil && defaultBranchFiles[fullPath]
+					existsInDefaultBranch := err == nil && defaultBranchFiles[fullPath]
 					stat.Children[name] = &dirStats{
-						Path:            name,
-						IsRoot:          false,
-						ExistsInDefault: exists,
+						Path:                  name,
+						IsRoot:                false,
+						ExistsInDefaultBranch: existsInDefaultBranch,
 					}
 				}
 				child := stat.Children[name]
@@ -123,11 +123,11 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				subdirPath := root + "/" + sub
 				if _, ok := stat.Children[sub]; !ok {
 					// Check if this subdirectory exists in default branch
-					exists := dirExistsInDefault(subdirPath)
+					existsInDefaultBranch := dirExistsInDefaultBranch(subdirPath)
 					stat.Children[sub] = &dirStats{
-						Path:            sub,
-						IsRoot:          false,
-						ExistsInDefault: exists,
+						Path:                  sub,
+						IsRoot:                false,
+						ExistsInDefaultBranch: existsInDefaultBranch,
 					}
 				}
 				child := stat.Children[sub]
@@ -190,7 +190,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 		// Add asterisk if not in default branch
 		displayPath := stat.Path
-		if !stat.ExistsInDefault {
+		if !stat.ExistsInDefaultBranch {
 			displayPath += "*"
 			showFootnote = true
 		}
@@ -237,7 +237,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 			// Add asterisk if not in default branch
 			displayPath := child.Path
-			if !child.ExistsInDefault {
+			if !child.ExistsInDefaultBranch {
 				displayPath += "*"
 				showFootnote = true
 			}
