@@ -42,7 +42,7 @@ func GetDefaultBranch() (string, error) {
 		lines := strings.Split(string(output), "\n")
 		for _, line := range lines {
 			if strings.Contains(line, "HEAD branch:") {
-				return strings.TrimSpace(strings.TrimPrefix(line, "HEAD branch:")), nil
+				return strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "HEAD branch:")), nil
 			}
 		}
 	}
