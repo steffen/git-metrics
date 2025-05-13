@@ -36,12 +36,13 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	// Get files from default branch for comparison
 	defaultBranchFiles, err := git.GetDefaultBranchFiles()
+	hasDefaultBranch := err == nil
 	if err != nil {
 		fmt.Printf("Warning: Could not determine files in default branch: %v\n", err)
 	}
 
 	// Check if directory exists in default branch
-	dirExistsInDefaultBranch := func(dirPath string) bool {
+	directoryExistsInDefaultBranch := func(dirPath string) bool {
 		// If we couldn't get default branch files, assume everything exists
 		if err != nil || defaultBranchFiles == nil {
 			return true
@@ -78,7 +79,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				Path:                  root,
 				Children:              make(map[string]*dirStats),
 				IsRoot:                true,
-				ExistsInDefaultBranch: dirExistsInDefaultBranch(root),
+				ExistsInDefaultBranch: directoryExistsInDefaultBranch(root),
 			}
 		}
 		stat := rootStats[root]
@@ -123,7 +124,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				subdirPath := root + "/" + sub
 				if _, ok := stat.Children[sub]; !ok {
 					// Check if this subdirectory exists in default branch
-					existsInDefaultBranch := dirExistsInDefaultBranch(subdirPath)
+					existsInDefaultBranch := directoryExistsInDefaultBranch(subdirPath)
 					stat.Children[sub] = &dirStats{
 						Path:                  sub,
 						IsRoot:                false,
@@ -190,7 +191,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 		// Add asterisk if not in default branch
 		displayPath := stat.Path
-		if !stat.ExistsInDefaultBranch {
+		if hasDefaultBranch && !stat.ExistsInDefaultBranch {
 			displayPath += "*"
 			showFootnote = true
 		}
@@ -269,7 +270,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		100.0)
 
 	// Add footnote explaining the asterisk meaning
-	if showFootnote {
+	if hasDefaultBranch && showFootnote {
 		defaultBranch, _ := git.GetDefaultBranch()
 		if defaultBranch == "" {
 			defaultBranch = "default"
