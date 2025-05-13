@@ -16,7 +16,7 @@ git init --initial-branch=main
 git config --local user.email "test@example.com"
 git config --local user.name "Test user"
 
-git config --list --show-origin
+GIT_PAGER=cat git config --list --show-origin
 
 # Create a README file
 echo "# Test Repository" > README.md
@@ -40,3 +40,33 @@ EXACT44_FILE="this-file-name-is-exactly-44-chars-long.jpeg"
 echo "$FILE_CONTENT exact44" > "$EXACT44_FILE"
 git add "$EXACT44_FILE"
 GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add file with exactly 44 chars in name"
+
+# Test case 1: Add a file and then remove it
+echo "Test file to be removed" > to_be_removed.txt
+git add to_be_removed.txt
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add file that will be removed"
+git rm to_be_removed.txt
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Remove the file"
+
+# Test case 2: Add a file and then rename it
+echo "Test file to be renamed" > to_be_renamed.txt
+git add to_be_renamed.txt
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add file that will be renamed"
+git mv to_be_renamed.txt renamed_file.txt
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Rename the file"
+
+# Test case 3: Add a file to a new folder and then remove it
+mkdir -p new_folder
+echo "Test file in new folder to be removed" > new_folder/to_be_removed.txt
+git add new_folder
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add new folder with file"
+git rm new_folder/to_be_removed.txt
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Remove file from new folder"
+
+# Test case 4: Add a file to a folder and then move it to another folder
+mkdir -p another_folder
+echo "Test file to be moved" > a/to_be_moved.txt
+git add a/to_be_moved.txt
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add file that will be moved"
+git mv a/to_be_moved.txt another_folder/moved_file.txt
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Move the file to another folder"
