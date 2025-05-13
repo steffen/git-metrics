@@ -38,7 +38,7 @@ another_folder                                                  1   5.9 %       
 ├─ Top 4                                                       17 100.0 %         0.9 KB 100.0 %
 └─ Out of 4                                                    17 100.0 %         0.9 KB 100.0 %
 
-* File or directory not present in main branch (moved or removed)
+* File or directory not present in latest commit of main branch (moved, renamed or removed)
 
 LARGEST FILES ##################################################################################
 

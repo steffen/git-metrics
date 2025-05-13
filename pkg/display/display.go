@@ -275,7 +275,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			defaultBranch = "default"
 		}
 		fmt.Println()
-		fmt.Printf("* File or directory not present in %s branch (moved or removed)\n", defaultBranch)
+		fmt.Printf("* File or directory not present in latest commit of %s branch (moved, renamed or removed)\n", defaultBranch)
 	}
 }
 
