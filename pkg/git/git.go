@@ -251,17 +251,18 @@ func ShellToUse() string {
 	return "sh"
 }
 
-// GetTopCommitAuthors returns the top N commit authors by number of commits, grouped by year
-func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, error) {
-	// Get all commit authors with dates
-	command := exec.Command("git", "log", "--all", "--format=%an|%cd", "--date=format:%Y")
+// GetTopCommitAuthors returns the top N commit authors and committers by number of commits, grouped by year
+func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, map[int][][3]string, map[int]int, error) {
+	// Get all commit authors and committers with dates
+	command := exec.Command("git", "log", "--all", "--format=%an|%cn|%cd", "--date=format:%Y")
 	output, err := command.Output()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	lines := strings.Split(string(output), "\n")
 	authorsByYear := make(map[int]map[string]int)
+	committersByYear := make(map[int]map[string]int)
 	totalCommitsByYear := make(map[int]int)
 
 	for _, line := range lines {
@@ -271,12 +272,13 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 		}
 
 		parts := strings.Split(line, "|")
-		if len(parts) != 2 {
+		if len(parts) != 3 {
 			continue
 		}
 
 		author := parts[0]
-		yearStr := parts[1]
+		committer := parts[1]
+		yearStr := parts[2]
 
 		year, err := strconv.Atoi(yearStr)
 		if err != nil {
@@ -286,27 +288,34 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 		if _, exists := authorsByYear[year]; !exists {
 			authorsByYear[year] = make(map[string]int)
 		}
+		if _, exists := committersByYear[year]; !exists {
+			committersByYear[year] = make(map[string]int)
+		}
 
 		authorsByYear[year][author]++
+		committersByYear[year][committer]++
 		totalCommitsByYear[year]++
 	}
 
-	// Convert to result format: map[year] -> sorted authors
-	result := make(map[int][][3]string)
+	// Convert to result format: map[year] -> sorted authors/committers
+	authorResult := make(map[int][][3]string)
+	committerResult := make(map[int][][3]string)
 	totalAuthorsByYear := make(map[int]int)
+	totalCommittersByYear := make(map[int]int)
 
+	// Process authors
 	for year, authors := range authorsByYear {
 		// Store total number of authors for this year
 		totalAuthorsByYear[year] = len(authors)
 
 		// Convert map to slice for sorting
-		type authorEntry struct {
+		type personEntry struct {
 			Name  string
 			Count int
 		}
-		var authorList []authorEntry
+		var authorList []personEntry
 		for name, count := range authors {
-			authorList = append(authorList, authorEntry{Name: name, Count: count})
+			authorList = append(authorList, personEntry{Name: name, Count: count})
 		}
 
 		// Sort by commit count
@@ -330,8 +339,47 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 			})
 		}
 
-		result[year] = yearTopAuthors
+		authorResult[year] = yearTopAuthors
+	}
+	
+	// Process committers
+	for year, committers := range committersByYear {
+		// Store total number of committers for this year
+		totalCommittersByYear[year] = len(committers)
+
+		// Convert map to slice for sorting
+		type personEntry struct {
+			Name  string
+			Count int
+		}
+		var committerList []personEntry
+		for name, count := range committers {
+			committerList = append(committerList, personEntry{Name: name, Count: count})
+		}
+
+		// Sort by commit count
+		sort.Slice(committerList, func(i, j int) bool {
+			if committerList[i].Count == committerList[j].Count {
+				return committerList[i].Name < committerList[j].Name
+			}
+			return committerList[i].Count > committerList[j].Count
+		})
+
+		// Take top N committers for this year
+		var yearTopCommitters [][3]string
+		for i, committer := range committerList {
+			if i >= n {
+				break
+			}
+			yearTopCommitters = append(yearTopCommitters, [3]string{
+				committer.Name,
+				strconv.Itoa(committer.Count),
+				strconv.Itoa(year),
+			})
+		}
+
+		committerResult[year] = yearTopCommitters
 	}
 
-	return result, totalAuthorsByYear, totalCommitsByYear, nil
+	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, nil
 }

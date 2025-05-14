@@ -513,12 +513,13 @@ func PrintMachineInformation() {
 	fmt.Printf("Git version                %s\n", git.GetGitVersion())
 }
 
-// PrintTopCommitAuthors prints the top commit authors by number of commits per year
-func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int) {
-	fmt.Println("\nAUTHORS WITH MOST COMMITS ######################################################################")
+// PrintTopCommitAuthors prints the top commit authors and committers by number of commits per year
+func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int, 
+	committersByYear map[int][][3]string, totalCommittersByYear map[int]int) {
+	fmt.Println("\nAUTHORS AND COMMITTERS WITH MOST COMMITS #######################################################")
 	fmt.Println()
 
-	fmt.Println("Year    Author                                                                  Commits")
+	fmt.Println("Year    Author                  Commits                 Committer               Commits")
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
 	// Get years and sort them
@@ -532,38 +533,108 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 	for i, year := range years {
 		authors := authorsByYear[year]
 		totalAuthors := totalAuthorsByYear[year]
+		committers := committersByYear[year]
+		totalCommitters := totalCommittersByYear[year]
 		totalCommits := totalCommitsByYear[year]
 
-		// Print the year only for the first author
-		if len(authors) > 0 {
-			// Calculate top authors total commits
-			var topAuthorsTotalCommits int
-			for _, author := range authors {
-				authorCommits, _ := strconv.Atoi(author[1])
-				topAuthorsTotalCommits += authorCommits
-			}
-
-			authorCommits, _ := strconv.Atoi(authors[0][1])
-			percentage := float64(authorCommits) / float64(totalCommits) * 100
-			fmt.Printf("%-8d%-71s%8s   %5.1f%%\n", year, authors[0][0], utils.FormatNumber(authorCommits), percentage)
-
-			// Print remaining authors without year
-			for j := 1; j < len(authors); j++ {
-				authorCommits, _ := strconv.Atoi(authors[j][1])
-				percentage := float64(authorCommits) / float64(totalCommits) * 100
-				fmt.Printf("        %-71s%8s   %5.1f%%\n", authors[j][0], utils.FormatNumber(authorCommits), percentage)
-			}
-
-			// Add separator before summary rows
-			fmt.Println("        ────────────────────────────────────────────────────────────────────────────────────────")
-
-			// Add summary rows with tree-like structure
-			topAuthorsPercentage := float64(topAuthorsTotalCommits) / float64(totalCommits) * 100
-			fmt.Printf("        ├─ Top %-13s                                                   %8s   %5.1f%%\n",
-				utils.FormatNumber(len(authors)), utils.FormatNumber(topAuthorsTotalCommits), topAuthorsPercentage)
-			fmt.Printf("        └─ Out of %-13s                                                %8s   %5.1f%%\n",
-				utils.FormatNumber(totalAuthors), utils.FormatNumber(totalCommits), 100.0)
+		// Calculate top authors total commits
+		var topAuthorsTotalCommits int
+		for _, author := range authors {
+			authorCommits, _ := strconv.Atoi(author[1])
+			topAuthorsTotalCommits += authorCommits
 		}
+
+		// Calculate top committers total commits
+		var topCommittersTotalCommits int
+		for _, committer := range committers {
+			committerCommits, _ := strconv.Atoi(committer[1])
+			topCommittersTotalCommits += committerCommits
+		}
+
+		// Determine the max number of rows to print (authors or committers)
+		maxRows := len(authors)
+		if len(committers) > maxRows {
+			maxRows = len(committers)
+		}
+
+		// Print each row
+		for j := 0; j < maxRows; j++ {
+			if j == 0 {
+				// First row - print year and first author and committer
+				if j < len(authors) {
+					authorCommits, _ := strconv.Atoi(authors[j][1])
+					authorPercentage := float64(authorCommits) / float64(totalCommits) * 100
+					
+					if j < len(committers) {
+						committerCommits, _ := strconv.Atoi(committers[j][1])
+						committerPercentage := float64(committerCommits) / float64(totalCommits) * 100
+						
+						fmt.Printf("%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n", 
+							year, 
+							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
+							committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
+					} else {
+						// No committer for this row
+						fmt.Printf("%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n", 
+							year, 
+							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
+							"", "", 0.0)
+					}
+				} else if j < len(committers) {
+					// No author for this row but we have a committer
+					committerCommits, _ := strconv.Atoi(committers[j][1])
+					committerPercentage := float64(committerCommits) / float64(totalCommits) * 100
+					
+					fmt.Printf("%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n", 
+						year, 
+						"", "", 0.0,
+						committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
+				}
+			} else {
+				// Subsequent rows - just author and committer, no year
+				if j < len(authors) {
+					authorCommits, _ := strconv.Atoi(authors[j][1])
+					authorPercentage := float64(authorCommits) / float64(totalCommits) * 100
+					
+					if j < len(committers) {
+						committerCommits, _ := strconv.Atoi(committers[j][1])
+						committerPercentage := float64(committerCommits) / float64(totalCommits) * 100
+						
+						fmt.Printf("        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n", 
+							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
+							committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
+					} else {
+						// No committer for this row
+						fmt.Printf("        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n", 
+							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
+							"", "", 0.0)
+					}
+				} else if j < len(committers) {
+					// No author for this row but we have a committer
+					committerCommits, _ := strconv.Atoi(committers[j][1])
+					committerPercentage := float64(committerCommits) / float64(totalCommits) * 100
+					
+					fmt.Printf("        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n", 
+						"", "", 0.0,
+						committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
+				}
+			}
+		}
+
+		// Add separator before summary rows
+		fmt.Println("        ┌───────────────────────────────────────        ┌───────────────────────────────────────")
+
+		// Print summary rows for authors and committers
+		topAuthorsPercentage := float64(topAuthorsTotalCommits) / float64(totalCommits) * 100
+		topCommittersPercentage := float64(topCommittersTotalCommits) / float64(totalCommits) * 100
+		
+		fmt.Printf("        ├─ Top %-4s              %8s  %5.1f%%        ├─ Top %-4s              %8s  %5.1f%%\n",
+			utils.FormatNumber(len(authors)), utils.FormatNumber(topAuthorsTotalCommits), topAuthorsPercentage,
+			utils.FormatNumber(len(committers)), utils.FormatNumber(topCommittersTotalCommits), topCommittersPercentage)
+		
+		fmt.Printf("        └─ Out of %-4s           %8s  %5.1f%%        └─ Out of %-4s           %8s  %5.1f%%\n",
+			utils.FormatNumber(totalAuthors), utils.FormatNumber(totalCommits), 100.0,
+			utils.FormatNumber(totalCommitters), utils.FormatNumber(totalCommits), 100.0)
 
 		// Add separator after each year except the last one
 		if i < len(years)-1 {

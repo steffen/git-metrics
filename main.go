@@ -311,9 +311,9 @@ func main() {
 	// New call to display top 10 largest file extensions using accumulated blob data.
 	display.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
-	// Print top 3 commit authors per year
-	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
-		display.PrintTopCommitAuthors(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear)
+	// Print top 3 commit authors and committers per year
+	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
+		display.PrintTopCommitAuthors(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear)
 	}
 
 	// Get memory statistics for final output
