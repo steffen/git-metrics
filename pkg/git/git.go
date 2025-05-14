@@ -252,16 +252,17 @@ func ShellToUse() string {
 }
 
 // GetTopCommitAuthors returns the top N commit authors by number of commits, grouped by year
-func GetTopCommitAuthors(n int) (map[int][][3]string, error) {
+func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, error) {
 	// Get all commit authors with dates
 	command := exec.Command("git", "log", "--all", "--format=%an|%cd", "--date=format:%Y")
 	output, err := command.Output()
 	if err != nil {
-		return nil, err
+		return nil, nil, nil, err
 	}
 
 	lines := strings.Split(string(output), "\n")
 	authorsByYear := make(map[int]map[string]int)
+	totalCommitsByYear := make(map[int]int)
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -287,12 +288,17 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, error) {
 		}
 
 		authorsByYear[year][author]++
+		totalCommitsByYear[year]++
 	}
 
 	// Convert to result format: map[year] -> sorted authors
 	result := make(map[int][][3]string)
+	totalAuthorsByYear := make(map[int]int)
 
 	for year, authors := range authorsByYear {
+		// Store total number of authors for this year
+		totalAuthorsByYear[year] = len(authors)
+
 		// Convert map to slice for sorting
 		type authorEntry struct {
 			Name  string
@@ -327,5 +333,5 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, error) {
 		result[year] = yearTopAuthors
 	}
 
-	return result, nil
+	return result, totalAuthorsByYear, totalCommitsByYear, nil
 }

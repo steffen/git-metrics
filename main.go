@@ -312,8 +312,8 @@ func main() {
 	display.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
 	// Print top 3 commit authors per year
-	if topAuthorsByYear, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
-		display.PrintTopCommitAuthors(topAuthorsByYear)
+	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
+		display.PrintTopCommitAuthors(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear)
 	}
 
 	// Get memory statistics for final output

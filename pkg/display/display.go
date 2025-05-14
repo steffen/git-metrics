@@ -514,7 +514,7 @@ func PrintMachineInformation() {
 }
 
 // PrintTopCommitAuthors prints the top commit authors by number of commits per year
-func PrintTopCommitAuthors(authorsByYear map[int][][3]string) {
+func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int) {
 	fmt.Println("\nAUTHORS WITH MOST COMMITS ######################################################################")
 	fmt.Println()
 
@@ -531,6 +531,8 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string) {
 	// Print for each year
 	for i, year := range years {
 		authors := authorsByYear[year]
+		totalAuthors := totalAuthorsByYear[year]
+		totalCommits := totalCommitsByYear[year]
 
 		// Print the year only for the first author
 		if len(authors) > 0 {
@@ -540,6 +542,9 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string) {
 			for j := 1; j < len(authors); j++ {
 				fmt.Printf("        %-80s%8s\n", authors[j][0], authors[j][1])
 			}
+
+			// Add summary row with total commits
+			fmt.Printf("        %-80s%8d\n", fmt.Sprintf("Top %d out of %d authors (total commits: %d)", len(authors), totalAuthors, totalCommits), 0)
 		}
 
 		// Add separator after each year except the last one
