@@ -515,7 +515,7 @@ func PrintMachineInformation() {
 
 // PrintTopCommitAuthors prints the top commit authors by number of commits per year
 func PrintTopCommitAuthors(authorsByYear map[int][][3]string) {
-	fmt.Println("\nTOP AUTHORS BY YEAR ##############################################################################")
+	fmt.Println("\nAUTHORS WITH MOST COMMITS ######################################################################")
 	fmt.Println()
 
 	fmt.Println("Year    Author                                                                           Commits")
@@ -547,4 +547,5 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string) {
 			fmt.Println("------------------------------------------------------------------------------------------------")
 		}
 	}
+	fmt.Println("------------------------------------------------------------------------------------------------")
 }
