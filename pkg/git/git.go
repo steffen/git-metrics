@@ -341,7 +341,7 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 
 		authorResult[year] = yearTopAuthors
 	}
-	
+
 	// Process committers
 	for year, committers := range committersByYear {
 		// Store total number of committers for this year
