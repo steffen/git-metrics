@@ -251,19 +251,32 @@ func ShellToUse() string {
 	return "sh"
 }
 
-// GetTopCommitAuthors returns the top N commit authors and committers by number of commits, grouped by year
-func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, map[int][][3]string, map[int]int, error) {
-	// Get all commit authors and committers with dates
+// GetContributors returns all commit authors and committers with dates from git history
+func GetContributors() ([]string, error) {
+	// Execute the git command to get all contributors with their commit dates
 	command := exec.Command("git", "log", "--all", "--format=%an|%cn|%cd", "--date=format:%Y")
 	output, err := command.Output()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, err
 	}
 
-	lines := strings.Split(string(output), "\n")
+	return strings.Split(string(output), "\n"), nil
+}
+
+// GetTopCommitAuthors returns the top N commit authors and committers by number of commits, grouped by year
+func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, map[int][][3]string, map[int]int, map[string]int, map[string]int, error) {
+	// Get all commit authors and committers with dates
+	lines, err := GetContributors()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, nil, err
+	}
 	authorsByYear := make(map[int]map[string]int)
 	committersByYear := make(map[int]map[string]int)
 	totalCommitsByYear := make(map[int]int)
+
+	// Maps to track all unique authors and committers across all years
+	allTimeAuthors := make(map[string]int)
+	allTimeCommitters := make(map[string]int)
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -295,6 +308,10 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 		authorsByYear[year][author]++
 		committersByYear[year][committer]++
 		totalCommitsByYear[year]++
+
+		// Track all unique authors and committers across all years
+		allTimeAuthors[author]++
+		allTimeCommitters[committer]++
 	}
 
 	// Convert to result format: map[year] -> sorted authors/committers
@@ -381,5 +398,5 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 		committerResult[year] = yearTopCommitters
 	}
 
-	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, nil
+	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, allTimeAuthors, allTimeCommitters, nil
 }
