@@ -35,16 +35,14 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	}
 
 	// Get files from default branch for comparison
-	defaultBranchFiles, err := git.GetDefaultBranchFiles()
-	hasDefaultBranch := err == nil
-	if err != nil {
-		fmt.Printf("Warning: Could not determine files in default branch: %v\n", err)
-	}
+	defaultBranch, defaultBranchError := git.GetDefaultBranch()
+	hasDefaultBranch := defaultBranchError == nil
+	defaultBranchFiles, defaultBranchFilesError := git.GetBranchFiles(defaultBranch)
 
 	// Check if directory exists in default branch
 	directoryExistsInDefaultBranch := func(dirPath string) bool {
 		// If we couldn't get default branch files, assume everything exists
-		if err != nil || defaultBranchFiles == nil {
+		if defaultBranchFilesError != nil || defaultBranchFiles == nil {
 			return true
 		}
 
@@ -90,7 +88,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		if root == "(root files)" {
 			// Files at root: each file is a child
 			if _, ok := stat.Children[file.Path]; !ok {
-				existsInDefaultBranch := err == nil && defaultBranchFiles[file.Path]
+				existsInDefaultBranch := defaultBranchFilesError == nil && defaultBranchFiles[file.Path]
 				stat.Children[file.Path] = &dirStats{
 					Path:                  file.Path,
 					IsRoot:                false,
@@ -108,7 +106,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				name := parts[1]
 				fullPath := root + "/" + name
 				if _, ok := stat.Children[name]; !ok {
-					existsInDefaultBranch := err == nil && defaultBranchFiles[fullPath]
+					existsInDefaultBranch := defaultBranchFilesError == nil && defaultBranchFiles[fullPath]
 					stat.Children[name] = &dirStats{
 						Path:                  name,
 						IsRoot:                false,
@@ -155,6 +153,19 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	// Print header
 	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
+
+	var missingPathsError error = nil
+	if defaultBranchError != nil {
+		missingPathsError = defaultBranchError
+	} else if defaultBranchFilesError != nil {
+		missingPathsError = defaultBranchFilesError
+	}
+
+	if missingPathsError != nil {
+		fmt.Println()
+		fmt.Printf("Warning: Could not determine moved, renamed or removed files and dictoneries: %s\n", missingPathsError)
+	}
+
 	fmt.Println()
 	fmt.Println("Path                                                        Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")
@@ -238,7 +249,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 			// Add asterisk if not in default branch
 			displayPath := child.Path
-			if !child.ExistsInDefaultBranch {
+			if hasDefaultBranch && !child.ExistsInDefaultBranch {
 				displayPath += "*"
 				showFootnote = true
 			}
@@ -271,10 +282,6 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	// Add footnote explaining the asterisk meaning
 	if hasDefaultBranch && showFootnote {
-		defaultBranch, _ := git.GetDefaultBranch()
-		if defaultBranch == "" {
-			defaultBranch = "default"
-		}
 		fmt.Println()
 		fmt.Printf("* File or directory not present in latest commit of %s branch (moved, renamed or removed)\n", defaultBranch)
 	}

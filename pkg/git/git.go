@@ -66,13 +66,8 @@ func GetDefaultBranch() (string, error) {
 	return "", errors.New("could not determine default branch")
 }
 
-// GetDefaultBranchFiles returns a map of all files in the default branch
-func GetDefaultBranchFiles() (map[string]bool, error) {
-	defaultBranch, err := GetDefaultBranch()
-	if err != nil {
-		return nil, err
-	}
-
+// GetBranchFiles returns a map of all files in the given branch
+func GetBranchFiles(defaultBranch string) (map[string]bool, error) {
 	cmd := exec.Command("git", "ls-tree", "-r", "--name-only", defaultBranch)
 	output, err := cmd.Output()
 	if err != nil {
