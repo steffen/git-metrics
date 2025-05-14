@@ -530,6 +530,11 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 	}
 	sort.Ints(years)
 
+	// For all-time totals calculation
+	allTimeAuthorCommits := make(map[string]int)
+	allTimeCommitterCommits := make(map[string]int)
+	var allTimeTotalCommits int
+
 	// Print for each year
 	for i, year := range years {
 		authors := authorsByYear[year]
@@ -537,6 +542,23 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 		committers := committersByYear[year]
 		totalCommitters := totalCommittersByYear[year]
 		totalCommits := totalCommitsByYear[year]
+
+		// Update all-time stats while processing each year
+		allTimeTotalCommits += totalCommits
+
+		// Add commits to all-time author totals
+		for _, authorData := range authors {
+			authorName := authorData[0]
+			authorCommits, _ := strconv.Atoi(authorData[1])
+			allTimeAuthorCommits[authorName] += authorCommits
+		}
+
+		// Add commits to all-time committer totals
+		for _, committerData := range committers {
+			committerName := committerData[0]
+			committerCommits, _ := strconv.Atoi(committerData[1])
+			allTimeCommitterCommits[committerName] += committerCommits
+		}
 
 		// Calculate top authors total commits
 		var topAuthorsTotalCommits int
@@ -641,5 +663,144 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 		if i < len(years)-1 {
 			fmt.Println("")
 		}
+	}
+
+	// After printing all years, add a section for all-time stats
+	if len(years) > 0 {
+		// Convert author and committer maps to sortable slices
+		type contributorStats struct {
+			name    string
+			commits int
+		}
+
+		// Create slices for all-time authors and committers
+		var allTimeAuthors []contributorStats
+		var allTimeCommitters []contributorStats
+
+		// Fill authors slice
+		var totalAuthorCount int
+		for name, commits := range allTimeAuthorCommits {
+			allTimeAuthors = append(allTimeAuthors, contributorStats{name: name, commits: commits})
+			totalAuthorCount++
+		}
+
+		// Fill committers slice
+		var totalCommitterCount int
+		for name, commits := range allTimeCommitterCommits {
+			allTimeCommitters = append(allTimeCommitters, contributorStats{name: name, commits: commits})
+			totalCommitterCount++
+		}
+
+		// Sort by number of commits (descending)
+		sort.Slice(allTimeAuthors, func(i, j int) bool {
+			return allTimeAuthors[i].commits > allTimeAuthors[j].commits
+		})
+
+		sort.Slice(allTimeCommitters, func(i, j int) bool {
+			return allTimeCommitters[i].commits > allTimeCommitters[j].commits
+		})
+
+		// Limit to top 3 contributors
+		maxDisplayCount := 3
+		if len(allTimeAuthors) > maxDisplayCount {
+			allTimeAuthors = allTimeAuthors[:maxDisplayCount]
+		}
+		if len(allTimeCommitters) > maxDisplayCount {
+			allTimeCommitters = allTimeCommitters[:maxDisplayCount]
+		}
+
+		// Print all-time stats
+		fmt.Println("\n------------------------------------------------------------------------------------------------")
+		fmt.Println("")
+
+		// Determine the max number of rows for all-time display
+		maxRows := len(allTimeAuthors)
+		if len(allTimeCommitters) > maxRows {
+			maxRows = len(allTimeCommitters)
+		}
+
+		// Calculate top contributors' total commits
+		var topAuthorsTotalCommits int
+		for _, author := range allTimeAuthors {
+			topAuthorsTotalCommits += author.commits
+		}
+
+		var topCommittersTotalCommits int
+		for _, committer := range allTimeCommitters {
+			topCommittersTotalCommits += committer.commits
+		}
+
+		// Print each row for all-time stats
+		for j := 0; j < maxRows; j++ {
+			if j == 0 {
+				// First row - print TOTAL and first author and committer
+				if j < len(allTimeAuthors) {
+					authorPercentage := float64(allTimeAuthors[j].commits) / float64(allTimeTotalCommits) * 100
+
+					if j < len(allTimeCommitters) {
+						committerPercentage := float64(allTimeCommitters[j].commits) / float64(allTimeTotalCommits) * 100
+
+						fmt.Printf("%-8s%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n",
+							"TOTAL",
+							allTimeAuthors[j].name, utils.FormatNumber(allTimeAuthors[j].commits), authorPercentage,
+							allTimeCommitters[j].name, utils.FormatNumber(allTimeCommitters[j].commits), committerPercentage)
+					} else {
+						// No committer for this row
+						fmt.Printf("%-8s%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n",
+							"TOTAL",
+							allTimeAuthors[j].name, utils.FormatNumber(allTimeAuthors[j].commits), authorPercentage,
+							"", "", 0.0)
+					}
+				} else if j < len(allTimeCommitters) {
+					// No author for this row but we have a committer
+					committerPercentage := float64(allTimeCommitters[j].commits) / float64(allTimeTotalCommits) * 100
+
+					fmt.Printf("%-8s%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n",
+						"TOTAL",
+						"", "", 0.0,
+						allTimeCommitters[j].name, utils.FormatNumber(allTimeCommitters[j].commits), committerPercentage)
+				}
+			} else {
+				// Subsequent rows - just author and committer, no TOTAL
+				if j < len(allTimeAuthors) {
+					authorPercentage := float64(allTimeAuthors[j].commits) / float64(allTimeTotalCommits) * 100
+
+					if j < len(allTimeCommitters) {
+						committerPercentage := float64(allTimeCommitters[j].commits) / float64(allTimeTotalCommits) * 100
+
+						fmt.Printf("        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n",
+							allTimeAuthors[j].name, utils.FormatNumber(allTimeAuthors[j].commits), authorPercentage,
+							allTimeCommitters[j].name, utils.FormatNumber(allTimeCommitters[j].commits), committerPercentage)
+					} else {
+						// No committer for this row
+						fmt.Printf("        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n",
+							allTimeAuthors[j].name, utils.FormatNumber(allTimeAuthors[j].commits), authorPercentage,
+							"", "", 0.0)
+					}
+				} else if j < len(allTimeCommitters) {
+					// No author for this row but we have a committer
+					committerPercentage := float64(allTimeCommitters[j].commits) / float64(allTimeTotalCommits) * 100
+
+					fmt.Printf("        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n",
+						"", "", 0.0,
+						allTimeCommitters[j].name, utils.FormatNumber(allTimeCommitters[j].commits), committerPercentage)
+				}
+			}
+		}
+
+		// Add separator before summary rows
+		fmt.Println("        ┌───────────────────────────────────────        ┌───────────────────────────────────────")
+
+		// Print summary rows for all-time authors and committers
+		topAuthorsPercentage := float64(topAuthorsTotalCommits) / float64(allTimeTotalCommits) * 100
+		topCommittersPercentage := float64(topCommittersTotalCommits) / float64(allTimeTotalCommits) * 100
+
+		fmt.Printf("        ├─ Top %-4s             %8s  %5.1f%%        ├─ Top %-4s             %8s  %5.1f%%\n",
+			utils.FormatNumber(len(allTimeAuthors)), utils.FormatNumber(topAuthorsTotalCommits), topAuthorsPercentage,
+			utils.FormatNumber(len(allTimeCommitters)), utils.FormatNumber(topCommittersTotalCommits), topCommittersPercentage)
+
+		fmt.Printf("        └─ Out of %-4s          %8s  %5.1f%%        └─ Out of %-4s          %8s  %5.1f%%\n",
+			utils.FormatNumber(totalAuthorCount), utils.FormatNumber(allTimeTotalCommits), 100.0,
+			utils.FormatNumber(totalCommitterCount), utils.FormatNumber(allTimeTotalCommits), 100.0)
 	}
 }
