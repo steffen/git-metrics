@@ -545,13 +545,13 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 
 			authorCommits, _ := strconv.Atoi(authors[0][1])
 			percentage := float64(authorCommits) / float64(totalCommits) * 100
-			fmt.Printf("%-8d%-71s%8s   %5.1f%%\n", year, authors[0][0], authors[0][1], percentage)
+			fmt.Printf("%-8d%-71s%8s   %5.1f%%\n", year, authors[0][0], utils.FormatNumber(authorCommits), percentage)
 
 			// Print remaining authors without year
 			for j := 1; j < len(authors); j++ {
 				authorCommits, _ := strconv.Atoi(authors[j][1])
 				percentage := float64(authorCommits) / float64(totalCommits) * 100
-				fmt.Printf("        %-71s%8s   %5.1f%%\n", authors[j][0], authors[j][1], percentage)
+				fmt.Printf("        %-71s%8s   %5.1f%%\n", authors[j][0], utils.FormatNumber(authorCommits), percentage)
 			}
 
 			// Add separator before summary rows
@@ -559,10 +559,10 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 
 			// Add summary rows with tree-like structure
 			topAuthorsPercentage := float64(topAuthorsTotalCommits) / float64(totalCommits) * 100
-			fmt.Printf("        ├─ Top %-13d                                                   %8d   %5.1f%%\n",
-				len(authors), topAuthorsTotalCommits, topAuthorsPercentage)
-			fmt.Printf("        └─ Out of %-13d                                                %8d   %5.1f%%\n",
-				totalAuthors, totalCommits, 100.0)
+			fmt.Printf("        ├─ Top %-13s                                                   %8s   %5.1f%%\n",
+				utils.FormatNumber(len(authors)), utils.FormatNumber(topAuthorsTotalCommits), topAuthorsPercentage)
+			fmt.Printf("        └─ Out of %-13s                                                %8s   %5.1f%%\n",
+				utils.FormatNumber(totalAuthors), utils.FormatNumber(totalCommits), 100.0)
 		}
 
 		// Add separator after each year except the last one
