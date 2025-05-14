@@ -513,13 +513,27 @@ func PrintMachineInformation() {
 	fmt.Printf("Git version                %s\n", git.GetGitVersion())
 }
 
-// PrintTopCommitAuthors prints the top commit authors by number of commits
-func PrintTopCommitAuthors(authors [][2]string) {
-	fmt.Println("\nAUTHORS WITH MOST COMMITS #######################################################################")
+// PrintTopCommitAuthors prints the top commit authors by number of commits per year
+func PrintTopCommitAuthors(authorsByYear map[int][][3]string) {
+	fmt.Println("\nTOP AUTHORS BY YEAR ##############################################################################")
 	fmt.Println()
-	fmt.Println("Author                                 Commits")
-	fmt.Println("------------------------------------------------------------------------------------------------")
-	for _, entry := range authors {
-		fmt.Printf("%-38s %8s\n", entry[0], entry[1])
+	
+	// Get years and sort them
+	var years []int
+	for year := range authorsByYear {
+		years = append(years, year)
+	}
+	sort.Ints(years)
+	
+	// Print for each year
+	for _, year := range years {
+		authors := authorsByYear[year]
+		fmt.Printf("Year %d\n", year)
+		fmt.Println("Author                                 Commits")
+		fmt.Println("------------------------------------------------------------------------------------------------")
+		for _, entry := range authors {
+			fmt.Printf("%-38s %8s\n", entry[0], entry[1])
+		}
+		fmt.Println()
 	}
 }

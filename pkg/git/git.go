@@ -251,45 +251,81 @@ func ShellToUse() string {
 	return "sh"
 }
 
-// GetTopCommitAuthors returns the top N commit authors by number of commits
-func GetTopCommitAuthors(n int) ([][2]string, error) {
-	// Get all commit author names
-	command := exec.Command("git", "rev-list", "--all", "--pretty=format:%an")
+// GetTopCommitAuthors returns the top N commit authors by number of commits, grouped by year
+func GetTopCommitAuthors(n int) (map[int][][3]string, error) {
+	// Get all commit authors with dates
+	command := exec.Command("git", "log", "--all", "--format=%an|%ad", "--date=format:%Y")
 	output, err := command.Output()
 	if err != nil {
 		return nil, err
 	}
+
 	lines := strings.Split(string(output), "\n")
-	authorCount := make(map[string]int)
+	authorsByYear := make(map[int]map[string]int)
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if line == "" || strings.HasPrefix(line, "commit ") {
+		if line == "" {
 			continue
 		}
-		authorCount[line]++
-	}
-	// Convert to slice and sort
-	type authorEntry struct {
-		Name  string
-		Count int
-	}
-	var authors []authorEntry
-	for name, count := range authorCount {
-		authors = append(authors, authorEntry{Name: name, Count: count})
-	}
-	sort.Slice(authors, func(i, j int) bool {
-		if authors[i].Count == authors[j].Count {
-			return authors[i].Name < authors[j].Name
+
+		parts := strings.Split(line, "|")
+		if len(parts) != 2 {
+			continue
 		}
-		return authors[i].Count > authors[j].Count
-	})
-	// Prepare result
-	var result [][2]string
-	for i, author := range authors {
-		if i >= n {
-			break
+
+		author := parts[0]
+		yearStr := parts[1]
+
+		year, err := strconv.Atoi(yearStr)
+		if err != nil {
+			continue
 		}
-		result = append(result, [2]string{author.Name, strconv.Itoa(author.Count)})
+
+		if _, exists := authorsByYear[year]; !exists {
+			authorsByYear[year] = make(map[string]int)
+		}
+
+		authorsByYear[year][author]++
 	}
+
+	// Convert to result format: map[year] -> sorted authors
+	result := make(map[int][][3]string)
+
+	for year, authors := range authorsByYear {
+		// Convert map to slice for sorting
+		type authorEntry struct {
+			Name  string
+			Count int
+		}
+		var authorList []authorEntry
+		for name, count := range authors {
+			authorList = append(authorList, authorEntry{Name: name, Count: count})
+		}
+
+		// Sort by commit count
+		sort.Slice(authorList, func(i, j int) bool {
+			if authorList[i].Count == authorList[j].Count {
+				return authorList[i].Name < authorList[j].Name
+			}
+			return authorList[i].Count > authorList[j].Count
+		})
+
+		// Take top N authors for this year
+		var yearTopAuthors [][3]string
+		for i, author := range authorList {
+			if i >= n {
+				break
+			}
+			yearTopAuthors = append(yearTopAuthors, [3]string{
+				author.Name,
+				strconv.Itoa(author.Count),
+				strconv.Itoa(year),
+			})
+		}
+
+		result[year] = yearTopAuthors
+	}
+
 	return result, nil
 }
