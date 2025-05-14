@@ -254,7 +254,7 @@ func ShellToUse() string {
 // GetTopCommitAuthors returns the top N commit authors by number of commits, grouped by year
 func GetTopCommitAuthors(n int) (map[int][][3]string, error) {
 	// Get all commit authors with dates
-	command := exec.Command("git", "log", "--all", "--format=%an|%ad", "--date=format:%Y")
+	command := exec.Command("git", "log", "--all", "--format=%an|%cd", "--date=format:%Y")
 	output, err := command.Output()
 	if err != nil {
 		return nil, err
