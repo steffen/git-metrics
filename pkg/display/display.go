@@ -517,23 +517,34 @@ func PrintMachineInformation() {
 func PrintTopCommitAuthors(authorsByYear map[int][][3]string) {
 	fmt.Println("\nTOP AUTHORS BY YEAR ##############################################################################")
 	fmt.Println()
-	
+
+	fmt.Println("Year    Author                                                                           Commits")
+	fmt.Println("------------------------------------------------------------------------------------------------")
+
 	// Get years and sort them
 	var years []int
 	for year := range authorsByYear {
 		years = append(years, year)
 	}
 	sort.Ints(years)
-	
+
 	// Print for each year
-	for _, year := range years {
+	for i, year := range years {
 		authors := authorsByYear[year]
-		fmt.Printf("Year %d\n", year)
-		fmt.Println("Author                                 Commits")
-		fmt.Println("------------------------------------------------------------------------------------------------")
-		for _, entry := range authors {
-			fmt.Printf("%-38s %8s\n", entry[0], entry[1])
+
+		// Print the year only for the first author
+		if len(authors) > 0 {
+			fmt.Printf("%-8d%-80s%8s\n", year, authors[0][0], authors[0][1])
+
+			// Print remaining authors without year
+			for j := 1; j < len(authors); j++ {
+				fmt.Printf("        %-80s%8s\n", authors[j][0], authors[j][1])
+			}
 		}
-		fmt.Println()
+
+		// Add separator after each year except the last one
+		if i < len(years)-1 {
+			fmt.Println("------------------------------------------------------------------------------------------------")
+		}
 	}
 }
