@@ -18,11 +18,12 @@ import (
 // PrintLargestDirectories prints the largest root and subdirectories by size and object count
 func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, totalCompressedSize int64) {
 	type dirStats struct {
-		Path           string
-		Blobs          int
-		CompressedSize int64
-		Children       map[string]*dirStats // for subdirectories
-		IsRoot         bool
+		Path                  string
+		Blobs                 int
+		CompressedSize        int64
+		Children              map[string]*dirStats // for subdirectories
+		IsRoot                bool
+		ExistsInDefaultBranch bool // Whether the directory exists in default branch
 	}
 
 	// Helper to get root dir or (root files)
@@ -33,6 +34,39 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		return strings.SplitN(path, "/", 2)[0]
 	}
 
+	// Get files from default branch for comparison
+	defaultBranch, defaultBranchError := git.GetDefaultBranch()
+	hasDefaultBranch := defaultBranchError == nil
+	defaultBranchFiles, defaultBranchFilesError := git.GetBranchFiles(defaultBranch)
+
+	// Check if directory exists in default branch
+	directoryExistsInDefaultBranch := func(dirPath string) bool {
+		// If we couldn't get default branch files, assume everything exists
+		if defaultBranchFilesError != nil || defaultBranchFiles == nil {
+			return true
+		}
+
+		// Special case for root files
+		if dirPath == "(root files)" {
+			// Check if there are any root level files in default branch
+			for file := range defaultBranchFiles {
+				if !strings.Contains(file, "/") {
+					return true
+				}
+			}
+			return false
+		}
+
+		// For regular directories, check if any file starts with this directory
+		prefix := dirPath + "/"
+		for file := range defaultBranchFiles {
+			if strings.HasPrefix(file, prefix) || file == dirPath {
+				return true
+			}
+		}
+		return false
+	}
+
 	// Aggregate stats for root directories and root files
 	rootStats := make(map[string]*dirStats)
 	// For each file, update root and immediate children (subdirectories or files)
@@ -40,9 +74,10 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		root := getRoot(file.Path)
 		if _, ok := rootStats[root]; !ok {
 			rootStats[root] = &dirStats{
-				Path:     root,
-				Children: make(map[string]*dirStats),
-				IsRoot:   true,
+				Path:                  root,
+				Children:              make(map[string]*dirStats),
+				IsRoot:                true,
+				ExistsInDefaultBranch: directoryExistsInDefaultBranch(root),
 			}
 		}
 		stat := rootStats[root]
@@ -53,9 +88,11 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		if root == "(root files)" {
 			// Files at root: each file is a child
 			if _, ok := stat.Children[file.Path]; !ok {
+				existsInDefaultBranch := defaultBranchFilesError == nil && defaultBranchFiles[file.Path]
 				stat.Children[file.Path] = &dirStats{
-					Path:   file.Path,
-					IsRoot: false,
+					Path:                  file.Path,
+					IsRoot:                false,
+					ExistsInDefaultBranch: existsInDefaultBranch,
 				}
 			}
 			child := stat.Children[file.Path]
@@ -67,10 +104,13 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			if len(parts) == 2 {
 				// File directly under root dir
 				name := parts[1]
+				fullPath := root + "/" + name
 				if _, ok := stat.Children[name]; !ok {
+					existsInDefaultBranch := defaultBranchFilesError == nil && defaultBranchFiles[fullPath]
 					stat.Children[name] = &dirStats{
-						Path:   name,
-						IsRoot: false,
+						Path:                  name,
+						IsRoot:                false,
+						ExistsInDefaultBranch: existsInDefaultBranch,
 					}
 				}
 				child := stat.Children[name]
@@ -79,10 +119,14 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			} else if len(parts) > 2 {
 				// File in a subdirectory: immediate child is the subdir
 				sub := parts[1]
+				subdirPath := root + "/" + sub
 				if _, ok := stat.Children[sub]; !ok {
+					// Check if this subdirectory exists in default branch
+					existsInDefaultBranch := directoryExistsInDefaultBranch(subdirPath)
 					stat.Children[sub] = &dirStats{
-						Path:   sub,
-						IsRoot: false,
+						Path:                  sub,
+						IsRoot:                false,
+						ExistsInDefaultBranch: existsInDefaultBranch,
 					}
 				}
 				child := stat.Children[sub]
@@ -109,6 +153,19 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	// Print header
 	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
+
+	var missingPathsError error = nil
+	if defaultBranchError != nil {
+		missingPathsError = defaultBranchError
+	} else if defaultBranchFilesError != nil {
+		missingPathsError = defaultBranchFilesError
+	}
+
+	if missingPathsError != nil {
+		fmt.Println()
+		fmt.Printf("Warning: Could not determine moved, renamed or removed files and directories: %s\n", missingPathsError)
+	}
+
 	fmt.Println()
 	fmt.Println("Path                                                        Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")
@@ -122,6 +179,9 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	// Track totals for displayed roots (top 10)
 	var totalSelectedBlobs int
 	var totalSelectedSize int64
+
+	// Track if any items aren't in default branch (to show footnote)
+	showFootnote := false
 
 	// Print root entries
 	for i, stat := range roots {
@@ -139,9 +199,17 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		if totalBlobsCompressedSize > 0 {
 			percentSize = float64(stat.CompressedSize) / float64(totalBlobsCompressedSize) * 100
 		}
+
+		// Add asterisk if not in default branch
+		displayPath := stat.Path
+		if hasDefaultBranch && !stat.ExistsInDefaultBranch {
+			displayPath += "*"
+			showFootnote = true
+		}
+
 		// Print root
 		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
-			stat.Path,
+			displayPath,
 			utils.FormatNumber(stat.Blobs),
 			percentBlobs,
 			utils.FormatSize(stat.CompressedSize),
@@ -178,9 +246,17 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			if idx == len(children)-1 {
 				prefix = "└─"
 			}
+
+			// Add asterisk if not in default branch
+			displayPath := child.Path
+			if hasDefaultBranch && !child.ExistsInDefaultBranch {
+				displayPath += "*"
+				showFootnote = true
+			}
+
 			fmt.Printf("%s %-48s %13s%6.1f %%  %13s%6.1f %%\n",
 				prefix,
-				child.Path,
+				displayPath,
 				utils.FormatNumber(child.Blobs),
 				percentBlobs,
 				utils.FormatSize(child.CompressedSize),
@@ -203,6 +279,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		100.0,
 		utils.FormatSize(totalBlobsCompressedSize),
 		100.0)
+
+	// Add footnote explaining the asterisk meaning
+	if hasDefaultBranch && showFootnote {
+		fmt.Println()
+		fmt.Printf("* File or directory not present in latest commit of %s branch (moved, renamed or removed)\n", defaultBranch)
+	}
 }
 
 // PrintGrowthTableHeader prints the header for the growth table

@@ -1,6 +1,7 @@
 package git
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -30,6 +31,57 @@ func GetGitVersion() string {
 		return strings.TrimPrefix(strings.TrimSpace(string(output)), "git version ")
 	}
 	return "Unknown"
+}
+
+// GetDefaultBranch detects and returns the default branch name (main, master, etc.)
+func GetDefaultBranch() (string, error) {
+	// First try to get the default branch from remote origin
+	cmd := exec.Command("git", "remote", "show", "origin")
+	output, err := cmd.Output()
+	if err == nil {
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "HEAD branch:") {
+				return strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(line), "HEAD branch:")), nil
+			}
+		}
+	}
+
+	// If that fails, check common default branch names
+	commonBranches := []string{"main", "master"}
+	for _, branch := range commonBranches {
+		cmd := exec.Command("git", "show-ref", "--verify", "--quiet", "refs/heads/"+branch)
+		if cmd.Run() == nil {
+			return branch, nil
+		}
+	}
+
+	// If all else fails, try to get current branch
+	cmd = exec.Command("git", "branch", "--show-current")
+	output, err = cmd.Output()
+	if err == nil && len(output) > 0 {
+		return strings.TrimSpace(string(output)), nil
+	}
+
+	return "", errors.New("could not determine default branch")
+}
+
+// GetBranchFiles returns a map of all files in the given branch
+func GetBranchFiles(branch string) (map[string]bool, error) {
+	cmd := exec.Command("git", "ls-tree", "-r", "--name-only", branch)
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	files := make(map[string]bool)
+	for _, file := range strings.Split(string(output), "\n") {
+		if file != "" {
+			files[file] = true
+		}
+	}
+
+	return files, nil
 }
 
 // GetGitDirectory gets the path to the .git directory for a repository
