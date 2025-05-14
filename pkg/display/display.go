@@ -555,13 +555,13 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 			}
 
 			// Add separator before summary rows
-			fmt.Println("        ----------------------------------------------------------------------------------------")
+			fmt.Println("        ────────────────────────────────────────────────────────────────────────────────────────")
 
 			// Add summary rows with tree-like structure
 			topAuthorsPercentage := float64(topAuthorsTotalCommits) / float64(totalCommits) * 100
-			fmt.Printf("        ├─ Top %d                                                               %8d   %5.1f%%\n",
+			fmt.Printf("        ├─ Top %-13d                                                   %8d   %5.1f%%\n",
 				len(authors), topAuthorsTotalCommits, topAuthorsPercentage)
-			fmt.Printf("        └─ Out of %d                                                            %8d   %5.1f%%\n",
+			fmt.Printf("        └─ Out of %-13d                                                %8d   %5.1f%%\n",
 				totalAuthors, totalCommits, 100.0)
 		}
 
