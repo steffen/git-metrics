@@ -518,7 +518,7 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 	fmt.Println("\nAUTHORS WITH MOST COMMITS ######################################################################")
 	fmt.Println()
 
-	fmt.Println("Year    Author                                                                           Commits")
+	fmt.Println("Year    Author                                                                      Commits    %")
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
 	// Get years and sort them
@@ -536,15 +536,19 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 
 		// Print the year only for the first author
 		if len(authors) > 0 {
-			fmt.Printf("%-8d%-80s%8s\n", year, authors[0][0], authors[0][1])
+			authorCommits, _ := strconv.Atoi(authors[0][1])
+			percentage := float64(authorCommits) / float64(totalCommits) * 100
+			fmt.Printf("%-8d%-73s%8s  %5.1f%%\n", year, authors[0][0], authors[0][1], percentage)
 
 			// Print remaining authors without year
 			for j := 1; j < len(authors); j++ {
-				fmt.Printf("        %-80s%8s\n", authors[j][0], authors[j][1])
+				authorCommits, _ := strconv.Atoi(authors[j][1])
+				percentage := float64(authorCommits) / float64(totalCommits) * 100
+				fmt.Printf("        %-73s%8s  %5.1f%%\n", authors[j][0], authors[j][1], percentage)
 			}
 
 			// Add summary row with total commits
-			fmt.Printf("        %-80s%8d\n", fmt.Sprintf("Top %d out of %d authors (total commits: %d)", len(authors), totalAuthors, totalCommits), 0)
+			fmt.Printf("        %-73s%8d  %5.1f%%\n", fmt.Sprintf("Top %d out of %d authors (total commits: %d)", len(authors), totalAuthors, totalCommits), totalCommits, 100.0)
 		}
 
 		// Add separator after each year except the last one
