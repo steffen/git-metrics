@@ -163,7 +163,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	if missingPathsError != nil {
 		fmt.Println()
-		fmt.Printf("Warning: Could not determine moved, renamed or removed files and dictoneries: %s\n", missingPathsError)
+		fmt.Printf("Warning: Could not determine moved, renamed or removed files and dictionaries: %s\n", missingPathsError)
 	}
 
 	fmt.Println()
