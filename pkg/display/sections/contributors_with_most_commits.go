@@ -11,31 +11,31 @@ import (
 // Format strings for contributor table rows and formatting
 const (
 	// Headers and dividers
-	formatSectionHeader         = "\nAUTHORS & COMMITTERS WITH MOST COMMITS #########################################################"
-	formatTableHeader           = "Year    Author                   Commits                Committer                Commits"
-	formatTableDivider          = "------------------------------------------------------------------------------------------------"
-	formatRowSeparator          = "        ┌───────────────────────────────────────        ┌───────────────────────────────────────"
-	
+	formatSectionHeader = "\nAUTHORS & COMMITTERS WITH MOST COMMITS #########################################################"
+	formatTableHeader   = "Year    Author                   Commits                Committer                Commits"
+	formatTableDivider  = "------------------------------------------------------------------------------------------------"
+	formatRowSeparator  = "        ┌───────────────────────────────────────        ┌───────────────────────────────────────"
+
 	// Row formats for year data
-	formatYearWithBothRow       = "%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with year, author and committer
-	formatYearWithAuthorRow     = "%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with year, author but no committer
-	formatYearWithCommitterRow  = "%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with year, committer but no author
-	
+	formatYearWithBothRow      = "%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with year, author and committer
+	formatYearWithAuthorRow    = "%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with year, author but no committer
+	formatYearWithCommitterRow = "%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with year, committer but no author
+
 	// Row formats without year
-	formatNoYearWithBothRow     = "        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with author and committer
-	formatNoYearWithAuthorRow   = "        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with author but no committer  
-	formatNoYearWithCommitterRow= "        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with committer but no author
-	
+	formatNoYearWithBothRow      = "        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with author and committer
+	formatNoYearWithAuthorRow    = "        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with author but no committer
+	formatNoYearWithCommitterRow = "        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with committer but no author
+
 	// All-time row formats
 	formatTotalWithBothRow      = "%-8s%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with TOTAL, author and committer
 	formatTotalWithAuthorRow    = "%-8s%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with TOTAL, author but no committer
 	formatTotalWithCommitterRow = "%-8s%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // with TOTAL, committer but no author
-	
+
 	// Summary row formats
-	formatYearTopRow            = "        ├─ Top %-4s             %8s  %5.1f%%        ├─ Top %-4s             %8s  %5.1f%%\n"
-	formatYearOutOfRow          = "        └─ Out of %-4s          %8s  %5.1f%%        └─ Out of %-4s          %8s  %5.1f%%\n"
-	formatAllTimeTopRow         = "        ├─ Top %-8s      %11s  %5.1f%%        ├─ Top %-8s      %11s  %5.1f%%\n"
-	formatAllTimeOutOfRow       = "        └─ Out of %-8s   %11s  %5.1f%%        └─ Out of %-8s   %11s  %5.1f%%\n"
+	formatYearTopRow      = "        ├─ Top %-8s      %11s  %5.1f%%        ├─ Top %-8s      %11s  %5.1f%%\n"
+	formatYearOutOfRow    = "        └─ Out of %-8s   %11s  %5.1f%%        └─ Out of %-8s   %11s  %5.1f%%\n"
+	formatAllTimeTopRow   = "        ├─ Top %-8s      %11s  %5.1f%%        ├─ Top %-8s      %11s  %5.1f%%\n"
+	formatAllTimeOutOfRow = "        └─ Out of %-8s   %11s  %5.1f%%        └─ Out of %-8s   %11s  %5.1f%%\n"
 )
 
 // DisplayContributorsWithMostCommits displays the top commit authors and committers by number of commits per year
