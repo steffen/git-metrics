@@ -205,11 +205,11 @@ jobs:
 
             # Pack with tar.gz for linux and zip for windows/darwin
             if [ "${OPERATING_SYSTEM}" = "linux" ]; then
-              echo "  Taring to ${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}-v${VERSION}.tar.gz"
-              tar -czf "${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}-v${VERSION}.tar.gz" -C "${package_directory}" .
+              echo "  Creating tar archive: ${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}.tar.gz"
+              tar -czf "${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}.tar.gz" -C "${package_directory}" .
             else
-              echo "  Zipping to ${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}-v${VERSION}.zip"
-              (cd "$package_directory" && zip "${GITHUB_WORKSPACE}/${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}-v${VERSION}.zip" *)
+              echo "  Creating zip archive: ${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}.zip"
+              (cd "$package_directory" && zip "${GITHUB_WORKSPACE}/${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}.zip" *)
             fi
 
             rm -rf "$package_directory"
@@ -219,7 +219,7 @@ jobs:
         uses: actions/attest-build-provenance@db473fddc028af60658334401dc6fa3ffd8669fd # v2.3.0
         with:
           subject-path: |
-            ${{ env.BINARY_NAME }}-*.gz
+            ${{ env.BINARY_NAME }}-*.tar.gz
             ${{ env.BINARY_NAME }}-*.zip
 
       - name: Create Release
@@ -228,7 +228,7 @@ jobs:
           tag_name: v${{ steps.version.outputs.new_version }}
           name: ${{ steps.version.outputs.new_version }}
           files: |
-            ${{ env.BINARY_NAME }}-*.gz
+            ${{ env.BINARY_NAME }}-*.tar.gz
             ${{ env.BINARY_NAME }}-*.zip
           generate_release_notes: true
           draft: false
