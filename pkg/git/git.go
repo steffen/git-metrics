@@ -263,6 +263,42 @@ func GetContributors() ([]string, error) {
 	return strings.Split(string(output), "\n"), nil
 }
 
+// contributorEntry stores the name and count for a contributor.
+type contributorEntry struct {
+	Name  string
+	Count int
+}
+
+// processContributors takes a map of contributor names to counts,
+// sorts them, and returns the top N contributors along with the total unique contributor count.
+func processContributors(contributors map[string]int, n int, year int) ([][3]string, int) {
+	var contributorList []contributorEntry
+	for name, count := range contributors {
+		contributorList = append(contributorList, contributorEntry{Name: name, Count: count})
+	}
+
+	// Sort by commit count (descending) and then by name (ascending, case-insensitive)
+	sort.Slice(contributorList, func(i, j int) bool {
+		if contributorList[i].Count != contributorList[j].Count {
+			return contributorList[i].Count > contributorList[j].Count
+		}
+		return strings.ToLower(contributorList[i].Name) < strings.ToLower(contributorList[j].Name)
+	})
+
+	var topNContributors [][3]string
+	for i, contributor := range contributorList {
+		if i >= n {
+			break
+		}
+		topNContributors = append(topNContributors, [3]string{
+			contributor.Name,
+			strconv.Itoa(contributor.Count),
+			strconv.Itoa(year),
+		})
+	}
+	return topNContributors, len(contributors)
+}
+
 // GetTopCommitAuthors returns the top N commit authors and committers by number of commits, grouped by year
 func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, map[int][][3]string, map[int]int, map[string]int, map[string]int, error) {
 	// Get all commit authors and committers with dates
@@ -322,80 +358,16 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 
 	// Process authors
 	for year, authors := range authorsByYear {
-		// Store total number of authors for this year
-		totalAuthorsByYear[year] = len(authors)
-
-		// Convert map to slice for sorting
-		type personEntry struct {
-			Name  string
-			Count int
-		}
-		var authorList []personEntry
-		for name, count := range authors {
-			authorList = append(authorList, personEntry{Name: name, Count: count})
-		}
-
-		// Sort by commit count
-		sort.Slice(authorList, func(i, j int) bool {
-			if authorList[i].Count == authorList[j].Count {
-				return authorList[i].Name < authorList[j].Name
-			}
-			return authorList[i].Count > authorList[j].Count
-		})
-
-		// Take top N authors for this year
-		var yearTopAuthors [][3]string
-		for i, author := range authorList {
-			if i >= n {
-				break
-			}
-			yearTopAuthors = append(yearTopAuthors, [3]string{
-				author.Name,
-				strconv.Itoa(author.Count),
-				strconv.Itoa(year),
-			})
-		}
-
-		authorResult[year] = yearTopAuthors
+		topAuthors, total := processContributors(authors, n, year)
+		authorResult[year] = topAuthors
+		totalAuthorsByYear[year] = total
 	}
 
 	// Process committers
 	for year, committers := range committersByYear {
-		// Store total number of committers for this year
-		totalCommittersByYear[year] = len(committers)
-
-		// Convert map to slice for sorting
-		type personEntry struct {
-			Name  string
-			Count int
-		}
-		var committerList []personEntry
-		for name, count := range committers {
-			committerList = append(committerList, personEntry{Name: name, Count: count})
-		}
-
-		// Sort by commit count
-		sort.Slice(committerList, func(i, j int) bool {
-			if committerList[i].Count == committerList[j].Count {
-				return committerList[i].Name < committerList[j].Name
-			}
-			return committerList[i].Count > committerList[j].Count
-		})
-
-		// Take top N committers for this year
-		var yearTopCommitters [][3]string
-		for i, committer := range committerList {
-			if i >= n {
-				break
-			}
-			yearTopCommitters = append(yearTopCommitters, [3]string{
-				committer.Name,
-				strconv.Itoa(committer.Count),
-				strconv.Itoa(year),
-			})
-		}
-
-		committerResult[year] = yearTopCommitters
+		topCommitters, total := processContributors(committers, n, year)
+		committerResult[year] = topCommitters
+		totalCommittersByYear[year] = total
 	}
 
 	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, allTimeAuthors, allTimeCommitters, nil
