@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -248,4 +249,126 @@ func ShellToUse() string {
 		return "bash"
 	}
 	return "sh"
+}
+
+// GetContributors returns all commit authors and committers with dates from git history
+func GetContributors() ([]string, error) {
+	// Execute the git command to get all contributors with their commit dates
+	command := exec.Command("git", "log", "--all", "--format=%an|%cn|%cd", "--date=format:%Y")
+	output, err := command.Output()
+	if err != nil {
+		return nil, err
+	}
+
+	return strings.Split(string(output), "\n"), nil
+}
+
+// contributorEntry stores the name and count for a contributor.
+type contributorEntry struct {
+	Name  string
+	Count int
+}
+
+// processContributors takes a map of contributor names to counts,
+// sorts them, and returns the top N contributors along with the total unique contributor count.
+func processContributors(contributors map[string]int, n int, year int) ([][3]string, int) {
+	var contributorList []contributorEntry
+	for name, count := range contributors {
+		contributorList = append(contributorList, contributorEntry{Name: name, Count: count})
+	}
+
+	// Sort by commit count (descending) and then by name (ascending, case-insensitive)
+	sort.Slice(contributorList, func(i, j int) bool {
+		if contributorList[i].Count != contributorList[j].Count {
+			return contributorList[i].Count > contributorList[j].Count
+		}
+		return strings.ToLower(contributorList[i].Name) < strings.ToLower(contributorList[j].Name)
+	})
+
+	var topNContributors [][3]string
+	for i, contributor := range contributorList {
+		if i >= n {
+			break
+		}
+		topNContributors = append(topNContributors, [3]string{
+			contributor.Name,
+			strconv.Itoa(contributor.Count),
+			strconv.Itoa(year),
+		})
+	}
+	return topNContributors, len(contributors)
+}
+
+// GetTopCommitAuthors returns the top N commit authors and committers by number of commits, grouped by year
+func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, map[int][][3]string, map[int]int, map[string]int, map[string]int, error) {
+	// Get all commit authors and committers with dates
+	lines, err := GetContributors()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, nil, err
+	}
+	authorsByYear := make(map[int]map[string]int)
+	committersByYear := make(map[int]map[string]int)
+	totalCommitsByYear := make(map[int]int)
+
+	// Maps to track all unique authors and committers across all years
+	allTimeAuthors := make(map[string]int)
+	allTimeCommitters := make(map[string]int)
+
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+
+		parts := strings.Split(line, "|")
+		if len(parts) != 3 {
+			continue
+		}
+
+		author := parts[0]
+		committer := parts[1]
+		yearStr := parts[2]
+
+		year, err := strconv.Atoi(yearStr)
+		if err != nil {
+			continue
+		}
+
+		if _, exists := authorsByYear[year]; !exists {
+			authorsByYear[year] = make(map[string]int)
+		}
+		if _, exists := committersByYear[year]; !exists {
+			committersByYear[year] = make(map[string]int)
+		}
+
+		authorsByYear[year][author]++
+		committersByYear[year][committer]++
+		totalCommitsByYear[year]++
+
+		// Track all unique authors and committers across all years
+		allTimeAuthors[author]++
+		allTimeCommitters[committer]++
+	}
+
+	// Convert to result format: map[year] -> sorted authors/committers
+	authorResult := make(map[int][][3]string)
+	committerResult := make(map[int][][3]string)
+	totalAuthorsByYear := make(map[int]int)
+	totalCommittersByYear := make(map[int]int)
+
+	// Process authors
+	for year, authors := range authorsByYear {
+		topAuthors, total := processContributors(authors, n, year)
+		authorResult[year] = topAuthors
+		totalAuthorsByYear[year] = total
+	}
+
+	// Process committers
+	for year, committers := range committersByYear {
+		topCommitters, total := processContributors(committers, n, year)
+		committerResult[year] = topCommitters
+		totalCommittersByYear[year] = total
+	}
+
+	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, allTimeAuthors, allTimeCommitters, nil
 }
