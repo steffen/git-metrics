@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings" // Added import
 	"unicode/utf8"
 
 	"git-metrics/pkg/utils"
@@ -219,12 +220,18 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 			allTimeCommittersList = append(allTimeCommittersList, contributorStats{name: name, commits: commits})
 		}
 
-		// Sort by number of commits (descending)
+		// Sort by number of commits (descending) and then by name (ascending, case-insensitive) as a secondary criteria
 		sort.Slice(allTimeAuthorsList, func(i, j int) bool {
-			return allTimeAuthorsList[i].commits > allTimeAuthorsList[j].commits
+			if allTimeAuthorsList[i].commits != allTimeAuthorsList[j].commits {
+				return allTimeAuthorsList[i].commits > allTimeAuthorsList[j].commits
+			}
+			return strings.ToLower(allTimeAuthorsList[i].name) < strings.ToLower(allTimeAuthorsList[j].name)
 		})
 		sort.Slice(allTimeCommittersList, func(i, j int) bool {
-			return allTimeCommittersList[i].commits > allTimeCommittersList[j].commits
+			if allTimeCommittersList[i].commits != allTimeCommittersList[j].commits {
+				return allTimeCommittersList[i].commits > allTimeCommittersList[j].commits
+			}
+			return strings.ToLower(allTimeCommittersList[i].name) < strings.ToLower(allTimeCommittersList[j].name)
 		})
 
 		// Limit to top 3 contributors
