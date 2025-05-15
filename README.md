@@ -25,39 +25,53 @@ Key features include:
 The easiest way to install `git-metrics` is to download a prebuilt binary from the [GitHub releases page](https://github.com/steffen/git-metrics/releases).
 
 #### Linux
+
+Download the latest release for Linux (64-bit):
 ```bash
-# Download the latest release for Linux (64-bit)
 curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-linux-amd64.tar.gz -o git-metrics.tar.gz
+```
 
-# Unpack the archive
+Unpack the archive:
+```bash
 tar -xzf git-metrics.tar.gz
+```
 
-# Optional: Move it to a directory in your PATH
+Optional: Move it to a directory in your PATH:
+```bash
 sudo mv git-metrics /usr/local/bin/
 ```
 
 #### macOS
+
+Download the latest release for macOS (Intel or Apple Silicon):
 ```bash
-# Download the latest release for macOS (Intel or Apple Silicon)
 curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-darwin-arm64.zip -o git-metrics.zip
+```
 
-# Unzip the archive
+Unzip the archive:
+```bash
 unzip git-metrics.zip
+```
 
-# Optional: Move it to a directory in your PATH
+Optional: Move it to a directory in your PATH:
+```bash
 sudo mv git-metrics /usr/local/bin/
+```
 
-# When downloaded via browser: Remove quarantine attribute
+When downloaded via browser, remove quarantine attribute:
+```bash
 xattr -d com.apple.quarantine git-metrics
 ```
 
 ### Running the tool
 
+Analyze the current directory as a Git repository:
 ```bash
-# Analyze the current directory as a Git repository
 git-metrics
+```
 
-# Analyze a specific repository
+Analyze a specific repository:
+```bash
 git-metrics -r /path/to/repository
 ```
 
@@ -890,12 +904,14 @@ If you prefer to build `git-metrics` from source, follow these steps:
 - Git
 - Go 1.23.2 or newer
 
+Clone the repository:
 ```bash
-# Clone the repository
 git clone https://github.com/steffen/git-metrics.git
 cd git-metrics
+```
 
-# Build the binary
+Build the binary:
+```bash
 go build
 ```
 
