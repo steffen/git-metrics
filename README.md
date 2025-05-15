@@ -36,7 +36,7 @@ The easiest way to install `git-metrics` is to download a prebuilt binary from t
    tar -xzf git-metrics.tar.gz
    ```
 
-3. Optional: Move it to a directory in your PATH:
+3. _Optional:_ Move it to a directory in your PATH:
    ```bash
    sudo mv git-metrics /usr/local/bin/
    ```
@@ -53,12 +53,12 @@ The easiest way to install `git-metrics` is to download a prebuilt binary from t
    unzip git-metrics.zip
    ```
 
-3. Optional: Move it to a directory in your PATH:
+3. _Optional:_ Move it to a directory in your PATH:
    ```bash
    sudo mv git-metrics /usr/local/bin/
    ```
 
-4. When downloaded via browser, remove quarantine attribute:
+4. When downloaded via browser you may need to remove the quarantine attribute in order to run the tool:
    ```bash
    xattr -d com.apple.quarantine git-metrics
    ```
