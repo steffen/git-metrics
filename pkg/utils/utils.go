@@ -289,3 +289,14 @@ func getWMICValue(output []byte) string {
 	}
 	return ""
 }
+
+// GitMetricsVersion is set during build time
+var GitMetricsVersion string
+
+// GetGitMetricsVersion returns the current version of git-metrics
+func GetGitMetricsVersion() string {
+	if GitMetricsVersion == "" {
+		return "0.0.0"
+	}
+	return GitMetricsVersion
+}

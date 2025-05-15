@@ -19,5 +19,6 @@ func DisplayRunInformation() {
 		utils.GetMemoryInGigabytes(),
 		utils.GetOperatingSystemInformation(),
 		utils.GetChipInformation())
+	fmt.Printf("Git metrics version        %s\n", utils.GetGitMetricsVersion())
 	fmt.Printf("Git version                %s\n", git.GetGitVersion())
 }

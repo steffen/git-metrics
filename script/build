@@ -2,5 +2,6 @@
 
 set -e
 
-echo "==> Building git-metrics…" >&2
-go build .
+VERSION=${VERSION:-0.0.0-build}
+echo "==> Building git-metrics version ${VERSION}…" >&2
+go build -ldflags "-X git-metrics/pkg/utils.GitMetricsVersion=${VERSION}" .
