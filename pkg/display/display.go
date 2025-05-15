@@ -2,17 +2,15 @@ package display
 
 import (
 	"fmt"
+	"git-metrics/pkg/git"
+	"git-metrics/pkg/models"
+	"git-metrics/pkg/utils"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-
-	"git-metrics/pkg/git"
-	"git-metrics/pkg/models"
-	"git-metrics/pkg/utils"
 )
 
 // PrintLargestDirectories prints the largest root and subdirectories by size and object count
@@ -497,18 +495,4 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 		100.0,
 		utils.FormatSize(totalExtSize),
 		100.0)
-}
-
-// PrintMachineInfo prints information about the system
-func PrintMachineInformation() {
-	fmt.Println()
-	fmt.Println("RUN ############################################################################################")
-	fmt.Println()
-	fmt.Printf("Start time                 %s\n", time.Now().Format("Mon, 02 Jan 2006 15:04 MST"))
-	fmt.Printf("Machine                    %d CPU cores with %d GB memory (%s on %s)\n",
-		runtime.NumCPU(),
-		utils.GetMemoryInGigabytes(),
-		utils.GetOperatingSystemInformation(),
-		utils.GetChipInformation())
-	fmt.Printf("Git version                %s\n", git.GetGitVersion())
 }
