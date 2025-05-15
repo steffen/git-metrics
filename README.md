@@ -1,17 +1,19 @@
 <h1 align="center">git-metrics</h1>
 
-A powerful Git repository analysis tool that provides detailed metrics, growth statistics, and future projections for your Git repositories.
+A powerful Git repository analysis tool that provides detailed metrics, growth statistics, future projections, and contributor insights for your Git repositories.
 
 ## Overview
 
-`git-metrics` is a command-line utility that analyzes Git repositories to provide comprehensive insights about repository growth, object statistics, and file usage. The tool gathers historical data and provides projections for future repository growth.
+`git-metrics` is a command-line utility that analyzes Git repositories to provide comprehensive insights about repository history, structure, and growth patterns. The tool examines your repository's Git object database to reveal historical trends, identify storage-heavy components, and visualize contributor activity over time. With this data, it generates projections for future repository growth and helps identify optimization opportunities.
 
 Key features include:
 - Repository metadata analysis (first commit, age)
 - Year-by-year growth statistics for Git objects (commits, trees, blobs) and their on-disk size
+- Future growth projections based on historical trends
+- Directory structure analysis with size impact indicators
 - Identification of largest files in the repository
 - File extension distribution analysis
-- Future growth projections based on historical trends
+- Contributor statistics showing top committers and authors over time
 
 ## Installation
 
@@ -23,41 +25,55 @@ Key features include:
 The easiest way to install `git-metrics` is to download a prebuilt binary from the [GitHub releases page](https://github.com/steffen/git-metrics/releases).
 
 #### Linux
-```bash
-# Download the latest release for Linux (64-bit)
-curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-linux-amd64.tar.gz -o git-metrics.tar.gz
 
-# Unpack the archive
-tar -xzf git-metrics.tar.gz
+1. Download the latest release for Linux (64-bit):
+   ```bash
+   curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-linux-amd64.tar.gz -o git-metrics.tar.gz
+   ```
 
-# Optional: Move it to a directory in your PATH
-sudo mv git-metrics /usr/local/bin/
-```
+2. Unpack the archive:
+   ```bash
+   tar -xzf git-metrics.tar.gz
+   ```
+
+3. _Optional:_ Move it to a directory in your PATH:
+   ```bash
+   sudo mv git-metrics /usr/local/bin/
+   ```
 
 #### macOS
-```bash
-# Download the latest release for macOS (Intel or Apple Silicon)
-curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-darwin-arm64.zip -o git-metrics.zip
 
-# Unzip the archive
-unzip git-metrics.zip
+1. Download the latest release for macOS (Intel or Apple Silicon):
+   ```bash
+   curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-darwin-arm64.zip -o git-metrics.zip
+   ```
 
-# Optional: Move it to a directory in your PATH
-sudo mv git-metrics /usr/local/bin/
+2. Unzip the archive:
+   ```bash
+   unzip git-metrics.zip
+   ```
 
-# When downloaded via browser: Remove quarantine attribute
-xattr -d com.apple.quarantine git-metrics
-```
+3. _Optional:_ Move it to a directory in your PATH:
+   ```bash
+   sudo mv git-metrics /usr/local/bin/
+   ```
+
+4. When downloaded via browser you may need to remove the quarantine attribute in order to run the tool:
+   ```bash
+   xattr -d com.apple.quarantine git-metrics
+   ```
 
 ### Running the tool
 
-```bash
-# Analyze the current directory as a Git repository
-git-metrics
+* Analyze the current directory as a Git repository:
+  ```bash
+  git-metrics
+  ```
 
-# Analyze a specific repository
-git-metrics -r /path/to/repository
-```
+* Analyze a specific repository:
+  ```bash
+  git-metrics -r /path/to/repository
+  ```
 
 ## Command line options
 
@@ -66,6 +82,7 @@ git-metrics -r /path/to/repository
 | `-r`, `--repository` | Path to Git repository (default: current directory) |
 | `--debug` | Enable debug output |
 | `--no-progress` | Disable progress indicators |
+| `--version` | Display version information and exit |
 
 ## Output examples
 
@@ -74,8 +91,9 @@ git-metrics -r /path/to/repository
 ```
 RUN ############################################################################################
 
-Start time                 Mon, 12 May 2025 19:42 CEST
+Start time                 Thu, 15 May 2025 19:45 CEST
 Machine                    10 CPU cores with 64 GB memory (macOS 15.4.1 on Apple M1 Max)
+Git metrics version        1.1.0
 Git version                2.46.0
 
 REPOSITORY #####################################################################################
@@ -85,7 +103,7 @@ Remote                     https://github.com/git/git.git
 Most recent fetch          Mon, 12 May 2025 19:42 CEST
 Most recent commit         Fri, 09 May 2025 (7a1d2bd0a5)
 First commit               Thu, 07 Apr 2005 (e83c51)
-Age                        20 years 1 months 5 days
+Age                        20 years 1 months 8 days
 
 HISTORIC & ESTIMATED GROWTH ####################################################################
 
@@ -131,16 +149,16 @@ LARGEST DIRECTORIES ############################################################
 Path                                                        Blobs           On-disk size
 ------------------------------------------------------------------------------------------------
 (root files)                                               72,221  47.1 %        59.1 MB  35.2 %
-├─ whats-cooking.txt                                        1,354   0.9 %         4.3 MB   2.5 %
+├─ whats-cooking.txt*                                       1,354   0.9 %         4.3 MB   2.5 %
 ├─ sequencer.c                                              1,042   0.7 %         3.8 MB   2.2 %
 ├─ Makefile                                                 3,271   2.1 %         2.8 MB   1.7 %
 ├─ diff.c                                                   1,626   1.1 %         2.3 MB   1.4 %
 ├─ read-cache.c                                               836   0.5 %         2.0 MB   1.2 %
-├─ cache.h                                                  2,208   1.4 %         1.4 MB   0.9 %
+├─ cache.h*                                                 2,208   1.4 %         1.4 MB   0.9 %
 ├─ refs.c                                                   1,285   0.8 %         1.4 MB   0.8 %
-├─ merge-recursive.c                                          775   0.5 %         1.2 MB   0.7 %
+├─ merge-recursive.c*                                         775   0.5 %         1.2 MB   0.7 %
 ├─ config.c                                                   963   0.6 %         1.2 MB   0.7 %
-└─ gitk                                                       568   0.4 %         1.2 MB   0.7 %
+└─ gitk*                                                      568   0.4 %         1.2 MB   0.7 %
 ------------------------------------------------------------------------------------------------
 po                                                          1,389   0.9 %        46.9 MB  27.9 %
 ├─ fr.po                                                      140   0.1 %         4.9 MB   2.9 %
@@ -152,7 +170,7 @@ po                                                          1,389   0.9 %       
 ├─ bg.po                                                       72   0.0 %         3.4 MB   2.1 %
 ├─ tr.po                                                       41   0.0 %         2.9 MB   1.7 %
 ├─ zh_TW.po                                                    34   0.0 %         2.5 MB   1.5 %
-└─ git.pot                                                    108   0.1 %         2.0 MB   1.2 %
+└─ git.pot*                                                   108   0.1 %         2.0 MB   1.2 %
 ------------------------------------------------------------------------------------------------
 builtin                                                    18,493  12.1 %        20.3 MB  12.1 %
 ├─ pack-objects.c                                             644   0.4 %         2.0 MB   1.2 %
@@ -180,15 +198,15 @@ t                                                          29,241  19.1 %       
 ------------------------------------------------------------------------------------------------
 Documentation                                              19,695  12.9 %        13.3 MB   7.9 %
 ├─ RelNotes                                                 1,804   1.2 %         2.8 MB   1.7 %
-├─ config.txt                                               1,459   1.0 %         1.7 MB   1.0 %
+├─ config.txt*                                              1,459   1.0 %         1.7 MB   1.0 %
 ├─ technical                                                  810   0.5 %       692.5 KB   0.4 %
-├─ git.txt                                                    851   0.6 %       628.1 KB   0.4 %
+├─ git.txt*                                                   851   0.6 %       628.1 KB   0.4 %
 ├─ config                                                     671   0.4 %       391.5 KB   0.2 %
-├─ git-rebase.txt                                             302   0.2 %       332.6 KB   0.2 %
-├─ rev-list-options.txt                                       243   0.2 %       298.2 KB   0.2 %
-├─ diff-options.txt                                           279   0.2 %       241.8 KB   0.1 %
-├─ user-manual.txt                                            307   0.2 %       215.6 KB   0.1 %
-└─ gitattributes.txt                                          191   0.1 %       212.2 KB   0.1 %
+├─ git-rebase.txt*                                            302   0.2 %       332.6 KB   0.2 %
+├─ rev-list-options.txt*                                      243   0.2 %       298.2 KB   0.2 %
+├─ diff-options.txt*                                          279   0.2 %       241.8 KB   0.1 %
+├─ user-manual.txt*                                           307   0.2 %       215.6 KB   0.1 %
+└─ gitattributes.txt*                                         191   0.1 %       212.2 KB   0.1 %
 ------------------------------------------------------------------------------------------------
 contrib                                                     3,764   2.5 %         3.1 MB   1.9 %
 ├─ completion                                               1,281   0.8 %         1.3 MB   0.8 %
@@ -229,11 +247,11 @@ gitweb                                                      1,131   0.7 %       
 ├─ gitweb.perl                                                861   0.6 %       807.4 KB   0.5 %
 ├─ static                                                      38   0.0 %        46.5 KB   0.0 %
 ├─ README                                                      43   0.0 %        34.4 KB   0.0 %
-├─ gitweb.cgi                                                  65   0.0 %        34.4 KB   0.0 %
+├─ gitweb.cgi*                                                 65   0.0 %        34.4 KB   0.0 %
 ├─ INSTALL                                                     27   0.0 %        23.8 KB   0.0 %
 ├─ Makefile                                                    32   0.0 %        11.1 KB   0.0 %
-├─ gitweb.js                                                    6   0.0 %         8.2 KB   0.0 %
-├─ gitweb.css                                                  50   0.0 %         6.0 KB   0.0 %
+├─ gitweb.js*                                                   6   0.0 %         8.2 KB   0.0 %
+├─ gitweb.css*                                                 50   0.0 %         6.0 KB   0.0 %
 ├─ meson.build                                                  2   0.0 %         1.0 KB   0.0 %
 └─ generate-gitweb-cgi.sh                                       1   0.0 %         0.5 KB   0.0 %
 ------------------------------------------------------------------------------------------------
@@ -247,10 +265,12 @@ git-gui                                                       644   0.4 %       
 ├─ GIT-VERSION-GEN                                             17   0.0 %         1.8 KB   0.0 %
 ├─ git-gui--askpass                                             4   0.0 %         1.8 KB   0.0 %
 ├─ windows                                                      4   0.0 %         1.2 KB   0.0 %
-└─ CREDITS-GEN                                                  1   0.0 %         0.8 KB   0.0 %
+└─ CREDITS-GEN*                                                 1   0.0 %         0.8 KB   0.0 %
 ------------------------------------------------------------------------------------------------
 ├─ Top 10                                                 148,958  97.2 %       164.6 MB  98.1 %
 └─ Out of 41                                              153,235 100.0 %       167.8 MB 100.0 %
+
+* File or directory not present in latest commit of master branch (moved, renamed or removed)
 
 LARGEST FILES ##################################################################################
 
@@ -288,6 +308,167 @@ No Extension                           699  11.3 %         10,025   6.5 %       
 ├─ Top 10                            5,032  81.3 %        147,200  96.1 %       164.0 MB  97.8 %
 └─ Out of 363                        6,187 100.0 %        153,234 100.0 %       167.8 MB 100.0 %
 
+AUTHORS & COMMITTERS WITH MOST COMMITS #########################################################
+
+Year    Author                   Commits                Committer                Commits
+------------------------------------------------------------------------------------------------
+
+2005    Junio C Hamano             1,368   42.6%        Junio C Hamano             1,794   55.8%
+        Linus Torvalds               680   21.2%        Linus Torvalds             1,036   32.2%
+        Kay Sievers                  139    4.3%        Kay Sievers                  136    4.2%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,187   68.0%        ├─ Top 3                   2,966   92.3%
+        └─ Out of 131              3,215  100.0%        └─ Out of 13               3,215  100.0%
+
+2006    Junio C Hamano             2,202   47.9%        Junio C Hamano             4,310   93.7%
+        Shawn O. Pearce              243    5.3%        Shawn O. Pearce              158    3.4%
+        Jakub Narebski               220    4.8%        Paul Mackerras                82    1.8%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,665   57.9%        ├─ Top 3                   4,550   98.9%
+        └─ Out of 163              4,601  100.0%        └─ Out of 7                4,601  100.0%
+
+2007    Junio C Hamano             1,606   29.2%        Junio C Hamano             3,964   72.1%
+        Shawn O. Pearce              841   15.3%        Shawn O. Pearce              842   15.3%
+        Johannes Schindelin          244    4.4%        Simon Hausmann               247    4.5%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,691   49.0%        ├─ Top 3                   5,053   91.9%
+        └─ Out of 285              5,496  100.0%        └─ Out of 10               5,496  100.0%
+
+2008    Junio C Hamano             1,365   33.1%        Junio C Hamano             3,532   85.7%
+        Shawn O. Pearce              163    4.0%        Shawn O. Pearce              372    9.0%
+        Jeff King                    152    3.7%        Paul Mackerras               123    3.0%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,680   40.8%        ├─ Top 3                   4,027   97.7%
+        └─ Out of 311              4,120  100.0%        └─ Out of 9                4,120  100.0%
+
+2009    Junio C Hamano             1,439   37.5%        Junio C Hamano             3,514   91.6%
+        Jeff King                    134    3.5%        Eric Wong                     96    2.5%
+        Johannes Schindelin          104    2.7%        Avery Pennarun                65    1.7%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,677   43.7%        ├─ Top 3                   3,675   95.8%
+        └─ Out of 295              3,835  100.0%        └─ Out of 10               3,835  100.0%
+
+2010    Junio C Hamano             1,537   39.6%        Junio C Hamano             3,665   94.4%
+        Jonathan Nieder              333    8.6%        Eric Wong                     49    1.3%
+        Ævar Arnfjörð Bjarmason      121    3.1%        Pat Thoyts                    47    1.2%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,991   51.3%        ├─ Top 3                   3,761   96.9%
+        └─ Out of 254              3,883  100.0%        └─ Out of 10               3,883  100.0%
+
+2011    Junio C Hamano             1,588   45.1%        Junio C Hamano             3,328   94.5%
+        Jeff King                    237    6.7%        Jonathan Nieder               80    2.3%
+        Jonathan Nieder              190    5.4%        Pat Thoyts                    70    2.0%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,015   57.2%        ├─ Top 3                   3,478   98.8%
+        └─ Out of 191              3,521  100.0%        └─ Out of 7                3,521  100.0%
+
+2012    Junio C Hamano             1,743   46.1%        Junio C Hamano             3,348   88.5%
+        Jeff King                    314    8.3%        Jeff King                    153    4.0%
+        Nguyễn Thái Ngọc Duy         204    5.4%        Jiang Xin                     91    2.4%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,261   59.8%        ├─ Top 3                   3,592   95.0%
+        └─ Out of 214              3,782  100.0%        └─ Out of 16               3,782  100.0%
+
+2013    Junio C Hamano             1,787   41.4%        Junio C Hamano             4,093   94.8%
+        Felipe Contreras             283    6.6%        Jonathan Nieder               81    1.9%
+        Jeff King                    243    5.6%        Jiang Xin                     24    0.6%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,313   53.6%        ├─ Top 3                   4,198   97.2%
+        └─ Out of 238              4,319  100.0%        └─ Out of 13               4,319  100.0%
+
+2014    Junio C Hamano             1,220   39.3%        Junio C Hamano             2,967   95.6%
+        Jeff King                    340   11.0%        Jiang Xin                     27    0.9%
+        Nguyễn Thái Ngọc Duy         140    4.5%        Eric Wong                     23    0.7%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,700   54.8%        ├─ Top 3                   3,017   97.2%
+        └─ Out of 209              3,103  100.0%        └─ Out of 12               3,103  100.0%
+
+2015    Junio C Hamano             1,440   43.8%        Junio C Hamano             2,970   90.4%
+        Jeff King                    368   11.2%        Jeff King                    111    3.4%
+        Michael Haggerty             173    5.3%        Jiang Xin                     63    1.9%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,981   60.3%        ├─ Top 3                   3,144   95.7%
+        └─ Out of 191              3,286  100.0%        └─ Out of 18               3,286  100.0%
+
+2016    Junio C Hamano             1,604   41.4%        Junio C Hamano             3,652   94.4%
+        Jeff King                    386   10.0%        Jiang Xin                     45    1.2%
+        Johannes Schindelin          193    5.0%        Michael Haggerty              34    0.9%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,183   56.4%        ├─ Top 3                   3,731   96.4%
+        └─ Out of 196              3,870  100.0%        └─ Out of 19               3,870  100.0%
+
+2017    Junio C Hamano             1,739   37.9%        Junio C Hamano             4,444   96.9%
+        Jeff King                    405    8.8%        Jiang Xin                     64    1.4%
+        Brandon Williams             217    4.7%        Jean-Noel Avila               15    0.3%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,361   51.5%        ├─ Top 3                   4,523   98.6%
+        └─ Out of 204              4,585  100.0%        └─ Out of 18               4,585  100.0%
+
+2018    Junio C Hamano             1,230   27.4%        Junio C Hamano             4,327   96.5%
+        Nguyễn Thái Ngọc Duy         499   11.1%        Jiang Xin                     64    1.4%
+        Jeff King                    255    5.7%        Jeff King                     21    0.5%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,984   44.3%        ├─ Top 3                   4,412   98.4%
+        └─ Out of 190              4,482  100.0%        └─ Out of 16               4,482  100.0%
+
+2019    Junio C Hamano             1,095   29.1%        Junio C Hamano             3,540   93.9%
+        Johannes Schindelin          321    8.5%        Johannes Schindelin           67    1.8%
+        Jeff King                    271    7.2%        Jiang Xin                     53    1.4%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,687   44.8%        ├─ Top 3                   3,660   97.1%
+        └─ Out of 217              3,768  100.0%        └─ Out of 18               3,768  100.0%
+
+2020    Junio C Hamano             1,157   31.3%        Junio C Hamano             3,474   94.0%
+        Jeff King                    270    7.3%        Jiang Xin                     62    1.7%
+        Johannes Schindelin          208    5.6%        Pratyush Yadav                41    1.1%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,635   44.2%        ├─ Top 3                   3,577   96.8%
+        └─ Out of 210              3,696  100.0%        └─ Out of 20               3,696  100.0%
+
+2021    Junio C Hamano             1,215   30.3%        Junio C Hamano             3,796   94.5%
+        Ævar Arnfjörð Bjarmason      606   15.1%        Jiang Xin                     81    2.0%
+        Elijah Newren                201    5.0%        Johannes Schindelin           30    0.7%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,022   50.3%        ├─ Top 3                   3,907   97.3%
+        └─ Out of 179              4,016  100.0%        └─ Out of 22               4,016  100.0%
+
+2022    Junio C Hamano             1,187   32.5%        Junio C Hamano             3,239   88.8%
+        Ævar Arnfjörð Bjarmason      555   15.2%        Taylor Blau                  240    6.6%
+        Taylor Blau                  181    5.0%        Jiang Xin                     58    1.6%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,923   52.7%        ├─ Top 3                   3,537   97.0%
+        └─ Out of 168              3,647  100.0%        └─ Out of 19               3,647  100.0%
+
+2023    Junio C Hamano             1,041   35.3%        Junio C Hamano             2,765   93.8%
+        Jeff King                    330   11.2%        Johannes Schindelin           85    2.9%
+        Elijah Newren                195    6.6%        Jiang Xin                     36    1.2%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,566   53.1%        ├─ Top 3                   2,886   97.9%
+        └─ Out of 150              2,947  100.0%        └─ Out of 17               2,947  100.0%
+
+2024    Junio C Hamano             1,578   35.9%        Junio C Hamano             3,921   89.2%
+        Patrick Steinhardt         1,026   23.4%        Taylor Blau                  262    6.0%
+        Jeff King                    259    5.9%        Johannes Schindelin           86    2.0%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,863   65.2%        ├─ Top 3                   4,269   97.2%
+        └─ Out of 173              4,394  100.0%        └─ Out of 19               4,394  100.0%
+
+2025    Junio C Hamano               741   43.7%        Junio C Hamano             1,637   96.6%
+        Patrick Steinhardt           299   17.6%        Jiang Xin                     21    1.2%
+        Jeff King                     55    3.2%        Johannes Sixt                 12    0.7%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,095   64.6%        ├─ Top 3                   1,670   98.5%
+        └─ Out of 101              1,695  100.0%        └─ Out of 16               1,695  100.0%
+
+------------------------------------------------------------------------------------------------
+
+TOTAL   Junio C Hamano            29,882   37.2%        Junio C Hamano            72,280   90.1%
+        Jeff King                  4,558    5.7%        Shawn O. Pearce            1,457    1.8%
+        Johannes Schindelin        2,361    2.9%        Linus Torvalds             1,041    1.3%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                  36,801   45.9%        ├─ Top 3                  74,778   93.2%
+        └─ Out of 2,289           80,261  100.0%        └─ Out of 88              80,261  100.0%
+
 Finished in 12s with a memory footprint of 104.6 MB.
 ```
 
@@ -296,8 +477,9 @@ Finished in 12s with a memory footprint of 104.6 MB.
 ```
 RUN ############################################################################################
 
-Start time                 Mon, 12 May 2025 19:37 CEST
+Start time                 Thu, 15 May 2025 19:47 CEST
 Machine                    10 CPU cores with 64 GB memory (macOS 15.4.1 on Apple M1 Max)
+Git metrics version        1.1.0
 Git version                2.46.0
 
 REPOSITORY #####################################################################################
@@ -307,7 +489,7 @@ Remote                     https://github.com/torvalds/linux.git
 Most recent fetch          Mon, 12 May 2025 19:36 CEST
 Most recent commit         Sun, 11 May 2025 (627277ba7c23)
 First commit               Sat, 16 Apr 2005 (1da177)
-Age                        20 years 26 days
+Age                        20 years 29 days
 
 HISTORIC & ESTIMATED GROWTH ####################################################################
 
@@ -326,7 +508,7 @@ Year        Commits                  Trees                  Blobs           On-d
 2015        571,741    +6 %      2,654,431    +5 %      1,328,032    +5 %         1.5 GB    +4 %
 2016        648,806    +6 %      3,025,936    +6 %      1,485,414    +5 %         1.8 GB    +5 %
 2017        729,675    +6 %      3,432,943    +6 %      1,675,158    +6 %         2.1 GB    +7 %
-2018        810,065    +6 %      3,825,660    +6 %      1,832,024    +5 %         2.4 GB    +5 %
+2018        810,066    +6 %      3,825,666    +6 %      1,832,028    +5 %         2.4 GB    +5 %
 2019        892,609    +6 %      4,243,177    +6 %      2,021,235    +6 %         2.7 GB    +6 %
 2020        983,052    +7 %      4,693,652    +7 %      2,203,820    +6 %         3.1 GB    +8 %
 2021      1,069,168    +6 %      5,117,022    +6 %      2,368,647    +6 %         3.7 GB   +10 %
@@ -373,7 +555,7 @@ arch                                                      517,362  17.7 %       
 ├─ s390                                                    19,367   0.7 %        16.1 MB   0.4 %
 ├─ sparc                                                    9,203   0.3 %         7.9 MB   0.2 %
 ├─ sh                                                      12,890   0.4 %         7.5 MB   0.2 %
-├─ ia64                                                     7,033   0.2 %         6.2 MB   0.2 %
+├─ ia64*                                                    7,033   0.2 %         6.2 MB   0.2 %
 └─ m68k                                                     6,787   0.2 %         6.1 MB   0.2 %
 ------------------------------------------------------------------------------------------------
 fs                                                        206,793   7.1 %       269.6 MB   7.1 %
@@ -381,12 +563,12 @@ fs                                                        206,793   7.1 %       
 ├─ xfs                                                     27,349   0.9 %        31.1 MB   0.8 %
 ├─ ext4                                                     8,866   0.3 %        15.2 MB   0.4 %
 ├─ nfs                                                     12,100   0.4 %        14.0 MB   0.4 %
-├─ cifs                                                     9,482   0.3 %        13.4 MB   0.4 %
+├─ cifs*                                                    9,482   0.3 %        13.4 MB   0.4 %
 ├─ f2fs                                                     8,523   0.3 %        11.2 MB   0.3 %
 ├─ ocfs2                                                    5,885   0.2 %         8.5 MB   0.2 %
 ├─ nfsd                                                     6,755   0.2 %         8.4 MB   0.2 %
 ├─ bcachefs                                                14,091   0.5 %         8.4 MB   0.2 %
-└─ io_uring.c                                               2,054   0.1 %         7.9 MB   0.2 %
+└─ io_uring.c*                                              2,054   0.1 %         7.9 MB   0.2 %
 ------------------------------------------------------------------------------------------------
 net                                                       160,938   5.5 %       202.4 MB   5.3 %
 ├─ ipv4                                                    22,108   0.8 %        28.8 MB   0.8 %
@@ -409,7 +591,7 @@ net                                                       160,938   5.5 %       
 ├─ README                                                      46   0.0 %        45.3 KB   0.0 %
 ├─ .gitignore                                                 136   0.0 %        26.2 KB   0.0 %
 ├─ Kbuild                                                      53   0.0 %        13.6 KB   0.0 %
-├─ REPORTING-BUGS                                              15   0.0 %         9.0 KB   0.0 %
+├─ REPORTING-BUGS*                                             15   0.0 %         9.0 KB   0.0 %
 └─ COPYING                                                      4   0.0 %         8.0 KB   0.0 %
 ------------------------------------------------------------------------------------------------
 include                                                   191,451   6.5 %       158.8 MB   4.2 %
@@ -454,8 +636,8 @@ Documentation                                              91,115   3.1 %       
 ├─ networking                                               3,169   0.1 %         6.7 MB   0.2 %
 ├─ translations                                             2,136   0.1 %         6.0 MB   0.2 %
 ├─ filesystems                                              2,758   0.1 %         5.4 MB   0.1 %
-├─ DocBook                                                  2,444   0.1 %         3.0 MB   0.1 %
-├─ media                                                    4,291   0.1 %         3.0 MB   0.1 %
+├─ DocBook*                                                 2,444   0.1 %         3.0 MB   0.1 %
+├─ media*                                                   4,291   0.1 %         3.0 MB   0.1 %
 ├─ ABI                                                      3,128   0.1 %         2.5 MB   0.1 %
 ├─ virt                                                       662   0.0 %         2.5 MB   0.1 %
 └─ userspace-api                                            2,131   0.1 %         2.5 MB   0.1 %
@@ -474,6 +656,8 @@ tools                                                      89,628   3.1 %       
 ------------------------------------------------------------------------------------------------
 ├─ Top 10                                               2,829,843  96.6 %         3.6 GB  96.0 %
 └─ Out of 28                                            2,930,206 100.0 %         3.7 GB 100.0 %
+
+* File or directory not present in latest commit of master branch (moved, renamed or removed)
 
 LARGEST FILES ##################################################################################
 
@@ -514,27 +698,189 @@ No Extension                        11,095   7.2 %        197,547   6.7 %       
 ├─ Top 10                          149,758  96.7 %      2,896,764  98.9 %         3.7 GB  98.9 %
 └─ Out of 441                      154,839 100.0 %      2,930,206 100.0 %         3.7 GB 100.0 %
 
-Finished in 3m51s with a memory footprint of 2.2 GB.
+AUTHORS & COMMITTERS WITH MOST COMMITS #########################################################
+
+Year    Author                   Commits                Committer                Commits
+------------------------------------------------------------------------------------------------
+
+2005    Linus Torvalds               775    4.9%        Linus Torvalds             6,398   40.3%
+        Jeff Garzik                  392    2.5%        David S. Miller            1,384    8.7%
+        Russell King                 344    2.2%        Jeff Garzik                1,384    8.7%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,511    9.5%        ├─ Top 3                   9,166   57.8%
+        └─ Out of 1,278           15,862  100.0%        └─ Out of 48              15,862  100.0%
+
+2006    Linus Torvalds             1,108    3.8%        Linus Torvalds             9,384   31.9%
+        Al Viro                      765    2.6%        David S. Miller            3,115   10.6%
+        David S. Miller              612    2.1%        Greg Kroah-Hartman         1,842    6.3%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,485    8.4%        ├─ Top 3                  14,341   48.7%
+        └─ Out of 1,935           29,445  100.0%        └─ Out of 82              29,445  100.0%
+
+2007    Linus Torvalds             1,394    4.6%        Linus Torvalds             7,419   24.3%
+        Ralf Baechle                 506    1.7%        David S. Miller            3,337   10.9%
+        Thomas Gleixner              484    1.6%        Jeff Garzik                2,040    6.7%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,384    7.8%        ├─ Top 3                  12,796   41.9%
+        └─ Out of 2,028           30,565  100.0%        └─ Out of 92              30,565  100.0%
+
+2008    Linus Torvalds             1,912    3.8%        Linus Torvalds             7,305   14.4%
+        Ingo Molnar                1,271    2.5%        Ingo Molnar                5,983   11.8%
+        David S. Miller              928    1.8%        David S. Miller            5,730   11.3%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,111    8.1%        ├─ Top 3                  19,018   37.4%
+        └─ Out of 2,506           50,869  100.0%        └─ Out of 137             50,869  100.0%
+
+2009    Linus Torvalds             2,124    4.0%        Linus Torvalds             5,731   10.9%
+        Ingo Molnar                1,088    2.1%        David S. Miller            5,367   10.2%
+        Takashi Iwai                 952    1.8%        Ingo Molnar                4,362    8.3%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,164    7.9%        ├─ Top 3                  15,460   29.4%
+        └─ Out of 2,786           52,581  100.0%        └─ Out of 163             52,581  100.0%
+
+2010    Linus Torvalds             1,884    3.8%        David S. Miller            5,073   10.2%
+        Joe Perches                  546    1.1%        Greg Kroah-Hartman         4,497    9.1%
+        Chris Wilson                 519    1.0%        Linus Torvalds             4,126    8.3%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   2,949    5.9%        ├─ Top 3                  13,696   27.6%
+        └─ Out of 2,942           49,634  100.0%        └─ Out of 195             49,634  100.0%
+
+2011    Linus Torvalds             2,080    3.8%        Greg Kroah-Hartman         5,939   10.8%
+        Mark Brown                 1,047    1.9%        David S. Miller            4,286    7.8%
+        David S. Miller              743    1.3%        Linus Torvalds             4,071    7.4%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   3,870    7.0%        ├─ Top 3                  14,296   25.9%
+        └─ Out of 3,028           55,111  100.0%        └─ Out of 219             55,111  100.0%
+
+2012    Linus Torvalds             2,271    3.5%        Greg Kroah-Hartman         7,131   11.0%
+        H Hartley Sweeten          1,447    2.2%        Linus Torvalds             4,632    7.1%
+        Mark Brown                 1,224    1.9%        David S. Miller            4,407    6.8%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,942    7.6%        ├─ Top 3                  16,170   24.9%
+        └─ Out of 3,090           64,959  100.0%        └─ Out of 250             64,959  100.0%
+
+2013    Linus Torvalds             2,044    2.9%        Greg Kroah-Hartman         8,285   11.6%
+        H Hartley Sweeten          1,582    2.2%        David S. Miller            5,523    7.7%
+        Mark Brown                 1,506    2.1%        Linus Torvalds             4,955    6.9%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   5,132    7.2%        ├─ Top 3                  18,763   26.3%
+        └─ Out of 3,403           71,356  100.0%        └─ Out of 253             71,356  100.0%
+
+2014    Linus Torvalds             2,085    2.7%        Greg Kroah-Hartman        10,701   14.1%
+        H Hartley Sweeten          1,620    2.1%        David S. Miller            6,504    8.6%
+        David S. Miller              922    1.2%        Linus Torvalds             4,786    6.3%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,627    6.1%        ├─ Top 3                  21,991   29.0%
+        └─ Out of 3,739           75,959  100.0%        └─ Out of 263             75,959  100.0%
+
+2015    Linus Torvalds             2,009    2.7%        Greg Kroah-Hartman         9,942   13.2%
+        David S. Miller              987    1.3%        David S. Miller            6,823    9.0%
+        H Hartley Sweeten            784    1.0%        Linus Torvalds             4,100    5.4%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   3,780    5.0%        ├─ Top 3                  20,865   27.7%
+        └─ Out of 4,040           75,415  100.0%        └─ Out of 260             75,415  100.0%
+
+2016    Linus Torvalds             2,270    2.9%        David S. Miller            8,045   10.4%
+        Arnd Bergmann              1,186    1.5%        Greg Kroah-Hartman         7,815   10.1%
+        David S. Miller            1,151    1.5%        Linus Torvalds             4,713    6.1%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,607    6.0%        ├─ Top 3                  20,573   26.7%
+        └─ Out of 4,056           77,129  100.0%        └─ Out of 273             77,129  100.0%
+
+2017    Linus Torvalds             2,303    2.8%        David S. Miller           10,441   12.9%
+        David S. Miller            1,420    1.8%        Greg Kroah-Hartman         5,759    7.1%
+        Arnd Bergmann              1,121    1.4%        Linus Torvalds             4,190    5.2%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,844    6.0%        ├─ Top 3                  20,390   25.2%
+        └─ Out of 4,443           80,866  100.0%        └─ Out of 275             80,866  100.0%
+
+2018    Linus Torvalds             2,172    2.7%        David S. Miller            9,411   11.7%
+        David S. Miller            1,405    1.7%        Greg Kroah-Hartman         5,909    7.3%
+        Arnd Bergmann                904    1.1%        Linus Torvalds             3,884    4.8%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,481    5.6%        ├─ Top 3                  19,204   23.9%
+        └─ Out of 4,406           80,411  100.0%        └─ Out of 283             80,411  100.0%
+
+2019    Linus Torvalds             2,384    2.9%        David S. Miller            8,679   10.5%
+        David S. Miller            1,207    1.5%        Greg Kroah-Hartman         5,176    6.3%
+        Chris Wilson               1,174    1.4%        Linus Torvalds             4,159    5.0%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,765    5.8%        ├─ Top 3                  18,014   21.8%
+        └─ Out of 4,385           82,540  100.0%        └─ Out of 301             82,540  100.0%
+
+2020    Linus Torvalds             2,635    2.9%        David S. Miller            8,132    9.0%
+        Mauro Carvalho Chehab      1,215    1.3%        Linus Torvalds             5,286    5.8%
+        Christoph Hellwig          1,200    1.3%        Greg Kroah-Hartman         4,558    5.0%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   5,050    5.6%        ├─ Top 3                  17,976   19.9%
+        └─ Out of 4,636           90,448  100.0%        └─ Out of 289             90,448  100.0%
+
+2021    Linus Torvalds             2,415    2.8%        David S. Miller            7,643    8.9%
+        David S. Miller            1,042    1.2%        Greg Kroah-Hartman         6,116    7.1%
+        Arnd Bergmann                978    1.1%        Linus Torvalds             4,671    5.4%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,435    5.2%        ├─ Top 3                  18,430   21.4%
+        └─ Out of 4,800           86,115  100.0%        └─ Out of 295             86,115  100.0%
+
+2022    Linus Torvalds             2,601    3.0%        Greg Kroah-Hartman         4,446    5.2%
+        Krzysztof Kozlowski        1,371    1.6%        David S. Miller            4,023    4.7%
+        Jakub Kicinski               981    1.1%        Mark Brown                 3,877    4.5%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   4,953    5.8%        ├─ Top 3                  12,346   14.4%
+        └─ Out of 4,931           85,820  100.0%        └─ Out of 312             85,820  100.0%
+
+2023    Kent Overstreet            2,813    3.1%        Mark Brown                 4,167    4.6%
+        Linus Torvalds             2,505    2.7%        Greg Kroah-Hartman         4,137    4.5%
+        Uwe Kleine-König           2,235    2.4%        Alex Deucher               3,916    4.3%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   7,553    8.3%        ├─ Top 3                  12,220   13.4%
+        └─ Out of 4,938           91,340  100.0%        └─ Out of 319             91,340  100.0%
+
+2024    Linus Torvalds             2,889    3.5%        Jakub Kicinski             4,933    5.9%
+        Kent Overstreet            1,368    1.6%        Alex Deucher               3,784    4.5%
+        Krzysztof Kozlowski        1,180    1.4%        Greg Kroah-Hartman         3,197    3.8%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   5,437    6.5%        ├─ Top 3                  11,914   14.3%
+        └─ Out of 5,109           83,526  100.0%        └─ Out of 337             83,526  100.0%
+
+2025    Linus Torvalds             1,007    4.4%        Jakub Kicinski             1,877    8.1%
+        Jakub Kicinski               458    2.0%        Andrew Morton              1,181    5.1%
+        Kent Overstreet              324    1.4%        Linus Torvalds             1,026    4.5%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                   1,789    7.8%        ├─ Top 3                   4,084   17.7%
+        └─ Out of 2,659           23,036  100.0%        └─ Out of 287             23,036  100.0%
+
+------------------------------------------------------------------------------------------------
+
+TOTAL   Linus Torvalds            42,867    3.2%        David S. Miller          113,351    8.4%
+        David S. Miller           15,651    1.2%        Greg Kroah-Hartman       103,411    7.6%
+        Arnd Bergmann             11,674    0.9%        Linus Torvalds            99,864    7.4%
+        ┌───────────────────────────────────────        ┌───────────────────────────────────────
+        ├─ Top 3                  70,192    5.2%        ├─ Top 3                 316,626   23.4%
+        └─ Out of 30,128       1,352,987  100.0%        └─ Out of 895          1,352,987  100.0%
+
+Finished in 4m7s with a memory footprint of 2.2 GB.
 ```
 
 ## Understanding the output
 
 `git-metrics` provides several sections of output:
 
-1. **Repository information**: Basic metadata about your repository including path, remote URL, and commit history.
+1. **Run information**: Details about when, where, and with which versions the tool was executed.
+2. **Repository information**: Basic metadata about your repository including path, remote URL, age, and commit history.
+3. **Historic & estimated growth**: Year-by-year breakdown of Git object growth (commits, trees, blobs) and disk usage, with future projections based on historical trends.
+4. **Largest directories**: Hierarchical view of directory sizes and their impact on repository size, showing both absolute and percentage values.
+5. **Largest files**: Identification of the largest files in your repository by compressed size, along with their last commit year.
+6. **File extensions**: Analysis of file extensions and their contribution to repository size.
+7. **Contributors**: Statistics on authors and committers over time, showing who has contributed the most commits by year.
 
-2. **Growth statistics**: Year-by-year breakdown of Git object growth (commits, trees, blobs) and disk usage.
+### Important metrics explained
 
-3. **Growth projections**: Estimation of future repository growth based on historical trends.
-
-4. **Largest files**: Identification of the largest files in your repository by compressed size.
-
-5. **File extensions**: Analysis of file extensions and their impact on repository size.
-
-### "On-disk size" explained
-
-The on-disk size in `git-metrics`'s output shows the compressed size of commits (saved changes), trees (folder snapshots) and blobs (file versions) as stored in Git's object database (`.git/objects`). These objects are often stored using deltas (storing only changes between similar objects). Repacking the repository (e.g. `git gc`) can alter on-disk sizes of these objects by changing compression and deltas. `git-metrics` does not include the on-disk size of metadata such as pack file indexes (`.git/objects/pack/*.idx`), refs, or other auxiliary files which accounts for 5% to 10% of the overall on-disk size of a repository in most cases.
-
+- **Commits, Trees, Blobs**: These columns show the cumulative count of Git objects. Commits represent saved changes, trees represent folder snapshots, and blobs represent file versions.
+- **On-disk size**: Shows the compressed size of Git objects as stored in Git's database (`.git/objects`). Objects are often stored using delta compression (storing only changes between similar objects). 
+- **Percentages (%)**: In the growth table, percentages show estimated yearly growth relative to current totals. In directory and file listings, percentages show the proportion of total repository objects or size.
+- **Growth projections**: Future estimates (marked with `*`) are calculated based on growth patterns from the last five years.
+- **Directory markers**: Files or directories marked with `*` are not present in the latest commit (they were moved, renamed, or removed).
 
 ## Use cases
 
@@ -559,13 +905,15 @@ If you prefer to build `git-metrics` from source, follow these steps:
 - Git
 - Go 1.23.2 or newer
 
-```bash
-# Clone the repository
-git clone https://github.com/steffen/git-metrics.git
-cd git-metrics
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/steffen/git-metrics.git
+   cd git-metrics
+   ```
 
-# Build the binary
-go build
-```
+2. Build the binary:
+   ```bash
+   go build
+   ```
 
-After building, you can run the tool as described in the "Running the Application" section.
+After building, you can run the tool as described in the "Running the Tool" section.

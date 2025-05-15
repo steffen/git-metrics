@@ -27,11 +27,18 @@ const (
 
 func main() {
 	startTime := time.Now()
+	showVersion := flag.Bool("version", false, "Only display version information")
 	repositoryPath := flag.String("r", ".", "Path to git repository")
 	flag.StringVar(repositoryPath, "repository", ".", "Path to git repository")
 	flag.BoolVar(&debug, "debug", false, "Enable debug output")
 	noProgress := flag.Bool("no-progress", false, "Disable progress output")
 	flag.Parse()
+
+	// Show version and exit if version flag is set
+	if *showVersion {
+		fmt.Printf("git-metrics version %s\n", utils.GetGitMetricsVersion())
+		os.Exit(0)
+	}
 
 	// Set progress visibility based on --no-progress flag
 	progress.ShowProgress = !*noProgress
