@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"unicode/utf8"
 
 	"git-metrics/pkg/utils"
 )
@@ -28,10 +29,15 @@ const (
 
 // truncateContributorName truncates a contributor name to maxNameLength and adds ellipsis if needed
 func truncateContributorName(name string) string {
-	if len(name) <= maxNameLength {
+	// Count runes (characters) instead of bytes
+	if utf8.RuneCountInString(name) <= maxNameLength {
 		return name
 	}
-	return name[:maxNameLength-1] + "…"
+
+	// Convert to runes to handle multi-byte characters correctly
+	runes := []rune(name)
+	// Take maxNameLength-1 runes and add ellipsis
+	return string(runes[:maxNameLength-1]) + "…"
 }
 
 // DisplayContributorsWithMostCommits displays the top commit authors and committers by number of commits per year
