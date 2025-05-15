@@ -28,6 +28,34 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0 # Needed to fetch all tags
+
+      - name: Get version for build
+        id: version
+        run: |
+          # Get latest semver tag if exists, or use placeholder for PR builds
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            VERSION="0.0.0-dev"
+          else
+            LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || echo "v1.0.0")
+            # Remove 'v' prefix if it exists
+            if [[ $LATEST_TAG == v* ]]; then
+              CURRENT_VERSION=${LATEST_TAG#v}
+            else
+              CURRENT_VERSION=$LATEST_TAG
+            fi
+            
+            # Split the version into parts
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+            
+            # Increment minor version for next build
+            NEW_MINOR=$((MINOR + 1))
+            VERSION="$MAJOR.$NEW_MINOR.0"
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building with version: $VERSION"
 
       - name: Set up Go
         uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # v5.4.0
@@ -39,21 +67,23 @@ jobs:
 
       - name: Build binaries
         shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           mkdir -p "${DIST_PATH}"
           for platform in ${PLATFORMS}; do
-            OS="${platform%/*}"
-            ARCH="${platform#*/}"
+            OPERATING_SYSTEM="${platform%/*}"
+            ARCHITECTURE="${platform#*/}"
 
-            echo "Building for ${OS}/${ARCH}..."
+            echo "Building for ${OPERATING_SYSTEM}/${ARCHITECTURE}..."
 
-            OUTPUT="${DIST_PATH}/${BINARY_NAME}-${OS}-${ARCH}"
-            if [ "${OS}" = "windows" ]; then
+            OUTPUT="${DIST_PATH}/${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}"
+            if [ "${OPERATING_SYSTEM}" = "windows" ]; then
               OUTPUT="$OUTPUT.exe"
             fi
 
             echo "  Building ${OUTPUT}"
-            GOOS="${OS}" GOARCH="${ARCH}" go build -o "$OUTPUT"
+            GOOS="${OPERATING_SYSTEM}" GOARCH="${ARCHITECTURE}" go build -ldflags "-X git-metrics/pkg/utils.GitMetricsVersion=${VERSION}" -o "$OUTPUT"
 
             echo "Built ${OUTPUT}"
           done
@@ -104,13 +134,42 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: [build,smoke_test]
-  
+
     permissions:
       contents: write
       id-token: write
       attestations: write      
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          fetch-depth: 0 # Needed to fetch all tags
+
+      - name: Calculate version
+        id: version
+        run: |
+          # Get latest semver tag if exists, or default to 1.0.0
+          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || echo "v1.0.0")
+          
+          # Remove 'v' prefix if it exists
+          if [[ $LATEST_TAG == v* ]]; then
+            CURRENT_VERSION=${LATEST_TAG#v}
+          else
+            CURRENT_VERSION=$LATEST_TAG
+          fi
+          
+          echo "Current version from tag: $CURRENT_VERSION"
+          
+          # Split the version into parts
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          # Increment minor version, reset patch
+          NEW_MINOR=$((MINOR + 1))
+          NEW_VERSION="$MAJOR.$NEW_MINOR.0"
+          
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
 
       - name: Download binaries
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v 4.3.0
@@ -119,41 +178,43 @@ jobs:
           path: ${{ env.DIST_PATH }}
 
       - name: Create platform archives
+        env:
+          VERSION: ${{ steps.version.outputs.new_version }}
         run: |
           # ensure all executables have execute bit
           chmod +x ${DIST_PATH}/*
 
           for binary in ${DIST_PATH}/${BINARY_NAME}-*; do
             filename=$(basename "$binary")
-            OS=$(echo $filename | cut -d'-' -f3)
-            ARCH=$(echo $filename | cut -d'-' -f4 | cut -d'.' -f1)
+            OPERATING_SYSTEM=$(echo $filename | cut -d'-' -f3)
+            ARCHITECTURE=$(echo $filename | cut -d'-' -f4 | cut -d'.' -f1)
 
-            echo "Creating archive for ${OS}/${ARCH}..."
+            echo "Creating archive for ${OPERATING_SYSTEM}/${ARCHITECTURE}..."
 
             # Create temp dir for packaging
-            pkg_dir="pkg/${OS}-${ARCH}"
-            mkdir -p "$pkg_dir"
+            package_directory="pkg/${OPERATING_SYSTEM}-${ARCHITECTURE}"
+            mkdir -p "$package_directory"
 
-            output_file="${pkg_dir}/${BINARY_NAME}"
+            output_file="${package_directory}/${BINARY_NAME}"
 
-            if [ "${OS}" = "windows" ]; then
+            if [ "${OPERATING_SYSTEM}" = "windows" ]; then
               output_file+=.exe
             fi
 
             cp "$binary" "${output_file}"
 
             # Pack with tar.gz for linux and zip for windows/darwin
-            if [ "${OS}" = "linux" ]; then
-              echo "  Taring to ${BINARY_NAME}-${OS}-${ARCH}.tar.gz"
-              tar -czf "${BINARY_NAME}-${OS}-${ARCH}.tar.gz" -C "${pkg_dir}" .
+            if [ "${OPERATING_SYSTEM}" = "linux" ]; then
+              echo "  Taring to ${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}-v${VERSION}.tar.gz"
+              tar -czf "${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}-v${VERSION}.tar.gz" -C "${package_directory}" .
             else
-              echo "  Zipping to ${BINARY_NAME}-${OS}-${ARCH}.zip"
-              (cd "$pkg_dir" && zip "${GITHUB_WORKSPACE}/${BINARY_NAME}-${OS}-${ARCH}.zip" *)
+              echo "  Zipping to ${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}-v${VERSION}.zip"
+              (cd "$package_directory" && zip "${GITHUB_WORKSPACE}/${BINARY_NAME}-${OPERATING_SYSTEM}-${ARCHITECTURE}-v${VERSION}.zip" *)
             fi
 
-            rm -rf "$pkg_dir"
+            rm -rf "$package_directory"
           done
-
+          
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@db473fddc028af60658334401dc6fa3ffd8669fd # v2.3.0
         with:
@@ -161,16 +222,11 @@ jobs:
             ${{ env.BINARY_NAME }}-*.gz
             ${{ env.BINARY_NAME }}-*.zip
 
-      - name: Generate release tag
-        id: tag
-        run: |
-          echo "release_tag=$(date +'%Y.%m.%d')-${{ github.run_number }}" >> $GITHUB_OUTPUT
-
       - name: Create Release
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
         with:
-          tag_name: ${{ steps.tag.outputs.release_tag }}
-          name: Release ${{ steps.tag.outputs.release_tag }}
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: Release v${{ steps.version.outputs.new_version }}
           files: |
             ${{ env.BINARY_NAME }}-*.gz
             ${{ env.BINARY_NAME }}-*.zip
