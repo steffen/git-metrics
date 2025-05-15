@@ -512,5 +512,3 @@ func PrintMachineInformation() {
 		utils.GetChipInformation())
 	fmt.Printf("Git version                %s\n", git.GetGitVersion())
 }
-
-
