@@ -26,54 +26,54 @@ The easiest way to install `git-metrics` is to download a prebuilt binary from t
 
 #### Linux
 
-Download the latest release for Linux (64-bit):
-```bash
-curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-linux-amd64.tar.gz -o git-metrics.tar.gz
-```
+1. Download the latest release for Linux (64-bit):
+   ```bash
+   curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-linux-amd64.tar.gz -o git-metrics.tar.gz
+   ```
 
-Unpack the archive:
-```bash
-tar -xzf git-metrics.tar.gz
-```
+2. Unpack the archive:
+   ```bash
+   tar -xzf git-metrics.tar.gz
+   ```
 
-Optional: Move it to a directory in your PATH:
-```bash
-sudo mv git-metrics /usr/local/bin/
-```
+3. Optional: Move it to a directory in your PATH:
+   ```bash
+   sudo mv git-metrics /usr/local/bin/
+   ```
 
 #### macOS
 
-Download the latest release for macOS (Intel or Apple Silicon):
-```bash
-curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-darwin-arm64.zip -o git-metrics.zip
-```
+1. Download the latest release for macOS (Intel or Apple Silicon):
+   ```bash
+   curl -L https://github.com/steffen/git-metrics/releases/latest/download/git-metrics-darwin-arm64.zip -o git-metrics.zip
+   ```
 
-Unzip the archive:
-```bash
-unzip git-metrics.zip
-```
+2. Unzip the archive:
+   ```bash
+   unzip git-metrics.zip
+   ```
 
-Optional: Move it to a directory in your PATH:
-```bash
-sudo mv git-metrics /usr/local/bin/
-```
+3. Optional: Move it to a directory in your PATH:
+   ```bash
+   sudo mv git-metrics /usr/local/bin/
+   ```
 
-When downloaded via browser, remove quarantine attribute:
-```bash
-xattr -d com.apple.quarantine git-metrics
-```
+4. When downloaded via browser, remove quarantine attribute:
+   ```bash
+   xattr -d com.apple.quarantine git-metrics
+   ```
 
 ### Running the tool
 
-Analyze the current directory as a Git repository:
-```bash
-git-metrics
-```
+* Analyze the current directory as a Git repository:
+  ```bash
+  git-metrics
+  ```
 
-Analyze a specific repository:
-```bash
-git-metrics -r /path/to/repository
-```
+* Analyze a specific repository:
+  ```bash
+  git-metrics -r /path/to/repository
+  ```
 
 ## Command line options
 
@@ -905,15 +905,15 @@ If you prefer to build `git-metrics` from source, follow these steps:
 - Git
 - Go 1.23.2 or newer
 
-Clone the repository:
-```bash
-git clone https://github.com/steffen/git-metrics.git
-cd git-metrics
-```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/steffen/git-metrics.git
+   cd git-metrics
+   ```
 
-Build the binary:
-```bash
-go build
-```
+2. Build the binary:
+   ```bash
+   go build
+   ```
 
-After building, you can run the tool as described in the "Running the Application" section.
+After building, you can run the tool as described in the "Running the Tool" section.
