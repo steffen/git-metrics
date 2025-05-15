@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"git-metrics/pkg/display"
+	"git-metrics/pkg/display/sections"
 	"git-metrics/pkg/git"
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/progress"
@@ -313,7 +314,7 @@ func main() {
 
 	// Print top 3 commit authors and committers per year
 	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
-		display.PrintTopCommitAuthors(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
+		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
 	}
 
 	// Get memory statistics for final output
