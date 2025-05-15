@@ -53,7 +53,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	display.PrintMachineInformation()
+	sections.DisplayRunInformation()
 
 	fmt.Println("\nREPOSITORY #####################################################################################")
 	fmt.Println()

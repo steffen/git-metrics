@@ -7,7 +7,7 @@ echo "=> Updating fixtures…" >&2
 echo "==> Building test repository…" >&2
 script/build-test-repository
 
-script/build
+VERSION=0.0.0-fixtures script/build
 
 echo "==> Running git-metrics and updating output…" >&2
 ./git-metrics --no-progress --repository tmp/test-repository > fixtures/git-metrics.md
