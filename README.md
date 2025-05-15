@@ -82,6 +82,7 @@ git-metrics -r /path/to/repository
 | `-r`, `--repository` | Path to Git repository (default: current directory) |
 | `--debug` | Enable debug output |
 | `--no-progress` | Disable progress indicators |
+| `--version` | Display version information and exit |
 
 ## Output examples
 
