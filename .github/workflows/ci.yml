@@ -226,10 +226,11 @@ jobs:
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
         with:
           tag_name: v${{ steps.version.outputs.new_version }}
-          name: Release v${{ steps.version.outputs.new_version }}
+          name: ${{ steps.version.outputs.new_version }}
           files: |
             ${{ env.BINARY_NAME }}-*.gz
             ${{ env.BINARY_NAME }}-*.zip
+          generate_release_notes: true
           draft: false
           prerelease: false
         env:
