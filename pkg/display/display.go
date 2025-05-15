@@ -792,11 +792,11 @@ func PrintTopCommitAuthors(authorsByYear map[int][][3]string, totalAuthorsByYear
 		topAuthorsPercentage := float64(topAuthorsTotalCommits) / float64(allTimeTotalCommits) * 100
 		topCommittersPercentage := float64(topCommittersTotalCommits) / float64(allTimeTotalCommits) * 100
 
-		fmt.Printf("        ├─ Top %-4s             %8s  %5.1f%%        ├─ Top %-4s             %8s  %5.1f%%\n",
+		fmt.Printf("        ├─ Top %-8s      %11s  %5.1f%%        ├─ Top %-8s      %11s  %5.1f%%\n",
 			utils.FormatNumber(len(allTimeAuthorsList)), utils.FormatNumber(topAuthorsTotalCommits), topAuthorsPercentage,
 			utils.FormatNumber(len(allTimeCommittersList)), utils.FormatNumber(topCommittersTotalCommits), topCommittersPercentage)
 
-		fmt.Printf("        └─ Out of %-4s          %8s  %5.1f%%        └─ Out of %-4s          %8s  %5.1f%%\n",
+		fmt.Printf("        └─ Out of %-8s   %11s  %5.1f%%        └─ Out of %-8s   %11s  %5.1f%%\n",
 			utils.FormatNumber(totalAuthorCount), utils.FormatNumber(allTimeTotalCommits), 100.0,
 			utils.FormatNumber(totalCommitterCount), utils.FormatNumber(allTimeTotalCommits), 100.0)
 	}
