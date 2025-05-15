@@ -21,7 +21,18 @@ const (
 	// Summary row formats
 	formatTopRow   = "        ├─ Top %-8s      %11s  %5.1f%%        ├─ Top %-8s      %11s  %5.1f%%\n"
 	formatOutOfRow = "        └─ Out of %-8s   %11s  %5.1f%%        └─ Out of %-8s   %11s  %5.1f%%\n"
+
+	// Maximum contributor name length
+	maxNameLength = 24
 )
+
+// truncateContributorName truncates a contributor name to maxNameLength and adds ellipsis if needed
+func truncateContributorName(name string) string {
+	if len(name) <= maxNameLength {
+		return name
+	}
+	return name[:maxNameLength-1] + "…"
+}
 
 // DisplayContributorsWithMostCommits displays the top commit authors and committers by number of commits per year
 func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int,
@@ -104,13 +115,13 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 
 						fmt.Printf(formatRow,
 							fmt.Sprintf("%d", year),
-							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
-							committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
+							truncateContributorName(authors[j][0]), utils.FormatNumber(authorCommits), authorPercentage,
+							truncateContributorName(committers[j][0]), utils.FormatNumber(committerCommits), committerPercentage)
 					} else {
 						// No committer for this row
 						fmt.Printf(formatRow,
 							fmt.Sprintf("%d", year),
-							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
+							truncateContributorName(authors[j][0]), utils.FormatNumber(authorCommits), authorPercentage,
 							"", "", 0.0)
 					}
 				} else if j < len(committers) {
@@ -121,7 +132,7 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					fmt.Printf(formatRow,
 						fmt.Sprintf("%d", year),
 						"", "", 0.0,
-						committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
+						truncateContributorName(committers[j][0]), utils.FormatNumber(committerCommits), committerPercentage)
 				}
 			} else {
 				// Subsequent rows - just author and committer, no year
@@ -135,13 +146,13 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 
 						fmt.Printf(formatRow,
 							"",
-							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
-							committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
+							truncateContributorName(authors[j][0]), utils.FormatNumber(authorCommits), authorPercentage,
+							truncateContributorName(committers[j][0]), utils.FormatNumber(committerCommits), committerPercentage)
 					} else {
 						// No committer for this row
 						fmt.Printf(formatRow,
 							"",
-							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
+							truncateContributorName(authors[j][0]), utils.FormatNumber(authorCommits), authorPercentage,
 							"", "", 0.0)
 					}
 				} else if j < len(committers) {
@@ -152,7 +163,7 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					fmt.Printf(formatRow,
 						"",
 						"", "", 0.0,
-						committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
+						truncateContributorName(committers[j][0]), utils.FormatNumber(committerCommits), committerPercentage)
 				}
 			}
 		}
@@ -252,13 +263,13 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 
 						fmt.Printf(formatRow,
 							"TOTAL",
-							allTimeAuthorsList[j].name, utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
-							allTimeCommittersList[j].name, utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
+							truncateContributorName(allTimeAuthorsList[j].name), utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
+							truncateContributorName(allTimeCommittersList[j].name), utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
 					} else {
 						// No committer for this row
 						fmt.Printf(formatRow,
 							"TOTAL",
-							allTimeAuthorsList[j].name, utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
+							truncateContributorName(allTimeAuthorsList[j].name), utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
 							"", "", 0.0)
 					}
 				} else if j < len(allTimeCommittersList) {
@@ -268,7 +279,7 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					fmt.Printf(formatRow,
 						"TOTAL",
 						"", "", 0.0,
-						allTimeCommittersList[j].name, utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
+						truncateContributorName(allTimeCommittersList[j].name), utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
 				}
 			} else {
 				// Subsequent rows - just author and committer, no TOTAL
@@ -280,13 +291,13 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 
 						fmt.Printf(formatRow,
 							"",
-							allTimeAuthorsList[j].name, utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
-							allTimeCommittersList[j].name, utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
+							truncateContributorName(allTimeAuthorsList[j].name), utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
+							truncateContributorName(allTimeCommittersList[j].name), utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
 					} else {
 						// No committer for this row
 						fmt.Printf(formatRow,
 							"",
-							allTimeAuthorsList[j].name, utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
+							truncateContributorName(allTimeAuthorsList[j].name), utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
 							"", "", 0.0)
 					}
 				} else if j < len(allTimeCommittersList) {
@@ -296,7 +307,7 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					fmt.Printf(formatRow,
 						"",
 						"", "", 0.0,
-						allTimeCommittersList[j].name, utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
+						truncateContributorName(allTimeCommittersList[j].name), utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
 				}
 			}
 		}
