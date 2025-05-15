@@ -1,10 +1,10 @@
 <h1 align="center">git-metrics</h1>
 
-A powerful Git repository analysis tool that provides detailed metrics, growth statistics, and future projections for your Git repositories.
+A powerful Git repository analysis tool that provides detailed metrics, growth statistics, future projections, and contributor insights for your Git repositories.
 
 ## Overview
 
-`git-metrics` is a command-line utility that analyzes Git repositories to provide comprehensive insights about repository growth, object statistics, and file usage. The tool gathers historical data and provides projections for future repository growth.
+`git-metrics` is a command-line utility that analyzes Git repositories to provide comprehensive insights about repository history, structure, and growth patterns. The tool examines your repository's Git object database to reveal historical trends, identify storage-heavy components, and visualize contributor activity over time. With this data, it generates projections for future repository growth and helps identify optimization opportunities.
 
 Key features include:
 - Repository metadata analysis (first commit, age)
