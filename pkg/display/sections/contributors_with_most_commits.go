@@ -15,10 +15,8 @@ const (
 	formatTableHeader   = "Year    Author                   Commits                Committer                Commits"
 	formatTableDivider  = "------------------------------------------------------------------------------------------------"
 	formatRowSeparator  = "        ┌───────────────────────────────────────        ┌───────────────────────────────────────"
-	// Row formats
-	formatYearRow   = "%-8d%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n"     // with year, author/committer data
-	formatNoYearRow = "        %-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // without year, for author/committer data
-	formatTotalRow  = "%-8s%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n"     // with TOTAL, for all-time stats
+	// Row format (unified)
+	formatRow = "%-8s%-24s%8s  %5.1f%%        %-24s%8s  %5.1f%%\n" // unified row format for all data
 
 	// Summary row formats
 	formatTopRow   = "        ├─ Top %-8s      %11s  %5.1f%%        ├─ Top %-8s      %11s  %5.1f%%\n"
@@ -104,14 +102,14 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 						committerCommits, _ := strconv.Atoi(committers[j][1])
 						committerPercentage := float64(committerCommits) / float64(totalCommits) * 100
 
-						fmt.Printf(formatYearRow,
-							year,
+						fmt.Printf(formatRow,
+							fmt.Sprintf("%d", year),
 							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
 							committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
 					} else {
 						// No committer for this row
-						fmt.Printf(formatYearRow,
-							year,
+						fmt.Printf(formatRow,
+							fmt.Sprintf("%d", year),
 							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
 							"", "", 0.0)
 					}
@@ -120,8 +118,8 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					committerCommits, _ := strconv.Atoi(committers[j][1])
 					committerPercentage := float64(committerCommits) / float64(totalCommits) * 100
 
-					fmt.Printf(formatYearRow,
-						year,
+					fmt.Printf(formatRow,
+						fmt.Sprintf("%d", year),
 						"", "", 0.0,
 						committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
 				}
@@ -135,12 +133,14 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 						committerCommits, _ := strconv.Atoi(committers[j][1])
 						committerPercentage := float64(committerCommits) / float64(totalCommits) * 100
 
-						fmt.Printf(formatNoYearRow,
+						fmt.Printf(formatRow,
+							"",
 							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
 							committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
 					} else {
 						// No committer for this row
-						fmt.Printf(formatNoYearRow,
+						fmt.Printf(formatRow,
+							"",
 							authors[j][0], utils.FormatNumber(authorCommits), authorPercentage,
 							"", "", 0.0)
 					}
@@ -149,7 +149,8 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					committerCommits, _ := strconv.Atoi(committers[j][1])
 					committerPercentage := float64(committerCommits) / float64(totalCommits) * 100
 
-					fmt.Printf(formatNoYearRow,
+					fmt.Printf(formatRow,
+						"",
 						"", "", 0.0,
 						committers[j][0], utils.FormatNumber(committerCommits), committerPercentage)
 				}
@@ -249,13 +250,13 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					if j < len(allTimeCommittersList) {
 						committerPercentage := float64(allTimeCommittersList[j].commits) / float64(allTimeTotalCommits) * 100
 
-						fmt.Printf(formatTotalRow,
+						fmt.Printf(formatRow,
 							"TOTAL",
 							allTimeAuthorsList[j].name, utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
 							allTimeCommittersList[j].name, utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
 					} else {
 						// No committer for this row
-						fmt.Printf(formatTotalRow,
+						fmt.Printf(formatRow,
 							"TOTAL",
 							allTimeAuthorsList[j].name, utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
 							"", "", 0.0)
@@ -264,7 +265,7 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					// No author for this row but we have a committer
 					committerPercentage := float64(allTimeCommittersList[j].commits) / float64(allTimeTotalCommits) * 100
 
-					fmt.Printf(formatTotalRow,
+					fmt.Printf(formatRow,
 						"TOTAL",
 						"", "", 0.0,
 						allTimeCommittersList[j].name, utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
@@ -277,12 +278,14 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					if j < len(allTimeCommittersList) {
 						committerPercentage := float64(allTimeCommittersList[j].commits) / float64(allTimeTotalCommits) * 100
 
-						fmt.Printf(formatNoYearRow,
+						fmt.Printf(formatRow,
+							"",
 							allTimeAuthorsList[j].name, utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
 							allTimeCommittersList[j].name, utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
 					} else {
 						// No committer for this row
-						fmt.Printf(formatNoYearRow,
+						fmt.Printf(formatRow,
+							"",
 							allTimeAuthorsList[j].name, utils.FormatNumber(allTimeAuthorsList[j].commits), authorPercentage,
 							"", "", 0.0)
 					}
@@ -290,7 +293,8 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 					// No author for this row but we have a committer
 					committerPercentage := float64(allTimeCommittersList[j].commits) / float64(allTimeTotalCommits) * 100
 
-					fmt.Printf(formatNoYearRow,
+					fmt.Printf(formatRow,
+						"",
 						"", "", 0.0,
 						allTimeCommittersList[j].name, utils.FormatNumber(allTimeCommittersList[j].commits), committerPercentage)
 				}
