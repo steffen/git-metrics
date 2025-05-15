@@ -9,9 +9,11 @@ A powerful Git repository analysis tool that provides detailed metrics, growth s
 Key features include:
 - Repository metadata analysis (first commit, age)
 - Year-by-year growth statistics for Git objects (commits, trees, blobs) and their on-disk size
+- Future growth projections based on historical trends
+- Directory structure analysis with size impact indicators
 - Identification of largest files in the repository
 - File extension distribution analysis
-- Future growth projections based on historical trends
+- Contributor statistics showing top committers and authors over time
 
 ## Installation
 
@@ -849,20 +851,21 @@ Finished in 4m7s with a memory footprint of 2.2 GB.
 
 `git-metrics` provides several sections of output:
 
-1. **Repository information**: Basic metadata about your repository including path, remote URL, and commit history.
+1. **Run information**: Details about when, where, and with which versions the tool was executed.
+2. **Repository information**: Basic metadata about your repository including path, remote URL, age, and commit history.
+3. **Historic & estimated growth**: Year-by-year breakdown of Git object growth (commits, trees, blobs) and disk usage, with future projections based on historical trends.
+4. **Largest directories**: Hierarchical view of directory sizes and their impact on repository size, showing both absolute and percentage values.
+5. **Largest files**: Identification of the largest files in your repository by compressed size, along with their last commit year.
+6. **File extensions**: Analysis of file extensions and their contribution to repository size.
+7. **Contributors**: Statistics on authors and committers over time, showing who has contributed the most commits by year.
 
-2. **Growth statistics**: Year-by-year breakdown of Git object growth (commits, trees, blobs) and disk usage.
+### Important metrics explained
 
-3. **Growth projections**: Estimation of future repository growth based on historical trends.
-
-4. **Largest files**: Identification of the largest files in your repository by compressed size.
-
-5. **File extensions**: Analysis of file extensions and their impact on repository size.
-
-### "On-disk size" explained
-
-The on-disk size in `git-metrics`'s output shows the compressed size of commits (saved changes), trees (folder snapshots) and blobs (file versions) as stored in Git's object database (`.git/objects`). These objects are often stored using deltas (storing only changes between similar objects). Repacking the repository (e.g. `git gc`) can alter on-disk sizes of these objects by changing compression and deltas. `git-metrics` does not include the on-disk size of metadata such as pack file indexes (`.git/objects/pack/*.idx`), refs, or other auxiliary files which accounts for 5% to 10% of the overall on-disk size of a repository in most cases.
-
+- **Commits, Trees, Blobs**: These columns show the cumulative count of Git objects. Commits represent saved changes, trees represent folder snapshots, and blobs represent file versions.
+- **On-disk size**: Shows the compressed size of Git objects as stored in Git's database (`.git/objects`). Objects are often stored using delta compression (storing only changes between similar objects). 
+- **Percentages (%)**: In the growth table, percentages show estimated yearly growth relative to current totals. In directory and file listings, percentages show the proportion of total repository objects or size.
+- **Growth projections**: Future estimates (marked with `*`) are calculated based on growth patterns from the last five years.
+- **Directory markers**: Files or directories marked with `*` are not present in the latest commit (they were moved, renamed, or removed).
 
 ## Use cases
 
