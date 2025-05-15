@@ -37,7 +37,7 @@ func main() {
 	progress.ShowProgress = !*noProgress
 
 	if !requirements.CheckRequirements() {
-		fmt.Println("\\nRequirements not met. Please install listed dependencies above.")
+		fmt.Println("\nRequirements not met. Please install listed dependencies above.")
 		os.Exit(9)
 	}
 
