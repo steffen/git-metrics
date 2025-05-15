@@ -17,7 +17,7 @@ echo "=> Running git-metrics integration tests…" >&2
 echo "==> Building test repository…" >&2
 script/build-test-repository
 
-script/build
+VERSION=0.0.0-fixtures script/build
 
 echo "==> Comparing output…" >&2
 ./git-metrics --no-progress --repository tmp/test-repository > tmp/git-metrics.md
