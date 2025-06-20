@@ -27,11 +27,21 @@ const (
 
 func main() {
 	startTime := time.Now()
-	showVersion := flag.Bool("version", false, "Only display version information")
+	
+	// Customize flag usage to show conventional double-dash format
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "  --debug\n        Enable debug output\n")
+		fmt.Fprintf(os.Stderr, "  --no-progress\n        Disable progress indicators\n")
+		fmt.Fprintf(os.Stderr, "  -r, --repository string\n        Path to git repository (default \".\")\n")
+		fmt.Fprintf(os.Stderr, "  --version\n        Display version information and exit\n")
+	}
+	
+	showVersion := flag.Bool("version", false, "Display version information and exit")
 	repositoryPath := flag.String("r", ".", "Path to git repository")
 	flag.StringVar(repositoryPath, "repository", ".", "Path to git repository")
 	flag.BoolVar(&debug, "debug", false, "Enable debug output")
-	noProgress := flag.Bool("no-progress", false, "Disable progress output")
+	noProgress := flag.Bool("no-progress", false, "Disable progress indicators")
 	flag.Parse()
 
 	// Show version and exit if version flag is set
