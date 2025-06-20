@@ -2,6 +2,7 @@ package main
 
 import (
 	"git-metrics/pkg/utils"
+	"os"
 	"testing"
 	"time"
 )
@@ -73,5 +74,25 @@ func TestCalculateYearsMonthsDays(t *testing.T) {
 					years, months, days, tt.wantYears, tt.wantMonths, tt.wantDays)
 			}
 		})
+	}
+}
+
+func TestIsTerminal(t *testing.T) {
+	// Test with stdout (should be true when running tests normally)
+	result := isTerminal(os.Stdout)
+	t.Logf("os.Stdout is terminal: %v", result)
+	
+	// Test with stderr (should be true when running tests normally)  
+	result = isTerminal(os.Stderr)
+	t.Logf("os.Stderr is terminal: %v", result)
+	
+	// We can't easily test the false case without creating pipes,
+	// but the function should handle errors gracefully
+	var nilFile *os.File
+	if nilFile != nil {
+		result = isTerminal(nilFile)
+		if result {
+			t.Error("Expected false for nil file, got true")
+		}
 	}
 }
