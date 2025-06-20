@@ -13,18 +13,23 @@ func TestFormatSize(t *testing.T) {
 	}{
 		{
 			name:     "Kilobytes",
-			bytes:    1024 * 500,
+			bytes:    500 * 1000,
 			expected: "500.0 KB",
 		},
 		{
-			name:     "Megabytes",
-			bytes:    1024 * 1024 * 10,
+			name:     "Megabytes", 
+			bytes:    10 * 1000 * 1000,
 			expected: " 10.0 MB",
 		},
 		{
 			name:     "Gigabytes",
-			bytes:    1024 * 1024 * 1024 * 5,
+			bytes:    5 * 1000 * 1000 * 1000,
 			expected: "  5.0 GB",
+		},
+		{
+			name:     "Avoids awkward numbers",
+			bytes:    1054867456, // Would be ~1006 MB in binary, now shows as clean GB
+			expected: "  1.1 GB",
 		},
 	}
 

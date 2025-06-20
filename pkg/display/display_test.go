@@ -60,8 +60,8 @@ func TestPrintLargestFiles(t *testing.T) {
 		"On-disk size",
 		"file1.txt",
 		"file2.txt",
-		"1.0 MB",
-		"512.0 KB",
+		"1.0 MB",    // 1024*1024 bytes = 1,048,576 bytes ≈ 1.0 MB in decimal
+		"524.3 KB",  // 1024*512 bytes = 524,288 bytes ≈ 524.3 KB in decimal
 	}
 
 	for _, expected := range expectedStrings {
@@ -184,7 +184,7 @@ func TestPrintGrowthTableRow(t *testing.T) {
 		t.Errorf("Expected output to contain formatted blobs '3,000', but it doesn't.\nOutput: %s", output)
 	}
 
-	if !strings.Contains(output, "5.0 MB") {
-		t.Errorf("Expected output to contain formatted size '5.0 MB', but it doesn't.\nOutput: %s", output)
+	if !strings.Contains(output, "5.2 MB") {
+		t.Errorf("Expected output to contain formatted size '5.2 MB', but it doesn't.\nOutput: %s", output)
 	}
 }
