@@ -60,8 +60,8 @@ func TestPrintLargestFiles(t *testing.T) {
 		"On-disk size",
 		"file1.txt",
 		"file2.txt",
-		"1.0 MB",    // 1024*1024 bytes = 1,048,576 bytes ≈ 1.0 MB in decimal
-		"524.3 KB",  // 1024*512 bytes = 524,288 bytes ≈ 524.3 KB in decimal
+		"1.0 MB",   // 1024*1024 bytes = 1,048,576 bytes ≈ 1.0 MB in decimal
+		"524.3 KB", // 1024*512 bytes = 524,288 bytes ≈ 524.3 KB in decimal
 	}
 
 	for _, expected := range expectedStrings {

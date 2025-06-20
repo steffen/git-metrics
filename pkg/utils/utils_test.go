@@ -17,7 +17,7 @@ func TestFormatSize(t *testing.T) {
 			expected: "500.0 KB",
 		},
 		{
-			name:     "Megabytes", 
+			name:     "Megabytes",
 			bytes:    10 * 1000 * 1000,
 			expected: " 10.0 MB",
 		},
