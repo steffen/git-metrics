@@ -25,14 +25,6 @@ const (
 	UnknownValue = "Unknown"
 )
 
-// isTerminal checks if the given file is a terminal (TTY)
-func isTerminal(file *os.File) bool {
-	if fileInfo, err := file.Stat(); err == nil {
-		return (fileInfo.Mode() & os.ModeCharDevice) != 0
-	}
-	return false
-}
-
 func main() {
 	startTime := time.Now()
 	showVersion := flag.Bool("version", false, "Only display version information")
@@ -50,7 +42,7 @@ func main() {
 
 	// Set progress visibility based on --no-progress flag and output destination
 	// Automatically disable progress when output is piped to a file or redirected
-	progress.ShowProgress = !*noProgress && isTerminal(os.Stdout)
+	progress.ShowProgress = !*noProgress && utils.IsTerminal(os.Stdout)
 
 	if !requirements.CheckRequirements() {
 		fmt.Println("\nRequirements not met. Please install listed dependencies above.")
