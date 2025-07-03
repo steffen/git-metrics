@@ -31,18 +31,49 @@ func main() {
 	// Customize flag usage to show conventional double-dash format
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  -%s, --%s string\n        %s\n", models.FlagRepository.ShortName, models.FlagRepository.Name, models.FlagRepository.Description)
-		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagNoProgress.Name, models.FlagNoProgress.Description)
-		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagVersion.Name, models.FlagVersion.Description)
-		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagDebug.Name, models.FlagDebug.Description)
+		
+		// Loop through all defined flags to build usage text
+		for _, f := range models.AllFlags() {
+			if f.ShortName != "" {
+				// Flag with both short and long form
+				if f.Type == "string" {
+					fmt.Fprintf(os.Stderr, "  -%s, --%s %s\n", f.ShortName, f.Name, f.Type)
+				} else {
+					fmt.Fprintf(os.Stderr, "  -%s, --%s\n", f.ShortName, f.Name)
+				}
+			} else {
+				// Flag with only long form
+				if f.Type == "string" {
+					fmt.Fprintf(os.Stderr, "  --%s %s\n", f.Name, f.Type)
+				} else {
+					fmt.Fprintf(os.Stderr, "  --%s\n", f.Name)
+				}
+			}
+			fmt.Fprintf(os.Stderr, "        %s\n", f.Description)
+		}
 		fmt.Fprintf(os.Stderr, "  -h, --help\n        Display this help message\n")
 	}
 
-	repositoryPath := flag.String(models.FlagRepository.ShortName, ".", models.FlagRepository.Description)
-	flag.StringVar(repositoryPath, models.FlagRepository.Name, ".", models.FlagRepository.Description)
-	noProgress := flag.Bool(models.FlagNoProgress.Name, false, models.FlagNoProgress.Description)
-	showVersion := flag.Bool(models.FlagVersion.Name, false, models.FlagVersion.Description)
-	flag.BoolVar(&debug, models.FlagDebug.Name, false, models.FlagDebug.Description)
+	// Define flag variables
+	var repositoryPath *string
+	var noProgress *bool
+	var showVersion *bool
+	
+	// Loop through flags and register them dynamically
+	for _, f := range models.AllFlags() {
+		switch f.Name {
+		case models.FlagRepository.Name:
+			repositoryPath = flag.String(f.ShortName, f.Default, f.Description)
+			flag.StringVar(repositoryPath, f.Name, f.Default, f.Description)
+		case models.FlagNoProgress.Name:
+			noProgress = flag.Bool(f.Name, false, f.Description)
+		case models.FlagVersion.Name:
+			showVersion = flag.Bool(f.Name, false, f.Description)
+		case models.FlagDebug.Name:
+			flag.BoolVar(&debug, f.Name, false, f.Description)
+		}
+	}
+	
 	flag.Parse()
 
 	// Show version and exit if version flag is set
