@@ -41,3 +41,9 @@ type GitObject struct {
 	ObjectSize       int64
 	Additional       string // typically the file path if available
 }
+
+type Flag struct {
+	Name        string
+	Description string
+	ShortName   string // Optional short name like "-r"
+}

@@ -27,21 +27,22 @@ const (
 
 func main() {
 	startTime := time.Now()
-	
+
 	// Customize flag usage to show conventional double-dash format
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  --debug\n        Enable debug output\n")
-		fmt.Fprintf(os.Stderr, "  --no-progress\n        Disable progress indicators\n")
-		fmt.Fprintf(os.Stderr, "  -r, --repository string\n        Path to git repository (default \".\")\n")
-		fmt.Fprintf(os.Stderr, "  --version\n        Display version information and exit\n")
+		fmt.Fprintf(os.Stderr, "  -%s, --%s\n        %s\n", models.FlagRepository.ShortName, models.FlagRepository.Name, models.FlagRepository.Description)
+		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagNoProgress.Name, models.FlagNoProgress.Description)
+		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagVersion.Name, models.FlagVersion.Description)
+		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagDebug.Name, models.FlagDebug.Description)
+		fmt.Fprintf(os.Stderr, "  -h, --help\n        Display this help message\n")
 	}
-	
-	showVersion := flag.Bool("version", false, "Display version information and exit")
-	repositoryPath := flag.String("r", ".", "Path to git repository")
-	flag.StringVar(repositoryPath, "repository", ".", "Path to git repository")
-	flag.BoolVar(&debug, "debug", false, "Enable debug output")
-	noProgress := flag.Bool("no-progress", false, "Disable progress indicators")
+
+	repositoryPath := flag.String(models.FlagRepository.ShortName, ".", models.FlagRepository.Description)
+	flag.StringVar(repositoryPath, models.FlagRepository.Name, ".", models.FlagRepository.Description)
+	noProgress := flag.Bool(models.FlagNoProgress.Name, false, models.FlagNoProgress.Description)
+	showVersion := flag.Bool(models.FlagVersion.Name, false, models.FlagVersion.Description)
+	flag.BoolVar(&debug, models.FlagDebug.Name, false, models.FlagDebug.Description)
 	flag.Parse()
 
 	// Show version and exit if version flag is set
