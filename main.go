@@ -31,7 +31,7 @@ func main() {
 	// Customize flag usage to show conventional double-dash format
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "  -%s, --%s\n        %s\n", models.FlagRepository.ShortName, models.FlagRepository.Name, models.FlagRepository.Description)
+		fmt.Fprintf(os.Stderr, "  -%s, --%s string\n        %s\n", models.FlagRepository.ShortName, models.FlagRepository.Name, models.FlagRepository.Description)
 		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagNoProgress.Name, models.FlagNoProgress.Description)
 		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagVersion.Name, models.FlagVersion.Description)
 		fmt.Fprintf(os.Stderr, "  --%s\n        %s\n", models.FlagDebug.Name, models.FlagDebug.Description)
