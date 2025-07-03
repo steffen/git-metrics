@@ -78,21 +78,75 @@ func TestCalculateYearsMonthsDays(t *testing.T) {
 }
 
 func TestIsTerminal(t *testing.T) {
-	// Test with stdout (should be true when running tests normally)
-	result := isTerminal(os.Stdout)
-	t.Logf("os.Stdout is terminal: %v", result)
-	
-	// Test with stderr (should be true when running tests normally)  
-	result = isTerminal(os.Stderr)
-	t.Logf("os.Stderr is terminal: %v", result)
-	
-	// We can't easily test the false case without creating pipes,
-	// but the function should handle errors gracefully
+	// Test case 1: Pipes are not terminals
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("Failed to create pipe: %v", err)
+	}
+	defer reader.Close()
+	defer writer.Close()
+
+	if isTerminal(reader) {
+		t.Error("Expected pipe reader not to be a terminal")
+	}
+
+	if isTerminal(writer) {
+		t.Error("Expected pipe writer not to be a terminal")
+	}
+
+	// Test case 2: Regular file is not a terminal
+	temporaryFile, err := os.CreateTemp("", "terminal-test")
+	if err != nil {
+		t.Fatalf("Failed to create temporary file: %v", err)
+	}
+	defer os.Remove(temporaryFile.Name())
+	defer temporaryFile.Close()
+
+	if isTerminal(temporaryFile) {
+		t.Error("Expected regular file not to be a terminal")
+	}
+
+	// Test case 3: Nil file handling
 	var nilFile *os.File
-	if nilFile != nil {
-		result = isTerminal(nilFile)
-		if result {
-			t.Error("Expected false for nil file, got true")
-		}
+	if isTerminal(nilFile) {
+		t.Error("Expected nil file not to be a terminal")
+	}
+
+	// Test case 4: Mock os.Stdout and os.Stderr
+	// Save original stdout and stderr
+	originalStdout := os.Stdout
+	originalStderr := os.Stderr
+	defer func() {
+		// Restore original stdout and stderr after test
+		os.Stdout = originalStdout
+		os.Stderr = originalStderr
+	}()
+
+	// Create temporary files to replace stdout and stderr
+	mockStdout, err := os.CreateTemp("", "mock-stdout")
+	if err != nil {
+		t.Fatalf("Failed to create mock stdout: %v", err)
+	}
+	defer os.Remove(mockStdout.Name())
+	defer mockStdout.Close()
+
+	mockStderr, err := os.CreateTemp("", "mock-stderr")
+	if err != nil {
+		t.Fatalf("Failed to create mock stderr: %v", err)
+	}
+	defer os.Remove(mockStderr.Name())
+	defer mockStderr.Close()
+
+	// Temporarily redirect stdout and stderr
+	os.Stdout = mockStdout
+	os.Stderr = mockStderr
+
+	// Test the mocked stdout and stderr
+	if isTerminal(os.Stdout) {
+		t.Error("Mocked stdout incorrectly identified as a terminal")
+	}
+
+	if isTerminal(os.Stderr) {
+		t.Error("Mocked stderr incorrectly identified as a terminal")
 	}
 }
