@@ -181,6 +181,9 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	// Track if any items aren't in default branch (to show footnote)
 	showFootnote := false
 
+	// Track truncated paths for footnotes
+	var footnotes []Footnote
+
 	// Print root entries
 	for i, stat := range roots {
 		// Print separator after each root except the last
@@ -205,9 +208,19 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			showFootnote = true
 		}
 
+		// Use CreatePathFootnote for consistent truncation and footnote logic
+		result := CreatePathFootnote(displayPath, 51, len(footnotes))
+		finalDisplayPath := result.DisplayPath
+		if result.Index > 0 {
+			footnotes = append(footnotes, Footnote{
+				Index:    result.Index,
+				FullPath: result.FullPath,
+			})
+		}
+
 		// Print root
 		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
-			displayPath,
+			finalDisplayPath,
 			utils.FormatNumber(stat.Blobs),
 			percentBlobs,
 			utils.FormatSize(stat.CompressedSize),
@@ -252,9 +265,19 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				showFootnote = true
 			}
 
+			// Use CreatePathFootnote for consistent truncation and footnote logic
+			result := CreatePathFootnote(displayPath, 48, len(footnotes))
+			finalDisplayPath := result.DisplayPath
+			if result.Index > 0 {
+				footnotes = append(footnotes, Footnote{
+					Index:    result.Index,
+					FullPath: result.FullPath,
+				})
+			}
+
 			fmt.Printf("%s %-48s %13s%6.1f %%  %13s%6.1f %%\n",
 				prefix,
-				displayPath,
+				finalDisplayPath,
 				utils.FormatNumber(child.Blobs),
 				percentBlobs,
 				utils.FormatSize(child.CompressedSize),
@@ -282,6 +305,14 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	if hasDefaultBranch && showFootnote {
 		fmt.Println()
 		fmt.Printf("* File or directory not present in latest commit of %s branch (moved, renamed or removed)\n", defaultBranch)
+	}
+
+	// Print footnotes for truncated paths
+	if len(footnotes) > 0 {
+		fmt.Println()
+		for _, footnote := range footnotes {
+			fmt.Printf("[%d] %s\n", footnote.Index, footnote.FullPath)
+		}
 	}
 }
 
@@ -332,10 +363,7 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 	var totalSelectedSize int64
 
 	// Track truncated paths for footnotes
-	var footnotes []struct {
-		index int
-		path  string
-	}
+	var footnotes []Footnote
 
 	// Calculate total size of all files in repository
 	for _, file := range files {
@@ -350,16 +378,13 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 		percentageSize := float64(file.CompressedSize) / float64(totalFilesSize) * 100
 		percentageBlobs := float64(file.Blobs) / float64(totalBlobs) * 100
 
-		// Use FormatDisplayPath for consistent truncation and footnote logic
-		result := FormatDisplayPath(file.Path, 43, len(footnotes))
+		// Use CreatePathFootnote for consistent truncation and footnote logic
+		result := CreatePathFootnote(file.Path, 43, len(footnotes))
 		displayPath := result.DisplayPath
-		if result.FootnoteIndex > 0 {
-			footnotes = append(footnotes, struct {
-				index int
-				path  string
-			}{
-				index: result.FootnoteIndex,
-				path:  result.FullPath,
+		if result.Index > 0 {
+			footnotes = append(footnotes, Footnote{
+				Index:    result.Index,
+				FullPath: result.FullPath,
 			})
 		}
 
@@ -398,7 +423,7 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 	if len(footnotes) > 0 {
 		fmt.Println()
 		for _, footnote := range footnotes {
-			fmt.Printf("[%d] %s\n", footnote.index, footnote.path)
+			fmt.Printf("[%d] %s\n", footnote.Index, footnote.FullPath)
 		}
 	}
 }

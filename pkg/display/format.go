@@ -5,23 +5,23 @@ import (
 	"git-metrics/pkg/utils"
 )
 
-// FormatDisplayPathResult contains the formatted display path and footnote information
-type FormatDisplayPathResult struct {
-	DisplayPath   string // The path string to display, possibly truncated with a footnote marker
-	FootnoteIndex int    // Zero if no footnote needed, otherwise the footnote index
-	FullPath      string // The full original path (for footnote)
+// Footnote contains the formatted display path and footnote information
+type Footnote struct {
+	DisplayPath string // The path string to display, possibly truncated with a footnote marker
+	Index       int    // Zero if no footnote needed, otherwise the footnote index
+	FullPath    string // The full original path (for footnote)
 }
 
-// FormatDisplayPath formats a file path for display, truncating it if necessary
+// CreatePathFootnote formats a file path for display, truncating it if necessary
 // and adding a footnote marker if the path is truncated
 // maxDisplayLength is the maximum length of the displayed path
 // currentFootnoteCount is the current number of footnotes
-// Returns the formatted path and information about any footnote added
-func FormatDisplayPath(path string, maxDisplayLength int, currentFootnoteCount int) FormatDisplayPathResult {
-	result := FormatDisplayPathResult{
-		DisplayPath:   "",
-		FootnoteIndex: 0,
-		FullPath:      path,
+// Returns a Footnote containing the formatted path and footnote information
+func CreatePathFootnote(path string, maxDisplayLength int, currentFootnoteCount int) Footnote {
+	result := Footnote{
+		DisplayPath: "",
+		Index:       0,
+		FullPath:    path,
 	}
 
 	// First check if truncation is needed
@@ -60,7 +60,7 @@ func FormatDisplayPath(path string, maxDisplayLength int, currentFootnoteCount i
 	}
 
 	result.DisplayPath = displayPath
-	result.FootnoteIndex = footnoteIndex
+	result.Index = footnoteIndex
 
 	return result
 }

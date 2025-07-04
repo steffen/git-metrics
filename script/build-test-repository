@@ -35,6 +35,13 @@ for i in $(seq 1 11); do
 done
 GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add 11 files with long paths"
 
+# Create a directory with a very long name that should be truncated
+LONG_DIR_NAME="this-is-a-very-long-directory-name-that-should-definitely-be-truncated-when-displayed-in-the-largest-directories-section-because-it-exceeds-the-display-width-limits"
+mkdir -p "$LONG_DIR_NAME"
+echo "$FILE_CONTENT long dir" > "$LONG_DIR_NAME/file-in-long-dir.txt"
+git add "$LONG_DIR_NAME"
+GIT_AUTHOR_DATE="2025-01-01T00:00:00 +0000" GIT_COMMITTER_DATE="2025-01-01T00:00:00 +0000" git commit -m "Add directory with very long name"
+
 # Create a file with a name that is exactly 44 characters long
 EXACT44_FILE="this-file-name-is-exactly-44-chars-long.jpeg"
 echo "$FILE_CONTENT exact44" > "$EXACT44_FILE"
