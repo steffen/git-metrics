@@ -205,6 +205,9 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			showFootnote = true
 		}
 
+		// Truncate directory path to fit in the display width
+		displayPath = utils.TruncatePath(displayPath, 51)
+
 		// Print root
 		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
 			displayPath,
@@ -251,6 +254,9 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				displayPath += "*"
 				showFootnote = true
 			}
+
+			// Truncate directory path to fit in the display width
+			displayPath = utils.TruncatePath(displayPath, 48)
 
 			fmt.Printf("%s %-48s %13s%6.1f %%  %13s%6.1f %%\n",
 				prefix,
