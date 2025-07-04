@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,6 +8,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/spf13/pflag"
 
 	"git-metrics/pkg/display"
 	"git-metrics/pkg/display/sections"
@@ -27,12 +28,31 @@ const (
 
 func main() {
 	startTime := time.Now()
-	showVersion := flag.Bool("version", false, "Only display version information")
-	repositoryPath := flag.String("r", ".", "Path to git repository")
-	flag.StringVar(repositoryPath, "repository", ".", "Path to git repository")
-	flag.BoolVar(&debug, "debug", false, "Enable debug output")
-	noProgress := flag.Bool("no-progress", false, "Disable progress output")
-	flag.Parse()
+	
+	// Define flags with pflag for better help formatting
+	repositoryPath := pflag.StringP("repository", "r", ".", "Path to git repository")
+	showVersion := pflag.Bool("version", false, "Display version information and exit")
+	pflag.BoolVar(&debug, "debug", false, "Enable debug output")
+	noProgress := pflag.Bool("no-progress", false, "Disable progress indicators")
+	showHelp := pflag.BoolP("help", "h", false, "Display this help message")
+	
+	// Custom usage function to match expected format
+	pflag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage of %s:\n", "git-metrics")
+		fmt.Fprintf(os.Stderr, "  -r, --repository string         Path to git repository (default \".\")\n")
+		fmt.Fprintf(os.Stderr, "  --no-progress                   Disable progress indicators\n")
+		fmt.Fprintf(os.Stderr, "  --version                       Display version information and exit\n")
+		fmt.Fprintf(os.Stderr, "  --debug                         Enable debug output\n")
+		fmt.Fprintf(os.Stderr, "  -h, --help                      Display this help message\n")
+	}
+	
+	pflag.Parse()
+
+	// Show help and exit if help flag is set
+	if *showHelp {
+		pflag.Usage()
+		os.Exit(0)
+	}
 
 	// Show version and exit if version flag is set
 	if *showVersion {
