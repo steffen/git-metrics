@@ -211,15 +211,15 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			showFootnote = true
 		}
 
-		// Use FormatDisplayPath for consistent truncation and footnote logic
-		result := FormatDisplayPath(displayPath, 51, len(footnotes))
+		// Use CreatePathFootnote for consistent truncation and footnote logic
+		result := CreatePathFootnote(displayPath, 51, len(footnotes))
 		finalDisplayPath := result.DisplayPath
-		if result.FootnoteIndex > 0 {
+		if result.Index > 0 {
 			footnotes = append(footnotes, struct {
 				index int
 				path  string
 			}{
-				index: result.FootnoteIndex,
+				index: result.Index,
 				path:  result.FullPath,
 			})
 		}
@@ -271,15 +271,15 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				showFootnote = true
 			}
 
-			// Use FormatDisplayPath for consistent truncation and footnote logic
-			result := FormatDisplayPath(displayPath, 48, len(footnotes))
+			// Use CreatePathFootnote for consistent truncation and footnote logic
+			result := CreatePathFootnote(displayPath, 48, len(footnotes))
 			finalDisplayPath := result.DisplayPath
-			if result.FootnoteIndex > 0 {
+			if result.Index > 0 {
 				footnotes = append(footnotes, struct {
 					index int
 					path  string
 				}{
-					index: result.FootnoteIndex,
+					index: result.Index,
 					path:  result.FullPath,
 				})
 			}
@@ -387,15 +387,15 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 		percentageSize := float64(file.CompressedSize) / float64(totalFilesSize) * 100
 		percentageBlobs := float64(file.Blobs) / float64(totalBlobs) * 100
 
-		// Use FormatDisplayPath for consistent truncation and footnote logic
-		result := FormatDisplayPath(file.Path, 43, len(footnotes))
+		// Use CreatePathFootnote for consistent truncation and footnote logic
+		result := CreatePathFootnote(file.Path, 43, len(footnotes))
 		displayPath := result.DisplayPath
-		if result.FootnoteIndex > 0 {
+		if result.Index > 0 {
 			footnotes = append(footnotes, struct {
 				index int
 				path  string
 			}{
-				index: result.FootnoteIndex,
+				index: result.Index,
 				path:  result.FullPath,
 			})
 		}

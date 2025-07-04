@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestFormatDisplayPath(t *testing.T) {
+func TestCreatePathFootnote(t *testing.T) {
 	tests := []struct {
 		name                 string
 		path                 string
@@ -73,18 +73,18 @@ func TestFormatDisplayPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := FormatDisplayPath(tt.path, tt.maxDisplayLength, tt.currentFootnoteCount)
+			got := CreatePathFootnote(tt.path, tt.maxDisplayLength, tt.currentFootnoteCount)
 
 			if got.DisplayPath != tt.wantDisplayPath {
-				t.Errorf("FormatDisplayPath().DisplayPath = %q, want %q", got.DisplayPath, tt.wantDisplayPath)
+				t.Errorf("CreatePathFootnote().DisplayPath = %q, want %q", got.DisplayPath, tt.wantDisplayPath)
 			}
 
-			if got.FootnoteIndex != tt.wantFootnoteIndex {
-				t.Errorf("FormatDisplayPath().FootnoteIndex = %d, want %d", got.FootnoteIndex, tt.wantFootnoteIndex)
+			if got.Index != tt.wantFootnoteIndex {
+				t.Errorf("CreatePathFootnote().Index = %d, want %d", got.Index, tt.wantFootnoteIndex)
 			}
 
 			if got.FullPath != tt.path {
-				t.Errorf("FormatDisplayPath().FullPath = %q, want %q", got.FullPath, tt.path)
+				t.Errorf("CreatePathFootnote().FullPath = %q, want %q", got.FullPath, tt.path)
 			}
 
 			// Check that the display path doesn't exceed max length
