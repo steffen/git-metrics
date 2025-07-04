@@ -11,7 +11,7 @@ HISTORIC & ESTIMATED GROWTH ####################################################
 
 Year        Commits                  Trees                  Blobs           On-disk size
 ------------------------------------------------------------------------------------------------
-2025^            12  +100 %             34  +100 %             18  +100 %         7.1 KB  +100 %
+2025^            12  +100 %             34  +100 %             18  +100 %         7.3 KB  +100 %
 ------------------------------------------------------------------------------------------------
 No growth estimation possible: Repository is too young
 
@@ -37,8 +37,8 @@ new_folder*                                                     1   5.6 %       
 another_folder                                                  1   5.6 %         0.0 KB   3.9 %
 └─ moved_file.txt                                               1   5.6 %         0.0 KB   3.9 %
 ------------------------------------------------------------------------------------------------
-├─ Top 5                                                       18 100.0 %         0.9 KB 100.0 %
-└─ Out of 5                                                    18 100.0 %         0.9 KB 100.0 %
+├─ Top 5                                                       18 100.0 %         1.0 KB 100.0 %
+└─ Out of 5                                                    18 100.0 %         1.0 KB 100.0 %
 
 * File or directory not present in latest commit of main branch (moved, renamed or removed)
 
@@ -60,7 +60,7 @@ a/very/long/path/t...ng-file-name-5.txt [9]   2025              1   5.6 %       
 a/very/long/path/t...g-file-name-6.txt [10]   2025              1   5.6 %         0.1 KB   6.0 %
 ------------------------------------------------------------------------------------------------
 ├─ Top 10                                                      10  55.6 %         0.6 KB  60.9 %
-└─ Out of 18                                                   18 100.0 %         0.9 KB 100.0 %
+└─ Out of 18                                                   18 100.0 %         1.0 KB 100.0 %
 
 [1] this-file-name-is-exactly-44-chars-long.jpeg
 [2] this-is-a-very-long-directory-name-that-should-definitely-be-truncated-when-displayed-in-the-largest-directories-section-because-it-exceeds-the-display-width-limits/file-in-long-dir.txt
@@ -81,8 +81,8 @@ Extension                            Files                  Blobs           On-d
 .jpeg                                    1   5.6 %              1   5.6 %         0.1 KB   0.9 %
 .md                                      1   5.6 %              1   5.6 %         0.0 KB   0.5 %
 ------------------------------------------------------------------------------------------------
-├─ Top 3                                18 100.0 %             18 100.0 %         0.9 KB 100.0 %
-└─ Out of 3                             18 100.0 %             18 100.0 %         0.9 KB 100.0 %
+├─ Top 3                                18 100.0 %             18 100.0 %         1.0 KB 100.0 %
+└─ Out of 3                             18 100.0 %             18 100.0 %         1.0 KB 100.0 %
 
 AUTHORS & COMMITTERS WITH MOST COMMITS #########################################################
 
