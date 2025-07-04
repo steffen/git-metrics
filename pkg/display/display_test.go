@@ -32,18 +32,18 @@ func TestPrintLargestFiles(t *testing.T) {
 		{
 			Path:           "file1.txt",
 			Blobs:          10,
-			CompressedSize: 1024 * 1024, // 1 MB
+			CompressedSize: 1000 * 1000, // 1 MB
 			LastChange:     time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC),
 		},
 		{
 			Path:           "file2.txt",
 			Blobs:          5,
-			CompressedSize: 1024 * 512, // 512 KB
+			CompressedSize: 500 * 1000, // 500 KB
 			LastChange:     time.Date(2023, 2, 1, 0, 0, 0, 0, time.UTC),
 		},
 	}
 
-	totalFilesCompressedSize := int64(1024*1024 + 1024*512) // 1.5 MB
+	totalFilesCompressedSize := int64(1000*1000 + 500*1000) // 1.5 MB
 	totalBlobs := 15
 	totalFiles := 2
 
@@ -60,8 +60,8 @@ func TestPrintLargestFiles(t *testing.T) {
 		"On-disk size",
 		"file1.txt",
 		"file2.txt",
-		"1.0 MB",
-		"512.0 KB",
+		"1.0 MB",   // 1000*1000 bytes = 1,000,000 bytes = 1.0 MB in decimal
+		"500.0 KB", // 500*1000 bytes = 500,000 bytes = 500.0 KB in decimal
 	}
 
 	for _, expected := range expectedStrings {
@@ -76,27 +76,27 @@ func TestPrintTopFileExtensions(t *testing.T) {
 		{
 			Path:           "file1.txt",
 			Blobs:          10,
-			CompressedSize: 1024 * 1024, // 1 MB
+			CompressedSize: 1000 * 1000, // 1 MB
 		},
 		{
 			Path:           "file2.txt",
 			Blobs:          5,
-			CompressedSize: 1024 * 512, // 512 KB
+			CompressedSize: 500 * 1000, // 500 KB
 		},
 		{
 			Path:           "script.go",
 			Blobs:          3,
-			CompressedSize: 1024 * 256, // 256 KB
+			CompressedSize: 256 * 1000, // 256 KB
 		},
 		{
 			Path:           "README", // No extension
 			Blobs:          1,
-			CompressedSize: 1024 * 128, // 128 KB
+			CompressedSize: 128 * 1000, // 128 KB
 		},
 	}
 
 	totalBlobs := 19
-	totalSize := int64(1024*1024 + 1024*512 + 1024*256 + 1024*128) // 1.875 MB
+	totalSize := int64(1000*1000 + 500*1000 + 256*1000 + 128*1000) // 1.884 MB
 
 	output := captureOutput(func() {
 		PrintTopFileExtensions(files, totalBlobs, totalSize)
@@ -149,7 +149,7 @@ func TestPrintGrowthTableRow(t *testing.T) {
 		Commits:    1000,
 		Trees:      2000,
 		Blobs:      3000,
-		Compressed: 1024 * 1024 * 5, // 5 MB
+		Compressed: 5 * 1000 * 1000, // 5 MB
 	}
 
 	previous := models.GrowthStatistics{
@@ -157,14 +157,14 @@ func TestPrintGrowthTableRow(t *testing.T) {
 		Commits:    800,
 		Trees:      1500,
 		Blobs:      2500,
-		Compressed: 1024 * 1024 * 4, // 4 MB
+		Compressed: 4 * 1000 * 1000, // 4 MB
 	}
 
 	information := models.RepositoryInformation{
 		TotalCommits:   1000,
 		TotalTrees:     2000,
 		TotalBlobs:     3000,
-		CompressedSize: 1024 * 1024 * 5, // 5 MB
+		CompressedSize: 5 * 1000 * 1000, // 5 MB
 	}
 
 	output := captureOutput(func() {
