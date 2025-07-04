@@ -181,6 +181,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	// Track if any items aren't in default branch (to show footnote)
 	showFootnote := false
 
+	// Track truncated paths for footnotes
+	var footnotes []struct {
+		index int
+		path  string
+	}
+
 	// Print root entries
 	for i, stat := range roots {
 		// Print separator after each root except the last
@@ -205,12 +211,22 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			showFootnote = true
 		}
 
-		// Truncate directory path to fit in the display width
-		displayPath = utils.TruncatePath(displayPath, 51)
+		// Use FormatDisplayPath for consistent truncation and footnote logic
+		result := FormatDisplayPath(displayPath, 51, len(footnotes))
+		finalDisplayPath := result.DisplayPath
+		if result.FootnoteIndex > 0 {
+			footnotes = append(footnotes, struct {
+				index int
+				path  string
+			}{
+				index: result.FootnoteIndex,
+				path:  result.FullPath,
+			})
+		}
 
 		// Print root
 		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
-			displayPath,
+			finalDisplayPath,
 			utils.FormatNumber(stat.Blobs),
 			percentBlobs,
 			utils.FormatSize(stat.CompressedSize),
@@ -255,12 +271,22 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 				showFootnote = true
 			}
 
-			// Truncate directory path to fit in the display width
-			displayPath = utils.TruncatePath(displayPath, 48)
+			// Use FormatDisplayPath for consistent truncation and footnote logic
+			result := FormatDisplayPath(displayPath, 48, len(footnotes))
+			finalDisplayPath := result.DisplayPath
+			if result.FootnoteIndex > 0 {
+				footnotes = append(footnotes, struct {
+					index int
+					path  string
+				}{
+					index: result.FootnoteIndex,
+					path:  result.FullPath,
+				})
+			}
 
 			fmt.Printf("%s %-48s %13s%6.1f %%  %13s%6.1f %%\n",
 				prefix,
-				displayPath,
+				finalDisplayPath,
 				utils.FormatNumber(child.Blobs),
 				percentBlobs,
 				utils.FormatSize(child.CompressedSize),
@@ -288,6 +314,14 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	if hasDefaultBranch && showFootnote {
 		fmt.Println()
 		fmt.Printf("* File or directory not present in latest commit of %s branch (moved, renamed or removed)\n", defaultBranch)
+	}
+
+	// Print footnotes for truncated paths
+	if len(footnotes) > 0 {
+		fmt.Println()
+		for _, footnote := range footnotes {
+			fmt.Printf("[%d] %s\n", footnote.index, footnote.path)
+		}
 	}
 }
 
