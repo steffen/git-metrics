@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"os"
 	"testing"
 	"time"
 )
@@ -13,18 +14,23 @@ func TestFormatSize(t *testing.T) {
 	}{
 		{
 			name:     "Kilobytes",
-			bytes:    1024 * 500,
+			bytes:    500 * 1000,
 			expected: "500.0 KB",
 		},
 		{
 			name:     "Megabytes",
-			bytes:    1024 * 1024 * 10,
+			bytes:    10 * 1000 * 1000,
 			expected: " 10.0 MB",
 		},
 		{
 			name:     "Gigabytes",
-			bytes:    1024 * 1024 * 1024 * 5,
+			bytes:    5 * 1000 * 1000 * 1000,
 			expected: "  5.0 GB",
+		},
+		{
+			name:     "Avoids awkward numbers",
+			bytes:    1054867456, // Would be ~1006 MB in binary, now shows as clean GB
+			expected: "  1.1 GB",
 		},
 	}
 
@@ -284,5 +290,79 @@ func TestCalculateYearsMonthsDays(t *testing.T) {
 					years, months, days, tt.wantYears, tt.wantMonths, tt.wantDays)
 			}
 		})
+	}
+}
+
+func TestIsTerminal(t *testing.T) {
+	// Test case 1: Pipes are not terminals
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("Failed to create pipe: %v", err)
+	}
+	defer reader.Close()
+	defer writer.Close()
+
+	if IsTerminal(reader) {
+		t.Error("Expected pipe reader not to be a terminal")
+	}
+
+	if IsTerminal(writer) {
+		t.Error("Expected pipe writer not to be a terminal")
+	}
+
+	// Test case 2: Regular file is not a terminal
+	temporaryFile, err := os.CreateTemp("", "terminal-test")
+	if err != nil {
+		t.Fatalf("Failed to create temporary file: %v", err)
+	}
+	defer os.Remove(temporaryFile.Name())
+	defer temporaryFile.Close()
+
+	if IsTerminal(temporaryFile) {
+		t.Error("Expected regular file not to be a terminal")
+	}
+
+	// Test case 3: Nil file handling
+	var nilFile *os.File
+	if IsTerminal(nilFile) {
+		t.Error("Expected nil file not to be a terminal")
+	}
+
+	// Test case 4: Mock os.Stdout and os.Stderr
+	// Save original stdout and stderr
+	originalStdout := os.Stdout
+	originalStderr := os.Stderr
+	defer func() {
+		// Restore original stdout and stderr after test
+		os.Stdout = originalStdout
+		os.Stderr = originalStderr
+	}()
+
+	// Create temporary files to replace stdout and stderr
+	mockStdout, err := os.CreateTemp("", "mock-stdout")
+	if err != nil {
+		t.Fatalf("Failed to create mock stdout: %v", err)
+	}
+	defer os.Remove(mockStdout.Name())
+	defer mockStdout.Close()
+
+	mockStderr, err := os.CreateTemp("", "mock-stderr")
+	if err != nil {
+		t.Fatalf("Failed to create mock stderr: %v", err)
+	}
+	defer os.Remove(mockStderr.Name())
+	defer mockStderr.Close()
+
+	// Temporarily redirect stdout and stderr
+	os.Stdout = mockStdout
+	os.Stderr = mockStderr
+
+	// Test the mocked stdout and stderr
+	if IsTerminal(os.Stdout) {
+		t.Error("Mocked stdout incorrectly identified as a terminal")
+	}
+
+	if IsTerminal(os.Stderr) {
+		t.Error("Mocked stderr incorrectly identified as a terminal")
 	}
 }

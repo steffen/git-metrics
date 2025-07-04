@@ -336,7 +336,10 @@ func PrintGrowthTableRow(statistics, previous models.GrowthStatistics, informati
 	if isEstimate {
 		yearDisplay += "*"
 	} else if statistics.Year == currentYear {
-		fmt.Println("------------------------------------------------------------------------------------------------")
+		// Only print separator if there are previous years of data
+		if previous.Year > 0 {
+			fmt.Println("------------------------------------------------------------------------------------------------")
+		}
 		yearDisplay += "^"
 	}
 

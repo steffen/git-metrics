@@ -19,15 +19,15 @@ func DebugPrint(debug bool, format string, args ...interface{}) {
 	}
 }
 
-// FormatSize formats a byte size to a human-readable string
+// FormatSize formats a byte size to a human-readable string using decimal (SI) standard
 func FormatSize(bytes int64) string {
 	switch {
-	case bytes < 1024*1024:
-		return fmt.Sprintf("%5.1f KB", float64(bytes)/1024)
-	case bytes < 1024*1024*1024:
-		return fmt.Sprintf("%5.1f MB", float64(bytes)/(1024*1024))
+	case bytes < 1000*1000:
+		return fmt.Sprintf("%5.1f KB", float64(bytes)/1000)
+	case bytes < 1000*1000*1000:
+		return fmt.Sprintf("%5.1f MB", float64(bytes)/(1000*1000))
 	default:
-		return fmt.Sprintf("%5.1f GB", float64(bytes)/(1024*1024*1024))
+		return fmt.Sprintf("%5.1f GB", float64(bytes)/(1000*1000*1000))
 	}
 }
 
@@ -299,4 +299,12 @@ func GetGitMetricsVersion() string {
 		return "0.0.0"
 	}
 	return GitMetricsVersion
+}
+
+// IsTerminal checks if the given file is a terminal (TTY)
+func IsTerminal(file *os.File) bool {
+	if fileInfo, err := file.Stat(); err == nil {
+		return (fileInfo.Mode() & os.ModeCharDevice) != 0
+	}
+	return false
 }
