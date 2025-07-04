@@ -182,10 +182,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	showFootnote := false
 
 	// Track truncated paths for footnotes
-	var footnotes []struct {
-		index int
-		path  string
-	}
+	var footnotes []Footnote
 
 	// Print root entries
 	for i, stat := range roots {
@@ -215,12 +212,9 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		result := CreatePathFootnote(displayPath, 51, len(footnotes))
 		finalDisplayPath := result.DisplayPath
 		if result.Index > 0 {
-			footnotes = append(footnotes, struct {
-				index int
-				path  string
-			}{
-				index: result.Index,
-				path:  result.FullPath,
+			footnotes = append(footnotes, Footnote{
+				Index:    result.Index,
+				FullPath: result.FullPath,
 			})
 		}
 
@@ -275,12 +269,9 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			result := CreatePathFootnote(displayPath, 48, len(footnotes))
 			finalDisplayPath := result.DisplayPath
 			if result.Index > 0 {
-				footnotes = append(footnotes, struct {
-					index int
-					path  string
-				}{
-					index: result.Index,
-					path:  result.FullPath,
+				footnotes = append(footnotes, Footnote{
+					Index:    result.Index,
+					FullPath: result.FullPath,
 				})
 			}
 
@@ -320,7 +311,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	if len(footnotes) > 0 {
 		fmt.Println()
 		for _, footnote := range footnotes {
-			fmt.Printf("[%d] %s\n", footnote.index, footnote.path)
+			fmt.Printf("[%d] %s\n", footnote.Index, footnote.FullPath)
 		}
 	}
 }
@@ -369,10 +360,7 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 	var totalSelectedSize int64
 
 	// Track truncated paths for footnotes
-	var footnotes []struct {
-		index int
-		path  string
-	}
+	var footnotes []Footnote
 
 	// Calculate total size of all files in repository
 	for _, file := range files {
@@ -391,12 +379,9 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 		result := CreatePathFootnote(file.Path, 43, len(footnotes))
 		displayPath := result.DisplayPath
 		if result.Index > 0 {
-			footnotes = append(footnotes, struct {
-				index int
-				path  string
-			}{
-				index: result.Index,
-				path:  result.FullPath,
+			footnotes = append(footnotes, Footnote{
+				Index:    result.Index,
+				FullPath: result.FullPath,
 			})
 		}
 
@@ -435,7 +420,7 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 	if len(footnotes) > 0 {
 		fmt.Println()
 		for _, footnote := range footnotes {
-			fmt.Printf("[%d] %s\n", footnote.index, footnote.path)
+			fmt.Printf("[%d] %s\n", footnote.Index, footnote.FullPath)
 		}
 	}
 }
