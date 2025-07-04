@@ -271,7 +271,7 @@ func TestPrintGrowthTableSingleYear(t *testing.T) {
 
 	// Count the number of separator lines
 	separatorCount := strings.Count(output, "------------------------------------------------------------------------------------------------")
-	
+
 	// We should have exactly 2 separator lines in the proper case:
 	// 1. From PrintGrowthTableHeader
 	// 2. From the "no estimation possible" case
@@ -298,7 +298,7 @@ func TestPrintGrowthTableMultipleYears(t *testing.T) {
 
 	output := captureOutput(func() {
 		PrintGrowthTableHeader()
-		
+
 		// Print a previous year
 		previousYear := models.GrowthStatistics{
 			Year:       2024,
@@ -308,7 +308,7 @@ func TestPrintGrowthTableMultipleYears(t *testing.T) {
 			Compressed: 512 * 1024, // 0.5 MB
 		}
 		PrintGrowthTableRow(previousYear, models.GrowthStatistics{}, information, false, 2025)
-		
+
 		// Print the current year
 		currentYear := models.GrowthStatistics{
 			Year:       2025,
@@ -318,7 +318,7 @@ func TestPrintGrowthTableMultipleYears(t *testing.T) {
 			Compressed: 1024 * 1024 * 2, // 2 MB
 		}
 		PrintGrowthTableRow(currentYear, previousYear, information, false, 2025)
-		
+
 		// Simulate the "no estimation possible" case
 		fmt.Println("------------------------------------------------------------------------------------------------")
 		fmt.Println("No growth estimation possible: Repository is too young")
@@ -326,7 +326,7 @@ func TestPrintGrowthTableMultipleYears(t *testing.T) {
 
 	// Count the number of separator lines
 	separatorCount := strings.Count(output, "------------------------------------------------------------------------------------------------")
-	
+
 	// We should have exactly 3 separator lines when there are multiple years:
 	// 1. From PrintGrowthTableHeader
 	// 2. From PrintGrowthTableRow (current year, since previous.Year > 0)
