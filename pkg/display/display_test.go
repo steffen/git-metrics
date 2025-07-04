@@ -266,7 +266,7 @@ func TestPrintGrowthTableSingleYear(t *testing.T) {
 		PrintGrowthTableRow(statistics, previous, information, false, 2025)
 		// Simulate the "no estimation possible" case
 		fmt.Println("------------------------------------------------------------------------------------------------")
-		fmt.Println("No growth estimation possible: Repository is too young")
+		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	})
 
 	// Count the number of separator lines
@@ -321,7 +321,7 @@ func TestPrintGrowthTableMultipleYears(t *testing.T) {
 
 		// Simulate the "no estimation possible" case
 		fmt.Println("------------------------------------------------------------------------------------------------")
-		fmt.Println("No growth estimation possible: Repository is too young")
+		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	})
 
 	// Count the number of separator lines
