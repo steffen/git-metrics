@@ -13,7 +13,7 @@ Year        Commits                  Trees                  Blobs           On-d
 ------------------------------------------------------------------------------------------------
 2025^            12  +100 %             34  +100 %             18  +100 %         7.3 KB  +100 %
 ------------------------------------------------------------------------------------------------
-No growth estimation possible: Repository is too young
+Growth estimation unavailable: Requires at least 2 years of commit history
 
 LARGEST DIRECTORIES ############################################################################
 

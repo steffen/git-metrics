@@ -289,7 +289,7 @@ func main() {
 		fmt.Println("% Percentages show the increase relative to the current total (^)")
 	} else {
 		fmt.Println("------------------------------------------------------------------------------------------------")
-		fmt.Println("No growth estimation possible: Repository is too young")
+		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
 
 	// Use the final statistics for largest files
