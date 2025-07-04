@@ -300,3 +300,11 @@ func GetGitMetricsVersion() string {
 	}
 	return GitMetricsVersion
 }
+
+// IsTerminal checks if the given file is a terminal (TTY)
+func IsTerminal(file *os.File) bool {
+	if fileInfo, err := file.Stat(); err == nil {
+		return (fileInfo.Mode() & os.ModeCharDevice) != 0
+	}
+	return false
+}

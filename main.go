@@ -40,8 +40,9 @@ func main() {
 		os.Exit(0)
 	}
 
-	// Set progress visibility based on --no-progress flag
-	progress.ShowProgress = !*noProgress
+	// Set progress visibility based on --no-progress flag and output destination
+	// Automatically disable progress when output is piped to a file or redirected
+	progress.ShowProgress = !*noProgress && utils.IsTerminal(os.Stdout)
 
 	if !requirements.CheckRequirements() {
 		fmt.Println("\nRequirements not met. Please install listed dependencies above.")
