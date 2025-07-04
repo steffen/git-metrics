@@ -80,63 +80,7 @@ func main() {
 				}
 				
 				// Get default value from the first flag
-				if defaultValue == "" && f.DefValue != "" && f.DefValue != "false" {
-					defaultValue = f.DefValue
-				}
-				
-				// Format flag name
-				if len(f.Name) == 1 {
-					flagNames = append(flagNames, "-"+f.Name)
-				} else {
-					flagNames = append(flagNames, "--"+f.Name)
-				}
-			}
-			
-			// Display the flags
-			fmt.Fprintf(os.Stderr, "  %s%s\n", strings.Join(flagNames, ", "), flagType)
-			if defaultValue != "" {
-				fmt.Fprintf(os.Stderr, "        %s (default %q)\n", flags[0].Usage, defaultValue)
-			} else {
-				fmt.Fprintf(os.Stderr, "        %s\n", flags[0].Usage)
-			}
-		}
-	}
-	
-	flag.Parse()
-
-	// Show version and exit if version flag is set
-	if *showVersion {
-		fmt.Printf("git-metrics version %s\n", utils.GetGitMetricsVersion())
-		os.Exit(0)
-	}
-
-	// Set progress visibility based on --no-progress flag
-	progress.ShowProgress = !*noProgress
-
-	if !requirements.CheckRequirements() {
-		fmt.Println("\nRequirements not met. Please install listed dependencies above.")
-		os.Exit(9)
-	}
-
-	// Get Git directory and change to repository directory
-	gitDir, err := git.GetGitDirectory(*repositoryPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
-	}
-
-	if err := os.Chdir(*repositoryPath); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: could not change to repository directory: %v\n", err)
-		os.Exit(1)
-	}
-
-	sections.DisplayRunInformation()
-
-	fmt.Println("\nREPOSITORY #####################################################################################")
-	fmt.Println()
-
-	// Get Git directory last modified time
-	lastModified := UnknownValue
+						flag.Usage = utils.PrintFlagUsage
 	if info, err := os.Stat(gitDir); err == nil {
 		lastModified = info.ModTime().Format("Mon, 02 Jan 2006 15:04 MST")
 	}
