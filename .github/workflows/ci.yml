@@ -13,6 +13,13 @@ on:
     paths-ignore:
       - 'README.md'
       - '.github/dependabot.yml'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Create a new release'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
     contents: read
@@ -131,7 +138,7 @@ jobs:
           fi
 
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true'
     runs-on: ubuntu-latest
     needs: [build,smoke_test]
 
