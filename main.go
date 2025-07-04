@@ -27,51 +27,37 @@ const (
 
 func main() {
 	startTime := time.Now()
-
-	// Customize flag usage to show conventional double-dash format
+	
+	// Define flags first
+	showVersion := flag.Bool("version", false, "Display version information and exit")
+	repositoryPath := flag.String("r", ".", "Path to git repository")
+	flag.StringVar(repositoryPath, "repository", ".", "Path to git repository")
+	flag.BoolVar(&debug, "debug", false, "Enable debug output")
+	noProgress := flag.Bool("no-progress", false, "Disable progress indicators")
+	
+	// Set custom usage function after flags are defined
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
 		
-		// Loop through all defined flags to build usage text
-		for _, f := range models.AllFlags() {
-			if f.ShortName != "" {
-				// Flag with both short and long form
-				if f.Type == "string" {
-					fmt.Fprintf(os.Stderr, "  -%s, --%s %s\n", f.ShortName, f.Name, f.Type)
-				} else {
-					fmt.Fprintf(os.Stderr, "  -%s, --%s\n", f.ShortName, f.Name)
-				}
+		// Custom formatting for specific flags to show conventional double-dash format
+		flag.CommandLine.VisitAll(func(f *flag.Flag) {
+			// Handle repository flag specially to show short form
+			if f.Name == "repository" {
+				fmt.Fprintf(os.Stderr, "  -r, --repository string\n")
+				fmt.Fprintf(os.Stderr, "        Path to git repository (default \".\")\n")
+			} else if f.Name == "r" {
+				// Skip the short form since we handled it above
+				return
 			} else {
-				// Flag with only long form
-				if f.Type == "string" {
-					fmt.Fprintf(os.Stderr, "  --%s %s\n", f.Name, f.Type)
+				// Regular flags with double-dash format
+				if f.DefValue != "" && f.DefValue != "false" {
+					fmt.Fprintf(os.Stderr, "  --%s %s\n", f.Name, f.DefValue)
 				} else {
 					fmt.Fprintf(os.Stderr, "  --%s\n", f.Name)
 				}
+				fmt.Fprintf(os.Stderr, "        %s\n", f.Usage)
 			}
-			fmt.Fprintf(os.Stderr, "        %s\n", f.Description)
-		}
-		fmt.Fprintf(os.Stderr, "  -h, --help\n        Display this help message\n")
-	}
-
-	// Define flag variables
-	var repositoryPath *string
-	var noProgress *bool
-	var showVersion *bool
-	
-	// Loop through flags and register them dynamically
-	for _, f := range models.AllFlags() {
-		switch f.Name {
-		case models.FlagRepository.Name:
-			repositoryPath = flag.String(f.ShortName, f.Default, f.Description)
-			flag.StringVar(repositoryPath, f.Name, f.Default, f.Description)
-		case models.FlagNoProgress.Name:
-			noProgress = flag.Bool(f.Name, false, f.Description)
-		case models.FlagVersion.Name:
-			showVersion = flag.Bool(f.Name, false, f.Description)
-		case models.FlagDebug.Name:
-			flag.BoolVar(&debug, f.Name, false, f.Description)
-		}
+		})
 	}
 	
 	flag.Parse()

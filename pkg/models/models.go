@@ -42,10 +42,4 @@ type GitObject struct {
 	Additional       string // typically the file path if available
 }
 
-type Flag struct {
-	Name        string
-	Description string
-	ShortName   string // Optional short name like "-r"
-	Type        string // "string", "bool", etc.
-	Default     string // Default value as string
-}
+
