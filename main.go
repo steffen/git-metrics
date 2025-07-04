@@ -36,16 +36,6 @@ func main() {
 	noProgress := pflag.Bool("no-progress", false, "Disable progress indicators")
 	showHelp := pflag.BoolP("help", "h", false, "Display this help message")
 	
-	// Custom usage function to match expected format
-	pflag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage of %s:\n", "git-metrics")
-		fmt.Fprintf(os.Stderr, "  -r, --repository string         Path to git repository (default \".\")\n")
-		fmt.Fprintf(os.Stderr, "  --no-progress                   Disable progress indicators\n")
-		fmt.Fprintf(os.Stderr, "  --version                       Display version information and exit\n")
-		fmt.Fprintf(os.Stderr, "  --debug                         Enable debug output\n")
-		fmt.Fprintf(os.Stderr, "  -h, --help                      Display this help message\n")
-	}
-	
 	pflag.Parse()
 
 	// Show help and exit if help flag is set
