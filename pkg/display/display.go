@@ -323,13 +323,11 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		if hasDefaultBranch && !entry.ExistsInDefaultBranch {
 			displayName += "*"
 			showFootnote = true
-		}
-
-		// Calculate available width for path display
-		availableWidth := 51 - len(prefix)
+		} // Calculate available width for path display (fixed width for alignment)
+		pathColumnWidth := 51
 
 		// Use CreatePathFootnote for consistent truncation and footnote logic
-		result := CreatePathFootnote(displayName, availableWidth, len(footnotes))
+		result := CreatePathFootnote(displayName, pathColumnWidth-len(prefix), len(footnotes))
 		finalDisplayName := result.DisplayPath
 		if result.Index > 0 {
 			footnotes = append(footnotes, Footnote{
@@ -338,11 +336,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			})
 		}
 
-		// Print entry
-		fmt.Printf("%s%-*s %13s%6.1f %%  %13s%6.1f %%\n",
-			prefix,
-			availableWidth,
-			finalDisplayName,
+		// Create the full path display with prefix
+		fullPathDisplay := prefix + finalDisplayName
+
+		// Print entry with fixed column widths
+		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
+			fullPathDisplay,
 			utils.FormatNumber(entry.Blobs),
 			percentBlobs,
 			utils.FormatSize(entry.CompressedSize),
