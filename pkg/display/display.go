@@ -13,49 +13,47 @@ import (
 	"time"
 )
 
-// PrintLargestDirectories prints the largest root and subdirectories by size and object count
+// PrintLargestDirectories prints directories and files that are >= 1% of total on-disk size, up to 10 levels deep
 func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, totalCompressedSize int64) {
-	type dirStats struct {
+	type entry struct {
 		Path                  string
+		FullPath              string // Full path from root
 		Blobs                 int
 		CompressedSize        int64
-		Children              map[string]*dirStats // for subdirectories
-		IsRoot                bool
-		ExistsInDefaultBranch bool // Whether the directory exists in default branch
+		Level                 int
+		IsFile                bool
+		ExistsInDefaultBranch bool
 	}
 
-	// Helper to get root dir or (root files)
-	getRoot := func(path string) string {
-		if !strings.Contains(path, "/") {
-			return "(root files)"
-		}
-		return strings.SplitN(path, "/", 2)[0]
+	// Calculate the total compressed size of all blobs
+	var totalBlobsCompressedSize int64
+	for _, file := range files {
+		totalBlobsCompressedSize += file.CompressedSize
 	}
+
+	// Calculate 1% threshold
+	thresholdSize := float64(totalBlobsCompressedSize) * 0.01
 
 	// Get files from default branch for comparison
 	defaultBranch, defaultBranchError := git.GetDefaultBranch()
 	hasDefaultBranch := defaultBranchError == nil
 	defaultBranchFiles, defaultBranchFilesError := git.GetBranchFiles(defaultBranch)
 
+	// Check if path exists in default branch
+	pathExistsInDefaultBranch := func(path string) bool {
+		if defaultBranchFilesError != nil || defaultBranchFiles == nil {
+			return true
+		}
+		return defaultBranchFiles[path]
+	}
+
 	// Check if directory exists in default branch
 	directoryExistsInDefaultBranch := func(dirPath string) bool {
-		// If we couldn't get default branch files, assume everything exists
 		if defaultBranchFilesError != nil || defaultBranchFiles == nil {
 			return true
 		}
 
-		// Special case for root files
-		if dirPath == "(root files)" {
-			// Check if there are any root level files in default branch
-			for file := range defaultBranchFiles {
-				if !strings.Contains(file, "/") {
-					return true
-				}
-			}
-			return false
-		}
-
-		// For regular directories, check if any file starts with this directory
+		// For directories, check if any file starts with this directory
 		prefix := dirPath + "/"
 		for file := range defaultBranchFiles {
 			if strings.HasPrefix(file, prefix) || file == dirPath {
@@ -65,89 +63,127 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		return false
 	}
 
-	// Aggregate stats for root directories and root files
-	rootStats := make(map[string]*dirStats)
-	// For each file, update root and immediate children (subdirectories or files)
+	// Collect all directories and their stats
+	directoryStats := make(map[string]*entry)
+	
+	// First pass: collect all directories
 	for _, file := range files {
-		root := getRoot(file.Path)
-		if _, ok := rootStats[root]; !ok {
-			rootStats[root] = &dirStats{
-				Path:                  root,
-				Children:              make(map[string]*dirStats),
-				IsRoot:                true,
-				ExistsInDefaultBranch: directoryExistsInDefaultBranch(root),
-			}
-		}
-		stat := rootStats[root]
-		stat.Blobs += file.Blobs
-		stat.CompressedSize += file.CompressedSize
+		pathParts := strings.Split(file.Path, "/")
+		currentPath := ""
 
-		// For immediate children: subdirectories or files directly under root
-		if root == "(root files)" {
-			// Files at root: each file is a child
-			if _, ok := stat.Children[file.Path]; !ok {
-				existsInDefaultBranch := defaultBranchFilesError == nil && defaultBranchFiles[file.Path]
-				stat.Children[file.Path] = &dirStats{
-					Path:                  file.Path,
-					IsRoot:                false,
-					ExistsInDefaultBranch: existsInDefaultBranch,
+		// Create entries for all directories in the path (up to 10 levels)
+		for level := 0; level < len(pathParts)-1 && level < 10; level++ {
+			if currentPath == "" {
+				currentPath = pathParts[level]
+			} else {
+				currentPath = currentPath + "/" + pathParts[level]
+			}
+
+			if _, exists := directoryStats[currentPath]; !exists {
+				directoryStats[currentPath] = &entry{
+					Path:                  pathParts[level],
+					FullPath:              currentPath,
+					Level:                 level + 1,
+					IsFile:                false,
+					ExistsInDefaultBranch: directoryExistsInDefaultBranch(currentPath),
 				}
 			}
-			child := stat.Children[file.Path]
-			child.Blobs += file.Blobs
-			child.CompressedSize += file.CompressedSize
+
+			// Add file stats to this directory
+			dir := directoryStats[currentPath]
+			dir.Blobs += file.Blobs
+			dir.CompressedSize += file.CompressedSize
+		}
+	}
+
+	// Collect significant entries (directories and files >= 1%)
+	var significantEntries []*entry
+
+	// Add significant directories
+	for _, dir := range directoryStats {
+		if float64(dir.CompressedSize) >= thresholdSize {
+			significantEntries = append(significantEntries, dir)
+		}
+	}
+
+	// Add significant files
+	for _, file := range files {
+		if float64(file.CompressedSize) >= thresholdSize {
+			// Calculate the level based on path depth (limited to 10)
+			level := strings.Count(file.Path, "/") + 1
+			if level > 10 {
+				level = 10
+			}
+
+			fileEntry := &entry{
+				Path:                  filepath.Base(file.Path),
+				FullPath:              file.Path,
+				Blobs:                 file.Blobs,
+				CompressedSize:        file.CompressedSize,
+				Level:                 level,
+				IsFile:                true,
+				ExistsInDefaultBranch: pathExistsInDefaultBranch(file.Path),
+			}
+			significantEntries = append(significantEntries, fileEntry)
+		}
+	}
+
+	// Group entries by their parent directory and level for hierarchical sorting
+	levelGroups := make(map[string][]*entry)
+	
+	for _, entry := range significantEntries {
+		var parentPath string
+		if entry.Level == 1 {
+			parentPath = ""
 		} else {
-			// For files under a root directory
-			parts := strings.SplitN(file.Path, "/", 3)
-			if len(parts) == 2 {
-				// File directly under root dir
-				name := parts[1]
-				fullPath := root + "/" + name
-				if _, ok := stat.Children[name]; !ok {
-					existsInDefaultBranch := defaultBranchFilesError == nil && defaultBranchFiles[fullPath]
-					stat.Children[name] = &dirStats{
-						Path:                  name,
-						IsRoot:                false,
-						ExistsInDefaultBranch: existsInDefaultBranch,
-					}
+			parentParts := strings.Split(entry.FullPath, "/")
+			if entry.IsFile {
+				parentPath = strings.Join(parentParts[:len(parentParts)-1], "/")
+			} else {
+				parentPath = strings.Join(parentParts[:len(parentParts)-1], "/")
+			}
+		}
+
+		key := fmt.Sprintf("%d:%s", entry.Level, parentPath)
+		levelGroups[key] = append(levelGroups[key], entry)
+	}
+
+	// Sort entries within each group by size percentage (descending)
+	for _, group := range levelGroups {
+		sort.Slice(group, func(i, j int) bool {
+			percentI := float64(group[i].CompressedSize) / float64(totalBlobsCompressedSize) * 100
+			percentJ := float64(group[j].CompressedSize) / float64(totalBlobsCompressedSize) * 100
+			if percentI != percentJ {
+				return percentI > percentJ
+			}
+			return group[i].FullPath < group[j].FullPath
+		})
+	}
+
+	// Build final sorted list following directory structure
+	var sortedEntries []*entry
+	var processLevel func(level int, parentPath string)
+	processLevel = func(level int, parentPath string) {
+		key := fmt.Sprintf("%d:%s", level, parentPath)
+		if group, exists := levelGroups[key]; exists {
+			// Add directories first, then files
+			for _, entry := range group {
+				if !entry.IsFile {
+					sortedEntries = append(sortedEntries, entry)
+					// Recursively process children of this directory
+					processLevel(level+1, entry.FullPath)
 				}
-				child := stat.Children[name]
-				child.Blobs += file.Blobs
-				child.CompressedSize += file.CompressedSize
-			} else if len(parts) > 2 {
-				// File in a subdirectory: immediate child is the subdir
-				sub := parts[1]
-				subdirPath := root + "/" + sub
-				if _, ok := stat.Children[sub]; !ok {
-					// Check if this subdirectory exists in default branch
-					existsInDefaultBranch := directoryExistsInDefaultBranch(subdirPath)
-					stat.Children[sub] = &dirStats{
-						Path:                  sub,
-						IsRoot:                false,
-						ExistsInDefaultBranch: existsInDefaultBranch,
-					}
+			}
+			for _, entry := range group {
+				if entry.IsFile {
+					sortedEntries = append(sortedEntries, entry)
 				}
-				child := stat.Children[sub]
-				child.Blobs += file.Blobs
-				child.CompressedSize += file.CompressedSize
 			}
 		}
 	}
 
-	// Convert to slice and sort by size
-	var roots []*dirStats
-	for _, stat := range rootStats {
-		roots = append(roots, stat)
-	}
-	sort.Slice(roots, func(i, j int) bool {
-		if roots[i].CompressedSize != roots[j].CompressedSize {
-			return roots[i].CompressedSize > roots[j].CompressedSize
-		}
-		return roots[i].Path < roots[j].Path
-	})
-	if len(roots) > 10 {
-		roots = roots[:10]
-	}
+	// Start processing from level 1 (root level)
+	processLevel(1, "")
 
 	// Print header
 	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
@@ -168,13 +204,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	fmt.Println("Path                                                        Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
-	// Calculate the total compressed size of all blobs (sum of all file.CompressedSize)
-	var totalBlobsCompressedSize int64
-	for _, file := range files {
-		totalBlobsCompressedSize += file.CompressedSize
-	}
-
-	// Track totals for displayed roots (top 10)
+	// Track totals for displayed entries
 	var totalSelectedBlobs int
 	var totalSelectedSize int64
 
@@ -184,33 +214,40 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	// Track truncated paths for footnotes
 	var footnotes []Footnote
 
-	// Print root entries
-	for i, stat := range roots {
-		// Print separator after each root except the last
-		if i > 0 {
-			fmt.Println("------------------------------------------------------------------------------------------------")
-		}
-
+	// Print significant entries
+	for _, entry := range sortedEntries {
 		// Calculate percentages
 		percentBlobs := 0.0
 		percentSize := 0.0
 		if totalBlobs > 0 {
-			percentBlobs = float64(stat.Blobs) / float64(totalBlobs) * 100
+			percentBlobs = float64(entry.Blobs) / float64(totalBlobs) * 100
 		}
 		if totalBlobsCompressedSize > 0 {
-			percentSize = float64(stat.CompressedSize) / float64(totalBlobsCompressedSize) * 100
+			percentSize = float64(entry.CompressedSize) / float64(totalBlobsCompressedSize) * 100
+		}
+
+		// Create indentation based on level
+		indent := strings.Repeat("  ", entry.Level-1)
+		var prefix string
+		if entry.Level == 1 {
+			prefix = ""
+		} else {
+			prefix = indent + "└─ "
 		}
 
 		// Add asterisk if not in default branch
-		displayPath := stat.Path
-		if hasDefaultBranch && !stat.ExistsInDefaultBranch {
-			displayPath += "*"
+		displayName := entry.Path // Use just the name at this level, not full path
+		if hasDefaultBranch && !entry.ExistsInDefaultBranch {
+			displayName += "*"
 			showFootnote = true
 		}
 
+		// Calculate available width for path display
+		availableWidth := 51 - len(prefix)
+		
 		// Use CreatePathFootnote for consistent truncation and footnote logic
-		result := CreatePathFootnote(displayPath, 51, len(footnotes))
-		finalDisplayPath := result.DisplayPath
+		result := CreatePathFootnote(displayName, availableWidth, len(footnotes))
+		finalDisplayName := result.DisplayPath
 		if result.Index > 0 {
 			footnotes = append(footnotes, Footnote{
 				Index:    result.Index,
@@ -218,84 +255,31 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			})
 		}
 
-		// Print root
-		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
-			finalDisplayPath,
-			utils.FormatNumber(stat.Blobs),
+		// Print entry
+		fmt.Printf("%s%-*s %13s%6.1f %%  %13s%6.1f %%\n",
+			prefix,
+			availableWidth,
+			finalDisplayName,
+			utils.FormatNumber(entry.Blobs),
 			percentBlobs,
-			utils.FormatSize(stat.CompressedSize),
+			utils.FormatSize(entry.CompressedSize),
 			percentSize,
 		)
 
-		totalSelectedBlobs += stat.Blobs
-		totalSelectedSize += stat.CompressedSize
-
-		// Print up to 10 largest immediate children (subdirs or files) for this root
-		var children []*dirStats
-		for _, child := range stat.Children {
-			children = append(children, child)
-		}
-		sort.Slice(children, func(i, j int) bool {
-			if children[i].CompressedSize != children[j].CompressedSize {
-				return children[i].CompressedSize > children[j].CompressedSize
-			}
-			return children[i].Path < children[j].Path
-		})
-		if len(children) > 10 {
-			children = children[:10]
-		}
-		for idx, child := range children {
-			percentBlobs := 0.0
-			percentSize := 0.0
-			if totalBlobs > 0 {
-				percentBlobs = float64(child.Blobs) / float64(totalBlobs) * 100
-			}
-			if totalBlobsCompressedSize > 0 {
-				percentSize = float64(child.CompressedSize) / float64(totalBlobsCompressedSize) * 100
-			}
-			prefix := "├─"
-			if idx == len(children)-1 {
-				prefix = "└─"
-			}
-
-			// Add asterisk if not in default branch
-			displayPath := child.Path
-			if hasDefaultBranch && !child.ExistsInDefaultBranch {
-				displayPath += "*"
-				showFootnote = true
-			}
-
-			// Use CreatePathFootnote for consistent truncation and footnote logic
-			result := CreatePathFootnote(displayPath, 48, len(footnotes))
-			finalDisplayPath := result.DisplayPath
-			if result.Index > 0 {
-				footnotes = append(footnotes, Footnote{
-					Index:    result.Index,
-					FullPath: result.FullPath,
-				})
-			}
-
-			fmt.Printf("%s %-48s %13s%6.1f %%  %13s%6.1f %%\n",
-				prefix,
-				finalDisplayPath,
-				utils.FormatNumber(child.Blobs),
-				percentBlobs,
-				utils.FormatSize(child.CompressedSize),
-				percentSize,
-			)
-		}
+		totalSelectedBlobs += entry.Blobs
+		totalSelectedSize += entry.CompressedSize
 	}
 
-	// Print separator and summary rows for roots (whole table)
+	// Print separator and summary rows
 	fmt.Println("------------------------------------------------------------------------------------------------")
 	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
-		fmt.Sprintf("├─ Top %s", utils.FormatNumber(len(roots))),
+		fmt.Sprintf("├─ Shown (%s entries ≥ 1%%)", utils.FormatNumber(len(sortedEntries))),
 		utils.FormatNumber(totalSelectedBlobs),
 		float64(totalSelectedBlobs)/float64(totalBlobs)*100,
 		utils.FormatSize(totalSelectedSize),
 		float64(totalSelectedSize)/float64(totalBlobsCompressedSize)*100)
 	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
-		fmt.Sprintf("└─ Out of %s", utils.FormatNumber(len(rootStats))),
+		"└─ Total repository",
 		utils.FormatNumber(totalBlobs),
 		100.0,
 		utils.FormatSize(totalBlobsCompressedSize),
