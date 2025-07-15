@@ -23,6 +23,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		Level                 int
 		IsFile                bool
 		ExistsInDefaultBranch bool
+		treePrefix            string // Tree formatting prefix
 	}
 
 	// Calculate the total compressed size of all blobs
@@ -160,30 +161,118 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		})
 	}
 
-	// Build final sorted list following directory structure
+	// Build final sorted list following directory structure with proper tree formatting
 	var sortedEntries []*entry
-	var processLevel func(level int, parentPath string)
-	processLevel = func(level int, parentPath string) {
-		key := fmt.Sprintf("%d:%s", level, parentPath)
-		if group, exists := levelGroups[key]; exists {
-			// Add directories first, then files
-			for _, entry := range group {
-				if !entry.IsFile {
-					sortedEntries = append(sortedEntries, entry)
-					// Recursively process children of this directory
-					processLevel(level+1, entry.FullPath)
-				}
+	
+	// Add root entry first
+	var rootBlobs int
+	var rootSize int64
+	for _, entry := range significantEntries {
+		rootBlobs += entry.Blobs
+		rootSize += entry.CompressedSize
+	}
+	
+	rootEntry := &entry{
+		Path:                  ".",
+		FullPath:              ".",
+		Blobs:                 rootBlobs,
+		CompressedSize:        rootSize,
+		Level:                 0,
+		IsFile:                false,
+		ExistsInDefaultBranch: true,
+		treePrefix:            "",
+	}
+	sortedEntries = append(sortedEntries, rootEntry)
+	
+	// Helper function to create tree prefixes
+	createTreePrefix := func(level int, isLast []bool) string {
+		if level <= 1 {
+			return ""
+		}
+		
+		var prefix strings.Builder
+		for i := 1; i < level-1; i++ {
+			if i < len(isLast) && isLast[i] {
+				prefix.WriteString("    ") // Four spaces for completed branches
+			} else {
+				prefix.WriteString("│   ") // Pipe and three spaces for continuing branches
 			}
-			for _, entry := range group {
-				if entry.IsFile {
-					sortedEntries = append(sortedEntries, entry)
-				}
+		}
+		
+		if level > 1 {
+			if level-1 < len(isLast) && isLast[level-1] {
+				prefix.WriteString("└── ") // Last item at this level
+			} else {
+				prefix.WriteString("├── ") // Not last item at this level
+			}
+		}
+		
+		return prefix.String()
+	}
+	
+	// Process entries level by level to maintain proper tree structure
+	processedPaths := make(map[string]bool)
+	
+	var buildTree func(level int, parentPath string, isLastAtLevel []bool)
+	buildTree = func(level int, parentPath string, isLastAtLevel []bool) {
+		if level > 11 { // Now max 11 levels (0-10, with 0 being root)
+			return
+		}
+		
+		key := fmt.Sprintf("%d:%s", level, parentPath)
+		group, exists := levelGroups[key]
+		if !exists {
+			return
+		}
+		
+		// Separate directories and files
+		var directories []*entry
+		var files []*entry
+		
+		for _, entry := range group {
+			if processedPaths[entry.FullPath] {
+				continue // Skip already processed entries
+			}
+			
+			if entry.IsFile {
+				files = append(files, entry)
+			} else {
+				directories = append(directories, entry)
+			}
+		}
+		
+		// Combine directories first, then files
+		allEntries := append(directories, files...)
+		
+		for i, entry := range allEntries {
+			if processedPaths[entry.FullPath] {
+				continue
+			}
+			
+			isLast := i == len(allEntries)-1
+			
+			// Ensure the slice is large enough
+			newIsLastAtLevel := make([]bool, level+1)
+			if len(isLastAtLevel) > 0 {
+				copy(newIsLastAtLevel, isLastAtLevel)
+			}
+			newIsLastAtLevel[level] = isLast
+			
+			// Create tree prefix for this entry (adjust level for display)
+			entry.treePrefix = createTreePrefix(level+1, newIsLastAtLevel)
+			
+			sortedEntries = append(sortedEntries, entry)
+			processedPaths[entry.FullPath] = true
+			
+			// If this is a directory, process its children
+			if !entry.IsFile {
+				buildTree(level+1, entry.FullPath, newIsLastAtLevel)
 			}
 		}
 	}
 
 	// Start processing from level 1 (root level)
-	processLevel(1, "")
+	buildTree(1, "", []bool{})
 
 	// Print header
 	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
@@ -226,14 +315,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			percentSize = float64(entry.CompressedSize) / float64(totalBlobsCompressedSize) * 100
 		}
 
-		// Create indentation based on level
-		indent := strings.Repeat("  ", entry.Level-1)
-		var prefix string
-		if entry.Level == 1 {
-			prefix = ""
-		} else {
-			prefix = indent + "└─ "
-		}
+		// Create indentation based on tree structure
+		prefix := entry.treePrefix
 
 		// Add asterisk if not in default branch
 		displayName := entry.Path // Use just the name at this level, not full path
