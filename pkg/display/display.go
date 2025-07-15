@@ -313,12 +313,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 		// Add asterisk if not in default branch
 		displayName := entry.Path // Use just the name at this level, not full path
-		
+
 		// Add trailing slash for directories
 		if !entry.IsFile {
 			displayName += "/"
 		}
-		
+
 		if hasDefaultBranch && !entry.ExistsInDefaultBranch {
 			displayName += "*"
 			showFootnote = true
@@ -350,21 +350,6 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		totalSelectedBlobs += entry.Blobs
 		totalSelectedSize += entry.CompressedSize
 	}
-
-	// Print separator and summary rows
-	fmt.Println("------------------------------------------------------------------------------------------------")
-	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
-		fmt.Sprintf("├─ Shown (%s entries ≥ 1%%)", utils.FormatNumber(len(sortedEntries))),
-		utils.FormatNumber(totalSelectedBlobs),
-		float64(totalSelectedBlobs)/float64(totalBlobs)*100,
-		utils.FormatSize(totalSelectedSize),
-		float64(totalSelectedSize)/float64(totalBlobsCompressedSize)*100)
-	fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
-		"└─ Total repository",
-		utils.FormatNumber(totalBlobs),
-		100.0,
-		utils.FormatSize(totalBlobsCompressedSize),
-		100.0)
 
 	// Add footnote explaining the asterisk meaning
 	if hasDefaultBranch && showFootnote {
