@@ -66,7 +66,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	// Collect all directories and their stats
 	directoryStats := make(map[string]*entry)
-	
+
 	// First pass: collect all directories
 	for _, file := range files {
 		pathParts := strings.Split(file.Path, "/")
@@ -131,7 +131,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	// Group entries by their parent directory and level for hierarchical sorting
 	levelGroups := make(map[string][]*entry)
-	
+
 	for _, entry := range significantEntries {
 		var parentPath string
 		if entry.Level == 1 {
@@ -163,7 +163,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	// Build final sorted list following directory structure with proper tree formatting
 	var sortedEntries []*entry
-	
+
 	// Add root entry first
 	var rootBlobs int
 	var rootSize int64
@@ -171,7 +171,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		rootBlobs += entry.Blobs
 		rootSize += entry.CompressedSize
 	}
-	
+
 	rootEntry := &entry{
 		Path:                  ".",
 		FullPath:              ".",
@@ -183,87 +183,87 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		treePrefix:            "",
 	}
 	sortedEntries = append(sortedEntries, rootEntry)
-	
+
 	// Helper function to create tree prefixes
 	createTreePrefix := func(level int, isLast []bool) string {
 		if level <= 1 {
 			return ""
 		}
-		
+
 		var prefix strings.Builder
 		for i := 1; i < level-1; i++ {
 			if i < len(isLast) && isLast[i] {
-				prefix.WriteString("    ") // Four spaces for completed branches
+				prefix.WriteString("   ") // Three spaces for completed branches
 			} else {
-				prefix.WriteString("│   ") // Pipe and three spaces for continuing branches
+				prefix.WriteString("│  ") // Pipe and two spaces for continuing branches
 			}
 		}
-		
+
 		if level > 1 {
 			if level-1 < len(isLast) && isLast[level-1] {
-				prefix.WriteString("└── ") // Last item at this level
+				prefix.WriteString("└─ ") // Last item at this level
 			} else {
-				prefix.WriteString("├── ") // Not last item at this level
+				prefix.WriteString("├─ ") // Not last item at this level
 			}
 		}
-		
+
 		return prefix.String()
 	}
-	
+
 	// Process entries level by level to maintain proper tree structure
 	processedPaths := make(map[string]bool)
-	
+
 	var buildTree func(level int, parentPath string, isLastAtLevel []bool)
 	buildTree = func(level int, parentPath string, isLastAtLevel []bool) {
 		if level > 11 { // Now max 11 levels (0-10, with 0 being root)
 			return
 		}
-		
+
 		key := fmt.Sprintf("%d:%s", level, parentPath)
 		group, exists := levelGroups[key]
 		if !exists {
 			return
 		}
-		
+
 		// Separate directories and files
 		var directories []*entry
 		var files []*entry
-		
+
 		for _, entry := range group {
 			if processedPaths[entry.FullPath] {
 				continue // Skip already processed entries
 			}
-			
+
 			if entry.IsFile {
 				files = append(files, entry)
 			} else {
 				directories = append(directories, entry)
 			}
 		}
-		
+
 		// Combine directories first, then files
 		allEntries := append(directories, files...)
-		
+
 		for i, entry := range allEntries {
 			if processedPaths[entry.FullPath] {
 				continue
 			}
-			
+
 			isLast := i == len(allEntries)-1
-			
+
 			// Ensure the slice is large enough
 			newIsLastAtLevel := make([]bool, level+1)
 			if len(isLastAtLevel) > 0 {
 				copy(newIsLastAtLevel, isLastAtLevel)
 			}
 			newIsLastAtLevel[level] = isLast
-			
+
 			// Create tree prefix for this entry (adjust level for display)
 			entry.treePrefix = createTreePrefix(level+1, newIsLastAtLevel)
-			
+
 			sortedEntries = append(sortedEntries, entry)
 			processedPaths[entry.FullPath] = true
-			
+
 			// If this is a directory, process its children
 			if !entry.IsFile {
 				buildTree(level+1, entry.FullPath, newIsLastAtLevel)
@@ -327,7 +327,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 		// Calculate available width for path display
 		availableWidth := 51 - len(prefix)
-		
+
 		// Use CreatePathFootnote for consistent truncation and footnote logic
 		result := CreatePathFootnote(displayName, availableWidth, len(footnotes))
 		finalDisplayName := result.DisplayPath
