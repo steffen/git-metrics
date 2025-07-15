@@ -165,18 +165,11 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	var sortedEntries []*entry
 
 	// Add root entry first
-	var rootBlobs int
-	var rootSize int64
-	for _, entry := range significantEntries {
-		rootBlobs += entry.Blobs
-		rootSize += entry.CompressedSize
-	}
-
 	rootEntry := &entry{
 		Path:                  ".",
 		FullPath:              ".",
-		Blobs:                 rootBlobs,
-		CompressedSize:        rootSize,
+		Blobs:                 totalBlobs,
+		CompressedSize:        totalBlobsCompressedSize,
 		Level:                 0,
 		IsFile:                false,
 		ExistsInDefaultBranch: true,
