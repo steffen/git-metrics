@@ -269,6 +269,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	// Print header
 	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
+	fmt.Println()
+	fmt.Println("Showing directories and files that contribute more than 1% of total on-disk size.")
 
 	var missingPathsError error = nil
 	if defaultBranchError != nil {
