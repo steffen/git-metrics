@@ -320,6 +320,12 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 		// Add asterisk if not in default branch
 		displayName := entry.Path // Use just the name at this level, not full path
+		
+		// Add trailing slash for directories
+		if !entry.IsFile {
+			displayName += "/"
+		}
+		
 		if hasDefaultBranch && !entry.ExistsInDefaultBranch {
 			displayName += "*"
 			showFootnote = true
