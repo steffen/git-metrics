@@ -19,7 +19,7 @@ func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBran
 	fmt.Printf("\nCommits to default branch (%s)\n\n", defaultBranch)
 
 	// Table header
-	fmt.Println("                                   Average             Daily peak             Daily peak")
+	fmt.Println("                                   Average               Peak                   Peak")
 	fmt.Println("            Commits                commits                commits                commits")
 	fmt.Println("Year       per year                per day         per hour (P95)          per min (P95)")
 	fmt.Println("------------------------------------------------------------------------------------------------")
