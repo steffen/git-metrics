@@ -48,8 +48,14 @@ type RateStatistics struct {
 	TotalCommits         int
 	AverageCommitsPerDay float64
 	DailyPeakP95         int     // 95th percentile of daily commits
-	HourlyPeakP95        int     // 95th percentile of hourly commits (for peak days)
-	MinutelyPeakP95      float64 // 95th percentile of commits per minute (for peak hours)
+	DailyPeakP99         int     // 99th percentile of daily commits
+	DailyPeakP100        int     // Maximum daily commits
+	HourlyPeakP95        int     // 95th percentile of hourly commits
+	HourlyPeakP99        int     // 99th percentile of hourly commits
+	HourlyPeakP100       int     // Maximum hourly commits
+	MinutelyPeakP95      float64 // 95th percentile of commits per minute
+	MinutelyPeakP99      float64 // 99th percentile of commits per minute
+	MinutelyPeakP100     float64 // Maximum commits per minute
 	PercentageOfTotal    float64
 	MergeCommits         int     // Commits with >1 parent
 	DirectCommits        int     // Regular commits

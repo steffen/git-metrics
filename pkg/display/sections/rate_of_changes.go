@@ -18,10 +18,10 @@ func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBran
 	fmt.Println("\nRATE OF CHANGES ################################################################################")
 	fmt.Printf("\nCommits to default branch (%s)\n\n", defaultBranch)
 
-	// Table header
-	fmt.Println("                                   Average               Peak                   Peak")
-	fmt.Println("            Commits                commits                commits                commits")
-	fmt.Println("Year       per year                per day         per hour (P95)          per min (P95)")
+	// Table header with subcolumns
+	fmt.Println("                                    Daily peak                  Hourly peak                 Minutely peak")
+	fmt.Println("            Commits")
+	fmt.Println("Year       per year           P95   P99  P100           P95   P99  P100           P95   P99  P100")
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
 	// Sort years
@@ -35,82 +35,17 @@ func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBran
 	for _, year := range years {
 		stats := ratesByYear[year]
 
-		// Calculate percentage indicators for visual representation
-		dailyPercentage := calculateDailyPercentage(stats, ratesByYear)
-		hourlyPercentage := calculateHourlyPercentage(stats, ratesByYear)
-		minutelyPercentage := calculateMinutelyPercentage(stats, ratesByYear)
-
-		fmt.Printf("%-4d    %8s   %3.0f%%    %8.0f   %3.0f%%    %8d   %3.0f%%    %8.1f   %3.0f%%\n",
+		fmt.Printf("%-4d    %8s       %5d %5d %5d       %5d %5d %5d       %5.1f %5.1f %5.1f\n",
 			stats.Year,
-			utils.FormatNumber(stats.TotalCommits), stats.PercentageOfTotal,
-			stats.AverageCommitsPerDay, dailyPercentage,
-			stats.HourlyPeakP95, hourlyPercentage,
-			stats.MinutelyPeakP95, minutelyPercentage)
+			utils.FormatNumber(stats.TotalCommits),
+			stats.DailyPeakP95, stats.DailyPeakP99, stats.DailyPeakP100,
+			stats.HourlyPeakP95, stats.HourlyPeakP99, stats.HourlyPeakP100,
+			stats.MinutelyPeakP95, stats.MinutelyPeakP99, stats.MinutelyPeakP100)
 	}
 
 	// Add workflow insights section
 	fmt.Println()
 	displayWorkflowInsights(ratesByYear, years)
-}
-
-// calculateDailyPercentage calculates the percentage for daily average commits
-func calculateDailyPercentage(current models.RateStatistics, allStats map[int]models.RateStatistics) float64 {
-	if current.AverageCommitsPerDay == 0 {
-		return 0
-	}
-
-	var maxDaily float64
-	for _, stats := range allStats {
-		if stats.AverageCommitsPerDay > maxDaily {
-			maxDaily = stats.AverageCommitsPerDay
-		}
-	}
-
-	if maxDaily == 0 {
-		return 0
-	}
-
-	return (current.AverageCommitsPerDay / maxDaily) * 100
-}
-
-// calculateHourlyPercentage calculates the percentage for hourly peak commits
-func calculateHourlyPercentage(current models.RateStatistics, allStats map[int]models.RateStatistics) float64 {
-	if current.HourlyPeakP95 == 0 {
-		return 0
-	}
-
-	var maxHourly int
-	for _, stats := range allStats {
-		if stats.HourlyPeakP95 > maxHourly {
-			maxHourly = stats.HourlyPeakP95
-		}
-	}
-
-	if maxHourly == 0 {
-		return 0
-	}
-
-	return (float64(current.HourlyPeakP95) / float64(maxHourly)) * 100
-}
-
-// calculateMinutelyPercentage calculates the percentage for minutely peak commits
-func calculateMinutelyPercentage(current models.RateStatistics, allStats map[int]models.RateStatistics) float64 {
-	if current.MinutelyPeakP95 == 0 {
-		return 0
-	}
-
-	var maxMinutely float64
-	for _, stats := range allStats {
-		if stats.MinutelyPeakP95 > maxMinutely {
-			maxMinutely = stats.MinutelyPeakP95
-		}
-	}
-
-	if maxMinutely == 0 {
-		return 0
-	}
-
-	return (current.MinutelyPeakP95 / maxMinutely) * 100
 }
 
 // displayWorkflowInsights shows additional insights about development patterns

@@ -512,6 +512,8 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		if len(dailyCounts) > 0 {
 			sort.Ints(dailyCounts)
 			stats.DailyPeakP95 = calculatePercentile(dailyCounts, 95)
+			stats.DailyPeakP99 = calculatePercentile(dailyCounts, 99)
+			stats.DailyPeakP100 = dailyCounts[len(dailyCounts)-1] // Maximum value
 			stats.BusiestDay = busiestDay
 			stats.BusiestDayCommits = maxDailyCommits
 		}
@@ -525,11 +527,13 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		if len(hourlyCounts) > 0 {
 			sort.Ints(hourlyCounts)
 			stats.HourlyPeakP95 = calculatePercentile(hourlyCounts, 95)
+			stats.HourlyPeakP99 = calculatePercentile(hourlyCounts, 99)
+			stats.HourlyPeakP100 = hourlyCounts[len(hourlyCounts)-1] // Maximum value
 
-			// Calculate minutely peak (divide hourly peak by 60)
-			if stats.HourlyPeakP95 > 0 {
-				stats.MinutelyPeakP95 = float64(stats.HourlyPeakP95) / 60.0
-			}
+			// Calculate minutely peaks (divide hourly peaks by 60)
+			stats.MinutelyPeakP95 = float64(stats.HourlyPeakP95) / 60.0
+			stats.MinutelyPeakP99 = float64(stats.HourlyPeakP99) / 60.0
+			stats.MinutelyPeakP100 = float64(stats.HourlyPeakP100) / 60.0
 		}
 
 		ratesByYear[year] = stats
