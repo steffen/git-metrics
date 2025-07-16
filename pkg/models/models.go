@@ -41,3 +41,22 @@ type GitObject struct {
 	ObjectSize       int64
 	Additional       string // typically the file path if available
 }
+
+// RateStatistics holds commit rate statistics for a specific year
+type RateStatistics struct {
+	Year                 int
+	TotalCommits         int
+	AverageCommitsPerDay float64
+	DailyPeakP95         int     // 95th percentile of daily commits
+	HourlyPeakP95        int     // 95th percentile of hourly commits (for peak days)
+	MinutelyPeakP95      float64 // 95th percentile of commits per minute (for peak hours)
+	PercentageOfTotal    float64
+	MergeCommits         int     // Commits with >1 parent
+	DirectCommits        int     // Regular commits
+	MergeRatio           float64 // Percentage of commits that are merges
+	BusiestDay           string  // Date with most commits
+	BusiestDayCommits    int     // Number of commits on busiest day
+	WorkdayCommits       int     // Commits during weekdays
+	WeekendCommits       int     // Commits during weekends
+	WorkdayWeekendRatio  float64 // Ratio of workday to weekend commits
+}

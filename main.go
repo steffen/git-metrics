@@ -28,14 +28,14 @@ const (
 
 func main() {
 	startTime := time.Now()
-	
+
 	// Define flags with pflag for better help formatting
 	repositoryPath := pflag.StringP("repository", "r", ".", "Path to git repository")
 	showVersion := pflag.Bool("version", false, "Display version information and exit")
 	pflag.BoolVar(&debug, "debug", false, "Enable debug output")
 	noProgress := pflag.Bool("no-progress", false, "Disable progress indicators")
 	showHelp := pflag.BoolP("help", "h", false, "Display this help message")
-	
+
 	pflag.Parse()
 
 	// Show help and exit if help flag is set
@@ -300,6 +300,13 @@ func main() {
 	} else {
 		fmt.Println("------------------------------------------------------------------------------------------------")
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
+	}
+
+	// Rate of changes analysis - add after historic growth and before largest directories
+	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
+			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
+		}
 	}
 
 	// Use the final statistics for largest files
