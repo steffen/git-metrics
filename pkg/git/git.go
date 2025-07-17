@@ -480,13 +480,16 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		// Calculate daily statistics
 		dailyCommits := make(map[string]int)
 		hourlyCommits := make(map[string]int)
+		minutelyCommits := make(map[string]int)
 
 		for _, commit := range commits {
 			day := commit.timestamp.Format("2006-01-02")
 			hour := commit.timestamp.Format("2006-01-02-15")
+			minute := commit.timestamp.Format("2006-01-02-15:04")
 
 			dailyCommits[day]++
 			hourlyCommits[hour]++
+			minutelyCommits[minute]++
 		}
 
 		// Calculate average commits per day
@@ -529,11 +532,19 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 			stats.HourlyPeakP95 = calculatePercentile(hourlyCounts, 95)
 			stats.HourlyPeakP99 = calculatePercentile(hourlyCounts, 99)
 			stats.HourlyPeakP100 = hourlyCounts[len(hourlyCounts)-1] // Maximum value
+		}
 
-			// Calculate minutely peaks (divide hourly peaks by 60)
-			stats.MinutelyPeakP95 = float64(stats.HourlyPeakP95) / 60.0
-			stats.MinutelyPeakP99 = float64(stats.HourlyPeakP99) / 60.0
-			stats.MinutelyPeakP100 = float64(stats.HourlyPeakP100) / 60.0
+		// Calculate minutely percentiles
+		var minutelyCounts []int
+		for _, count := range minutelyCommits {
+			minutelyCounts = append(minutelyCounts, count)
+		}
+
+		if len(minutelyCounts) > 0 {
+			sort.Ints(minutelyCounts)
+			stats.MinutelyPeakP95 = calculatePercentile(minutelyCounts, 95)
+			stats.MinutelyPeakP99 = calculatePercentile(minutelyCounts, 99)
+			stats.MinutelyPeakP100 = minutelyCounts[len(minutelyCounts)-1] // Maximum value
 		}
 
 		ratesByYear[year] = stats
