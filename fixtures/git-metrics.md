@@ -17,32 +17,35 @@ Growth estimation unavailable: Requires at least 2 years of commit history
 
 LARGEST DIRECTORIES ############################################################################
 
+Showing directories and files that contribute more than 1% of total on-disk size.
+
 Path                                                        Blobs           On-disk size
 ------------------------------------------------------------------------------------------------
-a                                                              11  61.1 %         0.6 KB  65.9 %
-└─ very                                                        11  61.1 %         0.6 KB  65.9 %
-------------------------------------------------------------------------------------------------
-(root files)                                                    4  22.2 %         0.2 KB  18.3 %
+./                                                             18 100.0 %         1.0 KB 100.0 %
+├─ a/                                                          11  61.1 %         0.6 KB  65.9 %
+│  └─ very/                                                    11  61.1 %         0.6 KB  65.9 %
+│     └─ long/                                                 11  61.1 %         0.6 KB  65.9 %
+│        └─ path/                                              11  61.1 %         0.6 KB  65.9 %
+│           └─ that/                                           11  61.1 %         0.6 KB  65.9 %
+│              └─ exceeds/                                     11  61.1 %         0.6 KB  65.9 %
+│                 └─ the/                                      11  61.1 %         0.6 KB  65.9 %
+│                    └─ limit/                                 11  61.1 %         0.6 KB  65.9 %
+│                       └─ for/                                11  61.1 %         0.6 KB  65.9 %
+│                          └─ display/                         11  61.1 %         0.6 KB  65.9 %
+├─ this-is-a-very-long-d...isplay-width-limits/ [1]             1   5.6 %         0.1 KB   6.3 %
+│  └─ file-in-long-dir.txt                                      1   5.6 %         0.1 KB   6.3 %
+├─ new_folder/*                                                 1   5.6 %         0.1 KB   5.6 %
+│  └─ to_be_removed.txt*                                        1   5.6 %         0.1 KB   5.6 %
+├─ another_folder/                                              1   5.6 %         0.0 KB   3.9 %
+│  └─ moved_file.txt                                            1   5.6 %         0.0 KB   3.9 %
 ├─ this-file-name-is-exactly-44-chars-long.jpeg                 1   5.6 %         0.1 KB   6.6 %
 ├─ renamed_file.txt                                             1   5.6 %         0.0 KB   4.1 %
 ├─ to_be_removed.txt*                                           1   5.6 %         0.0 KB   4.1 %
 └─ README.md                                                    1   5.6 %         0.0 KB   3.5 %
-------------------------------------------------------------------------------------------------
-this-is-a-very-long-di...e-display-width-limits [1]             1   5.6 %         0.1 KB   6.3 %
-└─ file-in-long-dir.txt                                         1   5.6 %         0.1 KB   6.3 %
-------------------------------------------------------------------------------------------------
-new_folder*                                                     1   5.6 %         0.1 KB   5.6 %
-└─ to_be_removed.txt*                                           1   5.6 %         0.1 KB   5.6 %
-------------------------------------------------------------------------------------------------
-another_folder                                                  1   5.6 %         0.0 KB   3.9 %
-└─ moved_file.txt                                               1   5.6 %         0.0 KB   3.9 %
-------------------------------------------------------------------------------------------------
-├─ Top 5                                                       18 100.0 %         1.0 KB 100.0 %
-└─ Out of 5                                                    18 100.0 %         1.0 KB 100.0 %
 
 * File or directory not present in latest commit of main branch (moved, renamed or removed)
 
-[1] this-is-a-very-long-directory-name-that-should-definitely-be-truncated-when-displayed-in-the-largest-directories-section-because-it-exceeds-the-display-width-limits
+[1] this-is-a-very-long-directory-name-that-should-definitely-be-truncated-when-displayed-in-the-largest-directories-section-because-it-exceeds-the-display-width-limits/
 
 LARGEST FILES ##################################################################################
 
