@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // PrintLargestDirectories prints directories and files that are >= 1% of total on-disk size, up to 10 levels deep
@@ -328,7 +329,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		pathColumnWidth := 51
 
 		// Use CreatePathFootnote for consistent truncation and footnote logic
-		result := CreatePathFootnote(displayName, pathColumnWidth-len(prefix), len(footnotes))
+		result := CreatePathFootnote(displayName, pathColumnWidth-utf8.RuneCountInString(prefix), len(footnotes))
 		finalDisplayName := result.DisplayPath
 		if result.Index > 0 {
 			footnotes = append(footnotes, Footnote{
@@ -341,7 +342,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		fullPathDisplay := prefix + finalDisplayName
 
 		// Print entry with fixed column widths
-		fmt.Printf("%-51s %13s%6.1f %%  %13s%6.1f %%\n",
+		fmt.Printf("%-51s   %11s%6.1f %%  %13s%6.1f %%\n",
 			fullPathDisplay,
 			utils.FormatNumber(entry.Blobs),
 			percentBlobs,
