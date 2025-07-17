@@ -28,14 +28,14 @@ const (
 
 func main() {
 	startTime := time.Now()
-	
+
 	// Define flags with pflag for better help formatting
 	repositoryPath := pflag.StringP("repository", "r", ".", "Path to git repository")
 	showVersion := pflag.Bool("version", false, "Display version information and exit")
 	pflag.BoolVar(&debug, "debug", false, "Enable debug output")
 	noProgress := pflag.Bool("no-progress", false, "Disable progress indicators")
 	showHelp := pflag.BoolP("help", "h", false, "Display this help message")
-	
+
 	pflag.Parse()
 
 	// Show help and exit if help flag is set
@@ -323,7 +323,7 @@ func main() {
 	}
 
 	// Print largest directories section before largest files
-	display.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
+	sections.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
 	display.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
