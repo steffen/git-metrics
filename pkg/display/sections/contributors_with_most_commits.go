@@ -244,12 +244,6 @@ func displayAllTimeAuthors(allTimeAuthorCommits map[string]int, allTimeTotalComm
 	// Print all-time stats
 	fmt.Println("------------------------------------------------------------------------------------------------")
 
-	// Calculate top authors' total commits
-	var topAuthorsTotalCommits int
-	for _, author := range allTimeAuthorsList {
-		topAuthorsTotalCommits += author.commits
-	}
-
 	// Print total row for all-time authors
 	displayYearRowAuthorsAllTime("Total", allTimeAuthorsList, allTimeTotalCommits)
 }
@@ -279,12 +273,6 @@ func displayAllTimeCommitters(allTimeCommitterCommits map[string]int, allTimeTot
 
 	// Print all-time stats
 	fmt.Println("------------------------------------------------------------------------------------------------")
-
-	// Calculate top committers' total commits
-	var topCommittersTotalCommits int
-	for _, committer := range allTimeCommittersList {
-		topCommittersTotalCommits += committer.commits
-	}
 
 	// Print total row for all-time committers
 	displayYearRowCommittersAllTime("Total", allTimeCommittersList, allTimeTotalCommits)
