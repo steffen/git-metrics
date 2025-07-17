@@ -44,10 +44,6 @@ func truncateContributorName(name string) string {
 	}
 
 	runes := []rune(name)
-	if len(runes) <= maxNameLength-3 {
-		return name
-	}
-
 	return string(runes[:maxNameLength-3]) + "..."
 }
 
