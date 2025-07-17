@@ -15,6 +15,15 @@ Year        Commits                  Trees                  Blobs           On-d
 ------------------------------------------------------------------------------------------------
 Growth estimation unavailable: Requires at least 2 years of commit history
 
+RATE OF CHANGES ################################################################################
+
+Commits to default branch (main)
+
+              Commits             Peak per day            Peak per hour          Peak per minute
+Year         per year        P95    P99   P100        P95    P99   P100        P95    P99   P100
+------------------------------------------------------------------------------------------------
+2025               12   │     12     12     12   │     12     12     12   │     12     12     12
+
 LARGEST DIRECTORIES ############################################################################
 
 Showing directories and files that contribute more than 1% of total on-disk size.

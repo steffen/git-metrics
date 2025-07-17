@@ -269,6 +269,13 @@ type contributorEntry struct {
 	Count int
 }
 
+// commitInfo stores information about a commit for rate calculations
+type commitInfo struct {
+	timestamp time.Time
+	isMerge   bool
+	isWorkday bool
+}
+
 // processContributors takes a map of contributor names to counts,
 // sorts them, and returns the top N contributors along with the total unique contributor count.
 func processContributors(contributors map[string]int, n int, year int) ([][3]string, int) {
@@ -371,4 +378,203 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 	}
 
 	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, allTimeAuthors, allTimeCommitters, nil
+}
+
+// GetRateOfChanges calculates commit rate statistics for the default branch by year
+func GetRateOfChanges() (map[int]models.RateStatistics, error) {
+	defaultBranch, err := GetDefaultBranch()
+	if err != nil {
+		return nil, fmt.Errorf("could not determine default branch: %v", err)
+	}
+
+	// Get all commits from default branch with timestamps and merge info
+	command := exec.Command("git", "log", defaultBranch, "--format=%ct|%P", "--reverse")
+	output, err := command.Output()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get commit log: %v", err)
+	}
+
+	return calculateRateStatistics(string(output))
+}
+
+// calculateRateStatistics processes git log output and calculates rate statistics
+func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics, error) {
+	lines := strings.Split(strings.TrimSpace(gitLogOutput), "\n")
+	if len(lines) == 0 {
+		return nil, fmt.Errorf("no commits found")
+	}
+
+	// Parse commits by year
+	commitsByYear := make(map[int][]commitInfo)
+	var totalCommits int
+
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+
+		parts := strings.Split(line, "|")
+		if len(parts) != 2 {
+			continue
+		}
+
+		// Parse timestamp
+		timestampStr := parts[0]
+		timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+		if err != nil {
+			continue
+		}
+		commitTime := time.Unix(timestamp, 0)
+
+		// Check if it's a merge commit (has multiple parents)
+		parents := strings.TrimSpace(parts[1])
+		isMerge := strings.Contains(parents, " ")
+
+		// Check if it's a workday (Monday-Friday)
+		weekday := commitTime.Weekday()
+		isWorkday := weekday >= time.Monday && weekday <= time.Friday
+
+		year := commitTime.Year()
+		commitsByYear[year] = append(commitsByYear[year], commitInfo{
+			timestamp: commitTime,
+			isMerge:   isMerge,
+			isWorkday: isWorkday,
+		})
+		totalCommits++
+	}
+
+	// Calculate statistics for each year
+	ratesByYear := make(map[int]models.RateStatistics)
+
+	for year, commits := range commitsByYear {
+		stats := models.RateStatistics{
+			Year:              year,
+			TotalCommits:      len(commits),
+			PercentageOfTotal: float64(len(commits)) / float64(totalCommits) * 100,
+		}
+
+		// Calculate merge statistics
+		for _, commit := range commits {
+			if commit.isMerge {
+				stats.MergeCommits++
+			} else {
+				stats.DirectCommits++
+			}
+
+			if commit.isWorkday {
+				stats.WorkdayCommits++
+			} else {
+				stats.WeekendCommits++
+			}
+		}
+
+		if stats.TotalCommits > 0 {
+			stats.MergeRatio = float64(stats.MergeCommits) / float64(stats.TotalCommits) * 100
+			if stats.WeekendCommits > 0 {
+				stats.WorkdayWeekendRatio = float64(stats.WorkdayCommits) / float64(stats.WeekendCommits)
+			} else {
+				stats.WorkdayWeekendRatio = float64(stats.WorkdayCommits)
+			}
+		}
+
+		// Calculate daily statistics
+		dailyCommits := make(map[string]int)
+		hourlyCommits := make(map[string]int)
+		minutelyCommits := make(map[string]int)
+
+		for _, commit := range commits {
+			day := commit.timestamp.Format("2006-01-02")
+			hour := commit.timestamp.Format("2006-01-02-15")
+			minute := commit.timestamp.Format("2006-01-02-15:04")
+
+			dailyCommits[day]++
+			hourlyCommits[hour]++
+			minutelyCommits[minute]++
+		}
+
+		// Calculate average commits per day
+		daysInYear := 365
+		if isLeapYear(year) {
+			daysInYear = 366
+		}
+		stats.AverageCommitsPerDay = float64(stats.TotalCommits) / float64(daysInYear)
+
+		// Find busiest day and calculate percentiles
+		var dailyCounts []int
+		var busiestDay string
+		maxDailyCommits := 0
+
+		for day, count := range dailyCommits {
+			dailyCounts = append(dailyCounts, count)
+			if count > maxDailyCommits {
+				maxDailyCommits = count
+				busiestDay = day
+			}
+		}
+
+		if len(dailyCounts) > 0 {
+			sort.Ints(dailyCounts)
+			stats.DailyPeakP95 = calculatePercentile(dailyCounts, 95)
+			stats.DailyPeakP99 = calculatePercentile(dailyCounts, 99)
+			stats.DailyPeakP100 = dailyCounts[len(dailyCounts)-1] // Maximum value
+			stats.BusiestDay = busiestDay
+			stats.BusiestDayCommits = maxDailyCommits
+		}
+
+		// Calculate hourly percentiles
+		var hourlyCounts []int
+		for _, count := range hourlyCommits {
+			hourlyCounts = append(hourlyCounts, count)
+		}
+
+		if len(hourlyCounts) > 0 {
+			sort.Ints(hourlyCounts)
+			stats.HourlyPeakP95 = calculatePercentile(hourlyCounts, 95)
+			stats.HourlyPeakP99 = calculatePercentile(hourlyCounts, 99)
+			stats.HourlyPeakP100 = hourlyCounts[len(hourlyCounts)-1] // Maximum value
+		}
+
+		// Calculate minutely percentiles
+		var minutelyCounts []int
+		for _, count := range minutelyCommits {
+			minutelyCounts = append(minutelyCounts, count)
+		}
+
+		if len(minutelyCounts) > 0 {
+			sort.Ints(minutelyCounts)
+			stats.MinutelyPeakP95 = calculatePercentile(minutelyCounts, 95)
+			stats.MinutelyPeakP99 = calculatePercentile(minutelyCounts, 99)
+			stats.MinutelyPeakP100 = minutelyCounts[len(minutelyCounts)-1] // Maximum value
+		}
+
+		ratesByYear[year] = stats
+	}
+
+	return ratesByYear, nil
+}
+
+// calculatePercentile calculates the nth percentile of a sorted slice
+func calculatePercentile(sortedData []int, percentile int) int {
+	if len(sortedData) == 0 {
+		return 0
+	}
+
+	index := float64(percentile) / 100.0 * float64(len(sortedData)-1)
+	if index == float64(int(index)) {
+		return sortedData[int(index)]
+	}
+
+	lower := int(index)
+	upper := lower + 1
+	if upper >= len(sortedData) {
+		return sortedData[len(sortedData)-1]
+	}
+
+	weight := index - float64(lower)
+	return int(float64(sortedData[lower])*(1-weight) + float64(sortedData[upper])*weight)
+}
+
+// isLeapYear checks if a given year is a leap year
+func isLeapYear(year int) bool {
+	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
 }

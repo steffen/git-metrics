@@ -302,6 +302,13 @@ func main() {
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
 
+	// Rate of changes analysis - add after historic growth and before largest directories
+	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
+			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
+		}
+	}
+
 	// Use the final statistics for largest files
 	largestFiles := totalStatistics.LargestFiles
 	// Sort by compressed size descending, then by path ascending, and take top 10.
