@@ -20,6 +20,19 @@ on:
         required: false
         default: 'false'
         type: boolean
+      release_tag:
+        description: 'Release tag (e.g., v1.2.3)'
+        required: false
+        type: string
+      release_name:
+        description: 'Release name (defaults to tag if not specified)'
+        required: false
+        type: string
+      prerelease:
+        description: 'Mark as prerelease'
+        required: false
+        default: false
+        type: boolean
 
 permissions:
     contents: read
@@ -156,27 +169,43 @@ jobs:
       - name: Calculate version
         id: version
         run: |
-          # Get latest semver tag if exists, or default to 1.0.0
-          LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || echo "v1.0.0")
-          
-          # Remove 'v' prefix if it exists
-          if [[ $LATEST_TAG == v* ]]; then
-            CURRENT_VERSION=${LATEST_TAG#v}
+          if [[ -n "${{ github.event.inputs.release_tag }}" ]]; then
+            # Use custom tag provided by user
+            CUSTOM_TAG="${{ github.event.inputs.release_tag }}"
+            # Remove 'v' prefix if it exists for version output
+            if [[ $CUSTOM_TAG == v* ]]; then
+              NEW_VERSION=${CUSTOM_TAG#v}
+            else
+              NEW_VERSION=$CUSTOM_TAG
+              CUSTOM_TAG="v$CUSTOM_TAG"
+            fi
+            echo "Using custom tag: $CUSTOM_TAG"
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "tag_name=$CUSTOM_TAG" >> $GITHUB_OUTPUT
           else
-            CURRENT_VERSION=$LATEST_TAG
+            # Auto-calculate version from latest tag
+            LATEST_TAG=$(git tag --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1 || echo "v1.0.0")
+            
+            # Remove 'v' prefix if it exists
+            if [[ $LATEST_TAG == v* ]]; then
+              CURRENT_VERSION=${LATEST_TAG#v}
+            else
+              CURRENT_VERSION=$LATEST_TAG
+            fi
+            
+            echo "Current version from tag: $CURRENT_VERSION"
+            
+            # Split the version into parts
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+            
+            # Increment minor version, reset patch
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="$MAJOR.$NEW_MINOR.0"
+            
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "tag_name=v$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "Auto-calculated version: $NEW_VERSION"
           fi
-          
-          echo "Current version from tag: $CURRENT_VERSION"
-          
-          # Split the version into parts
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-          
-          # Increment minor version, reset patch
-          NEW_MINOR=$((MINOR + 1))
-          NEW_VERSION="$MAJOR.$NEW_MINOR.0"
-          
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "New version: $NEW_VERSION"
 
       - name: Download binaries
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v 4.3.0
@@ -232,13 +261,13 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
         with:
-          tag_name: v${{ steps.version.outputs.new_version }}
-          name: ${{ steps.version.outputs.new_version }}
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          name: ${{ github.event.inputs.release_name || steps.version.outputs.new_version }}
           files: |
             ${{ env.BINARY_NAME }}-*.tar.gz
             ${{ env.BINARY_NAME }}-*.zip
           generate_release_notes: true
           draft: false
-          prerelease: false
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
