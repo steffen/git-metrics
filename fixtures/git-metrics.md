@@ -26,32 +26,35 @@ Year         per year        P95    P99   P100        P95    P99   P100        P
 
 LARGEST DIRECTORIES ############################################################################
 
+Showing directories and files that contribute more than 1% of total on-disk size.
+
 Path                                                        Blobs           On-disk size
 ------------------------------------------------------------------------------------------------
-a                                                              11  61.1 %         0.6 KB  65.9 %
-└─ very                                                        11  61.1 %         0.6 KB  65.9 %
-------------------------------------------------------------------------------------------------
-(root files)                                                    4  22.2 %         0.2 KB  18.3 %
+./                                                             18 100.0 %         1.0 KB 100.0 %
+├─ a/                                                          11  61.1 %         0.6 KB  65.9 %
+│  └─ very/                                                    11  61.1 %         0.6 KB  65.9 %
+│     └─ long/                                                 11  61.1 %         0.6 KB  65.9 %
+│        └─ path/                                              11  61.1 %         0.6 KB  65.9 %
+│           └─ that/                                           11  61.1 %         0.6 KB  65.9 %
+│              └─ exceeds/                                     11  61.1 %         0.6 KB  65.9 %
+│                 └─ the/                                      11  61.1 %         0.6 KB  65.9 %
+│                    └─ limit/                                 11  61.1 %         0.6 KB  65.9 %
+│                       └─ for/                                11  61.1 %         0.6 KB  65.9 %
+│                          └─ display/                         11  61.1 %         0.6 KB  65.9 %
+├─ this-is-a-very-long-d...isplay-width-limits/ [1]             1   5.6 %         0.1 KB   6.3 %
+│  └─ file-in-long-dir.txt                                      1   5.6 %         0.1 KB   6.3 %
+├─ new_folder/*                                                 1   5.6 %         0.1 KB   5.6 %
+│  └─ to_be_removed.txt*                                        1   5.6 %         0.1 KB   5.6 %
+├─ another_folder/                                              1   5.6 %         0.0 KB   3.9 %
+│  └─ moved_file.txt                                            1   5.6 %         0.0 KB   3.9 %
 ├─ this-file-name-is-exactly-44-chars-long.jpeg                 1   5.6 %         0.1 KB   6.6 %
 ├─ renamed_file.txt                                             1   5.6 %         0.0 KB   4.1 %
 ├─ to_be_removed.txt*                                           1   5.6 %         0.0 KB   4.1 %
 └─ README.md                                                    1   5.6 %         0.0 KB   3.5 %
-------------------------------------------------------------------------------------------------
-this-is-a-very-long-di...e-display-width-limits [1]             1   5.6 %         0.1 KB   6.3 %
-└─ file-in-long-dir.txt                                         1   5.6 %         0.1 KB   6.3 %
-------------------------------------------------------------------------------------------------
-new_folder*                                                     1   5.6 %         0.1 KB   5.6 %
-└─ to_be_removed.txt*                                           1   5.6 %         0.1 KB   5.6 %
-------------------------------------------------------------------------------------------------
-another_folder                                                  1   5.6 %         0.0 KB   3.9 %
-└─ moved_file.txt                                               1   5.6 %         0.0 KB   3.9 %
-------------------------------------------------------------------------------------------------
-├─ Top 5                                                       18 100.0 %         1.0 KB 100.0 %
-└─ Out of 5                                                    18 100.0 %         1.0 KB 100.0 %
 
 * File or directory not present in latest commit of main branch (moved, renamed or removed)
 
-[1] this-is-a-very-long-directory-name-that-should-definitely-be-truncated-when-displayed-in-the-largest-directories-section-because-it-exceeds-the-display-width-limits
+[1] this-is-a-very-long-directory-name-that-should-definitely-be-truncated-when-displayed-in-the-largest-directories-section-because-it-exceeds-the-display-width-limits/
 
 LARGEST FILES ##################################################################################
 
@@ -93,20 +96,19 @@ Extension                            Files                  Blobs           On-d
 ├─ Top 3                                18 100.0 %             18 100.0 %         1.0 KB 100.0 %
 └─ Out of 3                             18 100.0 %             18 100.0 %         1.0 KB 100.0 %
 
-AUTHORS & COMMITTERS WITH MOST COMMITS #########################################################
+AUTHORS WITH MOST COMMITS ######################################################################
 
-Year    Author                   Commits                Committer                Commits
+Year     Author (#1)    Commits        Author (#2)    Commits        Author (#3)    Commits
 ------------------------------------------------------------------------------------------------
-
-2025    Test user                     12  100.0%        Test user                     12  100.0%
-        ┌───────────────────────────────────────        ┌───────────────────────────────────────
-        ├─ Top 1                      12  100.0%        ├─ Top 1                      12  100.0%
-        └─ Out of 1                   12  100.0%        └─ Out of 1                   12  100.0%
-
+2025   │ Test user           12 100%
 ------------------------------------------------------------------------------------------------
+Total  │ Test user           12 100%
 
-TOTAL   Test user                     12  100.0%        Test user                     12  100.0%
-        ┌───────────────────────────────────────        ┌───────────────────────────────────────
-        ├─ Top 1                      12  100.0%        ├─ Top 1                      12  100.0%
-        └─ Out of 1                   12  100.0%        └─ Out of 1                   12  100.0%
+COMMITTERS WITH MOST COMMITS ###################################################################
+
+Year     Committer (#1) Commits        Committer (#2) Commits        Committer (#3) Commits
+------------------------------------------------------------------------------------------------
+2025   │ Test user           12 100%
+------------------------------------------------------------------------------------------------
+Total  │ Test user           12 100%
 
