@@ -138,84 +138,86 @@ func displayCommittersSection(committersByYear map[int][][3]string, totalCommitt
 	}
 }
 
-func displayYearRowAuthors(year int, authors [][3]string, totalCommits int) {
-	yearStr := fmt.Sprintf("%d", year)
-
-	// Print the row based on how many authors we actually have
-	if len(authors) >= 3 {
+// displayContributorRow displays a row of contributors with their commit counts and percentages
+func displayContributorRow(yearStr string, contributors [][3]string, totalCommits int) {
+	// Print the row based on how many contributors we actually have
+	if len(contributors) >= 3 {
 		// All 3 columns filled
-		author1Commits, _ := strconv.Atoi(authors[0][1])
-		author1Percentage := float64(author1Commits) / float64(totalCommits) * 100
-		author2Commits, _ := strconv.Atoi(authors[1][1])
-		author2Percentage := float64(author2Commits) / float64(totalCommits) * 100
-		author3Commits, _ := strconv.Atoi(authors[2][1])
-		author3Percentage := float64(author3Commits) / float64(totalCommits) * 100
+		contributor1Commits, _ := strconv.Atoi(contributors[0][1])
+		contributor1Percentage := float64(contributor1Commits) / float64(totalCommits) * 100
+		contributor2Commits, _ := strconv.Atoi(contributors[1][1])
+		contributor2Percentage := float64(contributor2Commits) / float64(totalCommits) * 100
+		contributor3Commits, _ := strconv.Atoi(contributors[2][1])
+		contributor3Percentage := float64(contributor3Commits) / float64(totalCommits) * 100
 
 		fmt.Printf(formatThreeColumnRow,
 			yearStr,
-			truncateContributorName(authors[0][0]), utils.FormatNumber(author1Commits), author1Percentage,
-			truncateContributorName(authors[1][0]), utils.FormatNumber(author2Commits), author2Percentage,
-			truncateContributorName(authors[2][0]), utils.FormatNumber(author3Commits), author3Percentage)
-	} else if len(authors) == 2 {
+			truncateContributorName(contributors[0][0]), utils.FormatNumber(contributor1Commits), contributor1Percentage,
+			truncateContributorName(contributors[1][0]), utils.FormatNumber(contributor2Commits), contributor2Percentage,
+			truncateContributorName(contributors[2][0]), utils.FormatNumber(contributor3Commits), contributor3Percentage)
+	} else if len(contributors) == 2 {
 		// Only 2 columns filled
-		author1Commits, _ := strconv.Atoi(authors[0][1])
-		author1Percentage := float64(author1Commits) / float64(totalCommits) * 100
-		author2Commits, _ := strconv.Atoi(authors[1][1])
-		author2Percentage := float64(author2Commits) / float64(totalCommits) * 100
+		contributor1Commits, _ := strconv.Atoi(contributors[0][1])
+		contributor1Percentage := float64(contributor1Commits) / float64(totalCommits) * 100
+		contributor2Commits, _ := strconv.Atoi(contributors[1][1])
+		contributor2Percentage := float64(contributor2Commits) / float64(totalCommits) * 100
 
 		fmt.Printf(formatTwoColumnRow,
 			yearStr,
-			truncateContributorName(authors[0][0]), utils.FormatNumber(author1Commits), author1Percentage,
-			truncateContributorName(authors[1][0]), utils.FormatNumber(author2Commits), author2Percentage)
-	} else if len(authors) == 1 {
+			truncateContributorName(contributors[0][0]), utils.FormatNumber(contributor1Commits), contributor1Percentage,
+			truncateContributorName(contributors[1][0]), utils.FormatNumber(contributor2Commits), contributor2Percentage)
+	} else if len(contributors) == 1 {
 		// Only 1 column filled
-		author1Commits, _ := strconv.Atoi(authors[0][1])
-		author1Percentage := float64(author1Commits) / float64(totalCommits) * 100
+		contributor1Commits, _ := strconv.Atoi(contributors[0][1])
+		contributor1Percentage := float64(contributor1Commits) / float64(totalCommits) * 100
 
 		fmt.Printf(formatOneColumnRow,
 			yearStr,
-			truncateContributorName(authors[0][0]), utils.FormatNumber(author1Commits), author1Percentage)
+			truncateContributorName(contributors[0][0]), utils.FormatNumber(contributor1Commits), contributor1Percentage)
 	}
+}
+
+// displayContributorRowAllTime displays a row of contributors with their commit counts and percentages for all-time stats
+func displayContributorRowAllTime(yearStr string, contributors []contributorStats, totalCommits int) {
+	// Print the row based on how many contributors we actually have
+	if len(contributors) >= 3 {
+		// All 3 columns filled
+		contributor1Percentage := float64(contributors[0].commits) / float64(totalCommits) * 100
+		contributor2Percentage := float64(contributors[1].commits) / float64(totalCommits) * 100
+		contributor3Percentage := float64(contributors[2].commits) / float64(totalCommits) * 100
+
+		fmt.Printf(formatThreeColumnRow,
+			yearStr,
+			truncateContributorName(contributors[0].name), utils.FormatNumber(contributors[0].commits), contributor1Percentage,
+			truncateContributorName(contributors[1].name), utils.FormatNumber(contributors[1].commits), contributor2Percentage,
+			truncateContributorName(contributors[2].name), utils.FormatNumber(contributors[2].commits), contributor3Percentage)
+	} else if len(contributors) == 2 {
+		// Only 2 columns filled
+		contributor1Percentage := float64(contributors[0].commits) / float64(totalCommits) * 100
+		contributor2Percentage := float64(contributors[1].commits) / float64(totalCommits) * 100
+
+		fmt.Printf(formatTwoColumnRow,
+			yearStr,
+			truncateContributorName(contributors[0].name), utils.FormatNumber(contributors[0].commits), contributor1Percentage,
+			truncateContributorName(contributors[1].name), utils.FormatNumber(contributors[1].commits), contributor2Percentage)
+	} else if len(contributors) == 1 {
+		// Only 1 column filled
+		contributor1Percentage := float64(contributors[0].commits) / float64(totalCommits) * 100
+
+		fmt.Printf(formatOneColumnRow,
+			yearStr,
+			truncateContributorName(contributors[0].name), utils.FormatNumber(contributors[0].commits), contributor1Percentage)
+	}
+}
+
+func displayYearRowAuthors(year int, authors [][3]string, totalCommits int) {
+	yearStr := fmt.Sprintf("%d", year)
+	displayContributorRow(yearStr, authors, totalCommits)
 }
 
 func displayYearRowCommitters(year int, committers [][3]string, totalCommits int) {
 	yearStr := fmt.Sprintf("%d", year)
-
-	// Print the row based on how many committers we actually have
-	if len(committers) >= 3 {
-		// All 3 columns filled
-		committer1Commits, _ := strconv.Atoi(committers[0][1])
-		committer1Percentage := float64(committer1Commits) / float64(totalCommits) * 100
-		committer2Commits, _ := strconv.Atoi(committers[1][1])
-		committer2Percentage := float64(committer2Commits) / float64(totalCommits) * 100
-		committer3Commits, _ := strconv.Atoi(committers[2][1])
-		committer3Percentage := float64(committer3Commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatThreeColumnRow,
-			yearStr,
-			truncateContributorName(committers[0][0]), utils.FormatNumber(committer1Commits), committer1Percentage,
-			truncateContributorName(committers[1][0]), utils.FormatNumber(committer2Commits), committer2Percentage,
-			truncateContributorName(committers[2][0]), utils.FormatNumber(committer3Commits), committer3Percentage)
-	} else if len(committers) == 2 {
-		// Only 2 columns filled
-		committer1Commits, _ := strconv.Atoi(committers[0][1])
-		committer1Percentage := float64(committer1Commits) / float64(totalCommits) * 100
-		committer2Commits, _ := strconv.Atoi(committers[1][1])
-		committer2Percentage := float64(committer2Commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatTwoColumnRow,
-			yearStr,
-			truncateContributorName(committers[0][0]), utils.FormatNumber(committer1Commits), committer1Percentage,
-			truncateContributorName(committers[1][0]), utils.FormatNumber(committer2Commits), committer2Percentage)
-	} else if len(committers) == 1 {
-		// Only 1 column filled
-		committer1Commits, _ := strconv.Atoi(committers[0][1])
-		committer1Percentage := float64(committer1Commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatOneColumnRow,
-			yearStr,
-			truncateContributorName(committers[0][0]), utils.FormatNumber(committer1Commits), committer1Percentage)
-	}
+	displayContributorRow(yearStr, committers, totalCommits)
 }
 
 func displayAllTimeAuthors(allTimeAuthorCommits map[string]int, allTimeTotalCommits int, allTimeAuthors map[string]int) {
@@ -279,65 +281,9 @@ func displayAllTimeCommitters(allTimeCommitterCommits map[string]int, allTimeTot
 }
 
 func displayYearRowAuthorsAllTime(yearStr string, authors []contributorStats, totalCommits int) {
-	// Print the row based on how many authors we actually have
-	if len(authors) >= 3 {
-		// All 3 columns filled
-		author1Percentage := float64(authors[0].commits) / float64(totalCommits) * 100
-		author2Percentage := float64(authors[1].commits) / float64(totalCommits) * 100
-		author3Percentage := float64(authors[2].commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatThreeColumnRow,
-			yearStr,
-			truncateContributorName(authors[0].name), utils.FormatNumber(authors[0].commits), author1Percentage,
-			truncateContributorName(authors[1].name), utils.FormatNumber(authors[1].commits), author2Percentage,
-			truncateContributorName(authors[2].name), utils.FormatNumber(authors[2].commits), author3Percentage)
-	} else if len(authors) == 2 {
-		// Only 2 columns filled
-		author1Percentage := float64(authors[0].commits) / float64(totalCommits) * 100
-		author2Percentage := float64(authors[1].commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatTwoColumnRow,
-			yearStr,
-			truncateContributorName(authors[0].name), utils.FormatNumber(authors[0].commits), author1Percentage,
-			truncateContributorName(authors[1].name), utils.FormatNumber(authors[1].commits), author2Percentage)
-	} else if len(authors) == 1 {
-		// Only 1 column filled
-		author1Percentage := float64(authors[0].commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatOneColumnRow,
-			yearStr,
-			truncateContributorName(authors[0].name), utils.FormatNumber(authors[0].commits), author1Percentage)
-	}
+	displayContributorRowAllTime(yearStr, authors, totalCommits)
 }
 
 func displayYearRowCommittersAllTime(yearStr string, committers []contributorStats, totalCommits int) {
-	// Print the row based on how many committers we actually have
-	if len(committers) >= 3 {
-		// All 3 columns filled
-		committer1Percentage := float64(committers[0].commits) / float64(totalCommits) * 100
-		committer2Percentage := float64(committers[1].commits) / float64(totalCommits) * 100
-		committer3Percentage := float64(committers[2].commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatThreeColumnRow,
-			yearStr,
-			truncateContributorName(committers[0].name), utils.FormatNumber(committers[0].commits), committer1Percentage,
-			truncateContributorName(committers[1].name), utils.FormatNumber(committers[1].commits), committer2Percentage,
-			truncateContributorName(committers[2].name), utils.FormatNumber(committers[2].commits), committer3Percentage)
-	} else if len(committers) == 2 {
-		// Only 2 columns filled
-		committer1Percentage := float64(committers[0].commits) / float64(totalCommits) * 100
-		committer2Percentage := float64(committers[1].commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatTwoColumnRow,
-			yearStr,
-			truncateContributorName(committers[0].name), utils.FormatNumber(committers[0].commits), committer1Percentage,
-			truncateContributorName(committers[1].name), utils.FormatNumber(committers[1].commits), committer2Percentage)
-	} else if len(committers) == 1 {
-		// Only 1 column filled
-		committer1Percentage := float64(committers[0].commits) / float64(totalCommits) * 100
-
-		fmt.Printf(formatOneColumnRow,
-			yearStr,
-			truncateContributorName(committers[0].name), utils.FormatNumber(committers[0].commits), committer1Percentage)
-	}
+	displayContributorRowAllTime(yearStr, committers, totalCommits)
 }
