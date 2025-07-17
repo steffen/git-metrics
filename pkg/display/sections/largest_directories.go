@@ -11,6 +11,24 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	// MaxDirectoryDepth is the maximum depth of directories to process
+	MaxDirectoryDepth = 10
+
+	// CompressedSizePercentageThreshold is the minimum percentage of total compressed size
+	// required for a directory or file to be considered significant (1%)
+	CompressedSizePercentageThreshold = 0.01
+
+	// PathColumnWidth is the fixed width for the path column in the output table
+	PathColumnWidth = 51
+
+	// MaxTreeLevels is the maximum number of tree levels to process (MaxDirectoryDepth + 1 for root)
+	MaxTreeLevels = MaxDirectoryDepth + 1
+
+	// TableRowFormat is the format string for printing table rows
+	TableRowFormat = "%-51s   %11s%6.1f %%  %13s%6.1f %%\n"
+)
+
 // Footnote contains the formatted display path and footnote information
 type Footnote struct {
 	DisplayPath string // The path string to display, possibly truncated with a footnote marker
@@ -91,7 +109,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	}
 
 	// Calculate 1% threshold
-	thresholdSize := float64(totalBlobsCompressedSize) * 0.01
+	thresholdSize := float64(totalBlobsCompressedSize) * CompressedSizePercentageThreshold
 
 	// Get files from default branch for comparison
 	defaultBranch, defaultBranchError := git.GetDefaultBranch()
@@ -130,8 +148,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		pathParts := strings.Split(file.Path, "/")
 		currentPath := ""
 
-		// Create entries for all directories in the path (up to 10 levels)
-		for level := 0; level < len(pathParts)-1 && level < 10; level++ {
+		// Create entries for all directories in the path (up to MaxDirectoryDepth levels)
+		for level := 0; level < len(pathParts)-1 && level < MaxDirectoryDepth; level++ {
 			if currentPath == "" {
 				currentPath = pathParts[level]
 			} else {
@@ -168,10 +186,10 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	// Add significant files
 	for _, file := range files {
 		if float64(file.CompressedSize) >= thresholdSize {
-			// Calculate the level based on path depth (limited to 10)
+			// Calculate the level based on path depth (limited to MaxDirectoryDepth)
 			level := strings.Count(file.Path, "/") + 1
-			if level > 10 {
-				level = 10
+			if level > MaxDirectoryDepth {
+				level = MaxDirectoryDepth
 			}
 
 			fileEntry := &entry{
@@ -266,7 +284,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 	var buildTree func(level int, parentPath string, isLastAtLevel []bool)
 	buildTree = func(level int, parentPath string, isLastAtLevel []bool) {
-		if level > 11 { // Now max 11 levels (0-10, with 0 being root)
+		if level > MaxTreeLevels { // Now max MaxTreeLevels levels (0-MaxDirectoryDepth, with 0 being root)
 			return
 		}
 
@@ -383,7 +401,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 			displayName += "*"
 			showFootnote = true
 		} // Calculate available width for path display (fixed width for alignment)
-		pathColumnWidth := 51
+		pathColumnWidth := PathColumnWidth
 
 		// Use CreatePathFootnote for consistent truncation and footnote logic
 		result := CreatePathFootnote(displayName, pathColumnWidth-utf8.RuneCountInString(prefix), len(footnotes))
@@ -399,7 +417,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		fullPathDisplay := prefix + finalDisplayName
 
 		// Print entry with fixed column widths
-		fmt.Printf("%-51s   %11s%6.1f %%  %13s%6.1f %%\n",
+		fmt.Printf(TableRowFormat,
 			fullPathDisplay,
 			utils.FormatNumber(entry.Blobs),
 			percentBlobs,
