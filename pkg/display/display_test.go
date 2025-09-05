@@ -345,3 +345,74 @@ func TestPrintGrowthTableMultipleYears(t *testing.T) {
 		t.Errorf("Found consecutive separator lines (duplicate separators).\nOutput: %s", output)
 	}
 }
+
+func TestPrintHistoricGrowthHeader(t *testing.T) {
+	output := captureOutput(func() {
+		PrintHistoricGrowthHeader()
+	})
+
+	expectedStrings := []string{
+		"HISTORIC GROWTH",
+		"Year",
+		"Commits",
+		"Trees",
+		"Blobs",
+		"On-disk size",
+		"------------------------------------------------------------------------------------------------",
+	}
+
+	for _, expected := range expectedStrings {
+		if !strings.Contains(output, expected) {
+			t.Errorf("Expected output to contain %q, but it doesn't.\nOutput: %s", expected, output)
+		}
+	}
+}
+
+func TestPrintEstimatedGrowthHeader(t *testing.T) {
+	output := captureOutput(func() {
+		PrintEstimatedGrowthHeader(models.EstimationMethodLinear, 0.85, 0.15)
+	})
+
+	expectedStrings := []string{
+		"ESTIMATED GROWTH",
+		"Linear model",
+		"fit: 85.0%",
+		"Year",
+		"Commits",
+		"Trees",
+		"Blobs",
+		"On-disk size",
+		"------------------------------------------------------------------------------------------------",
+	}
+
+	for _, expected := range expectedStrings {
+		if !strings.Contains(output, expected) {
+			t.Errorf("Expected output to contain %q, but it doesn't.\nOutput: %s", expected, output)
+		}
+	}
+}
+
+func TestPrintEstimatedGrowthHeaderExponential(t *testing.T) {
+	output := captureOutput(func() {
+		PrintEstimatedGrowthHeader(models.EstimationMethodExponential, 0.92, 0.08)
+	})
+
+	expectedStrings := []string{
+		"ESTIMATED GROWTH",
+		"Exponential model",
+		"fit: 92.0%",
+		"avg growth rate: 8.0%",
+		"Year",
+		"Commits",
+		"Trees",
+		"Blobs",
+		"On-disk size",
+		"------------------------------------------------------------------------------------------------",
+	}
+
+	for _, expected := range expectedStrings {
+		if !strings.Contains(output, expected) {
+			t.Errorf("Expected output to contain %q, but it doesn't.\nOutput: %s", expected, output)
+		}
+	}
+}

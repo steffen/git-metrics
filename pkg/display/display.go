@@ -21,6 +21,35 @@ func PrintGrowthTableHeader() {
 	fmt.Println("------------------------------------------------------------------------------------------------")
 }
 
+// PrintHistoricGrowthHeader prints the header for the historic growth section
+func PrintHistoricGrowthHeader() {
+	fmt.Println()
+	fmt.Println("HISTORIC GROWTH ################################################################################")
+	fmt.Println()
+	fmt.Println("Year        Commits                  Trees                  Blobs           On-disk size")
+	fmt.Println("------------------------------------------------------------------------------------------------")
+}
+
+// PrintEstimatedGrowthHeader prints the header for the estimated growth section
+func PrintEstimatedGrowthHeader(method models.EstimationMethod, fitScore float64, growthRate float64) {
+	fmt.Println()
+	fmt.Println("ESTIMATED GROWTH ###############################################################################")
+	fmt.Println()
+	
+	methodInfo := fmt.Sprintf("Using %s model", method)
+	if fitScore > 0 {
+		methodInfo += fmt.Sprintf(" (fit: %.1f%%)", fitScore*100)
+	}
+	if method == models.EstimationMethodExponential && growthRate != 0 {
+		methodInfo += fmt.Sprintf(", avg growth rate: %.1f%%", growthRate*100)
+	}
+	
+	fmt.Printf("%-100s\n", methodInfo)
+	fmt.Println()
+	fmt.Println("Year        Commits                  Trees                  Blobs           On-disk size")
+	fmt.Println("------------------------------------------------------------------------------------------------")
+}
+
 // PrintGrowthTableRow prints a row of the growth table
 func PrintGrowthTableRow(statistics, previous models.GrowthStatistics, information models.RepositoryInformation, isEstimate bool, currentYear int) {
 	commitsDifference := float64(statistics.Commits-previous.Commits) / float64(information.TotalCommits) * 100

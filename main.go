@@ -190,10 +190,7 @@ func main() {
 
 	fmt.Printf("Age                        %s\n", ageString)
 
-	// Print growth table header first
-	display.PrintGrowthTableHeader()
-
-	// Then calculate growth stats and totals
+	// Calculate growth stats and totals first
 	var previous models.GrowthStatistics
 	var totalStatistics models.GrowthStatistics
 
@@ -213,6 +210,7 @@ func main() {
 	}
 
 	yearlyStatistics := make(map[int]models.GrowthStatistics)
+	var yearlyDataForEstimation []models.GrowthStatistics
 
 	// Start calculation with progress indicator (no newline before progress)
 	for year := firstCommitTime.Year(); year <= time.Now().Year(); year++ {
@@ -223,6 +221,11 @@ func main() {
 			previous = cumulativeStatistics
 			yearlyStatistics[year] = cumulativeStatistics
 			progress.CurrentProgress.Statistics = cumulativeStatistics // Update current progress
+
+			// Store data for estimation
+			if year >= estimationStartYear && year <= estimationEndYear {
+				yearlyDataForEstimation = append(yearlyDataForEstimation, cumulativeStatistics)
+			}
 
 			if estimationYears < minimumRequiredEstimationYears {
 				continue
@@ -263,7 +266,8 @@ func main() {
 		CompressedSize: totalStatistics.Compressed,
 	}
 
-	// Print growth table using stored statistics
+	// Print historic growth section
+	display.PrintHistoricGrowthHeader()
 	previous = models.GrowthStatistics{} // Reset for display
 	currentYear := time.Now().Year()
 
@@ -275,30 +279,48 @@ func main() {
 		}
 	}
 
+	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println()
+	if recentFetch != "" {
+		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:11])
+	} else {
+		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:11])
+	}
+
+	// Print estimated growth section if we have enough data
 	if estimationYears > 0 {
-		// Print separator for projections
-		fmt.Println("------------------------------------------------------------------------------------------------")
-
-		// Print 6 years of projections including current year
+		// Get the best estimation method
 		lastStatistics := yearlyStatistics[currentYear-1]
+		bestEstimation := git.SelectBestEstimationMethod(lastStatistics, estimationYearlyAverage, yearlyDataForEstimation)
+		
+		// Print estimated growth header with method information
+		display.PrintEstimatedGrowthHeader(bestEstimation.Method, bestEstimation.FitScore, bestEstimation.GrowthRate)
 
+		// Print 6 years of projections
+		currentEstimation := bestEstimation
 		for i := 1; i <= estimationDisplayYears; i++ {
-			projected := git.CalculateEstimate(lastStatistics, estimationYearlyAverage)
-			display.PrintGrowthTableRow(projected, lastStatistics, repositoryInformation, true, currentYear)
-			lastStatistics = projected
+			display.PrintGrowthTableRow(currentEstimation.Statistics, lastStatistics, repositoryInformation, true, currentYear)
+			lastStatistics = currentEstimation.Statistics
+			
+			// Calculate next year's estimation using the same method
+			if bestEstimation.Method == models.EstimationMethodLinear {
+				nextEstimation := git.CalculateLinearEstimation(currentEstimation.Statistics, estimationYearlyAverage)
+				currentEstimation = nextEstimation
+			} else {
+				nextEstimation := git.CalculateExponentialEstimation(currentEstimation.Statistics, yearlyDataForEstimation)
+				currentEstimation = nextEstimation
+			}
 		}
 
 		fmt.Println("------------------------------------------------------------------------------------------------")
 		fmt.Println()
-		if recentFetch != "" {
-			fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:11])
-		} else {
-			fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:11])
+		fmt.Printf("* Estimated growth using %s model", bestEstimation.Method)
+		if bestEstimation.FitScore > 0 {
+			fmt.Printf(" (fit quality: %.1f%%)", bestEstimation.FitScore*100)
 		}
-		fmt.Println("* Estimated growth based on the last five years")
+		fmt.Println()
 		fmt.Println("% Percentages show the increase relative to the current total (^)")
 	} else {
-		fmt.Println("------------------------------------------------------------------------------------------------")
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
 

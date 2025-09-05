@@ -66,3 +66,19 @@ type RateStatistics struct {
 	WeekendCommits       int     // Commits during weekends
 	WorkdayWeekendRatio  float64 // Ratio of workday to weekend commits
 }
+
+// EstimationMethod represents different methods for growth estimation
+type EstimationMethod string
+
+const (
+	EstimationMethodLinear      EstimationMethod = "Linear"
+	EstimationMethodExponential EstimationMethod = "Exponential"
+)
+
+// EstimationResult holds the result of growth estimation including the method used
+type EstimationResult struct {
+	Method          EstimationMethod
+	Statistics      GrowthStatistics
+	FitScore        float64 // R² or similar goodness of fit metric
+	GrowthRate      float64 // Annual growth rate (for exponential model)
+}

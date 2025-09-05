@@ -56,6 +56,97 @@ func TestCalculateEstimate(t *testing.T) {
 	}
 }
 
+func TestCalculateLinearEstimation(t *testing.T) {
+	current := models.GrowthStatistics{
+		Year:       2023,
+		Commits:    1000,
+		Trees:      2000,
+		Blobs:      3000,
+		Compressed: 4000,
+	}
+
+	average := models.GrowthStatistics{
+		Commits:    100,
+		Trees:      200,
+		Blobs:      300,
+		Compressed: 400,
+	}
+
+	result := CalculateLinearEstimation(current, average)
+
+	if result.Method != models.EstimationMethodLinear {
+		t.Errorf("CalculateLinearEstimation() Method = %v, want %v", result.Method, models.EstimationMethodLinear)
+	}
+	if result.Statistics.Year != 2024 {
+		t.Errorf("CalculateLinearEstimation() Year = %v, want %v", result.Statistics.Year, 2024)
+	}
+	if result.Statistics.Commits != 1100 {
+		t.Errorf("CalculateLinearEstimation() Commits = %v, want %v", result.Statistics.Commits, 1100)
+	}
+}
+
+func TestCalculateExponentialEstimation(t *testing.T) {
+	yearlyData := []models.GrowthStatistics{
+		{Year: 2021, Commits: 100, Trees: 200, Blobs: 300, Compressed: 1000},
+		{Year: 2022, Commits: 120, Trees: 240, Blobs: 360, Compressed: 1200},
+		{Year: 2023, Commits: 144, Trees: 288, Blobs: 432, Compressed: 1440},
+	}
+
+	current := yearlyData[len(yearlyData)-1]
+	result := CalculateExponentialEstimation(current, yearlyData)
+
+	if result.Method != models.EstimationMethodExponential {
+		t.Errorf("CalculateExponentialEstimation() Method = %v, want %v", result.Method, models.EstimationMethodExponential)
+	}
+	if result.Statistics.Year != 2024 {
+		t.Errorf("CalculateExponentialEstimation() Year = %v, want %v", result.Statistics.Year, 2024)
+	}
+	// With 20% growth rate, commits should be around 173 (144 * 1.2)
+	if result.Statistics.Commits < 160 || result.Statistics.Commits > 180 {
+		t.Errorf("CalculateExponentialEstimation() Commits = %v, expected around 173", result.Statistics.Commits)
+	}
+}
+
+func TestSelectBestEstimationMethod(t *testing.T) {
+	current := models.GrowthStatistics{
+		Year:       2023,
+		Commits:    1000,
+		Trees:      2000,
+		Blobs:      3000,
+		Compressed: 4000,
+	}
+
+	average := models.GrowthStatistics{
+		Commits:    100,
+		Trees:      200,
+		Blobs:      300,
+		Compressed: 400,
+	}
+
+	// Test with insufficient data (should default to linear)
+	yearlyData := []models.GrowthStatistics{
+		{Year: 2023, Commits: 1000, Trees: 2000, Blobs: 3000, Compressed: 4000},
+	}
+
+	result := SelectBestEstimationMethod(current, average, yearlyData)
+	if result.Method != models.EstimationMethodLinear {
+		t.Errorf("SelectBestEstimationMethod() with insufficient data Method = %v, want %v", result.Method, models.EstimationMethodLinear)
+	}
+
+	// Test with more data
+	yearlyDataMore := []models.GrowthStatistics{
+		{Year: 2021, Commits: 100, Trees: 200, Blobs: 300, Compressed: 1000},
+		{Year: 2022, Commits: 200, Trees: 400, Blobs: 600, Compressed: 2000},
+		{Year: 2023, Commits: 300, Trees: 600, Blobs: 900, Compressed: 3000},
+	}
+
+	result2 := SelectBestEstimationMethod(current, average, yearlyDataMore)
+	// The method should be either linear or exponential (we don't care which for this test)
+	if result2.Method != models.EstimationMethodLinear && result2.Method != models.EstimationMethodExponential {
+		t.Errorf("SelectBestEstimationMethod() returned invalid method: %v", result2.Method)
+	}
+}
+
 func TestGetGitVersion(t *testing.T) {
 	version := GetGitVersion()
 
