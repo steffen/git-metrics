@@ -12,6 +12,11 @@ import (
 
 // Format strings for contributor table rows and formatting
 const (
+	// Contributor growth section headers and dividers
+	formatGrowthHeader      = "\nCONTRIBUTOR GROWTH #########################################################################"
+	formatGrowthTableHeader = "Year        Commits   Authors  Commits per Author  Committers  Commits per Committer"
+	formatGrowthDivider     = "------------------------------------------------------------------------------------------------"
+
 	// Authors section headers and dividers
 	formatAuthorsHeader      = "\nAUTHORS WITH MOST COMMITS ######################################################################"
 	formatAuthorsTableHeader = "Year     Author (#1)    Commits        Author (#2)    Commits        Author (#3)    Commits"
@@ -51,11 +56,53 @@ func truncateContributorName(name string) string {
 func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int,
 	committersByYear map[int][][3]string, totalCommittersByYear map[int]int, allTimeAuthors map[string]int, allTimeCommitters map[string]int) {
 
+	// Display Contributor Growth Section first
+	displayContributorGrowthSection(totalAuthorsByYear, totalCommitsByYear, totalCommittersByYear)
+
 	// Display Authors Section
 	displayAuthorsSection(authorsByYear, totalAuthorsByYear, totalCommitsByYear, allTimeAuthors)
 
 	// Display Committers Section
 	displayCommittersSection(committersByYear, totalCommittersByYear, totalCommitsByYear, allTimeCommitters)
+}
+
+func displayContributorGrowthSection(totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int, totalCommittersByYear map[int]int) {
+	fmt.Println(formatGrowthHeader)
+	fmt.Println()
+	fmt.Println(formatGrowthTableHeader)
+	fmt.Println(formatGrowthDivider)
+
+	// Get years and sort them
+	var years []int
+	for year := range totalCommitsByYear {
+		years = append(years, year)
+	}
+	sort.Ints(years)
+
+	// Print growth data for each year
+	for _, year := range years {
+		commits := totalCommitsByYear[year]
+		authors := totalAuthorsByYear[year]
+		committers := totalCommittersByYear[year]
+		
+		var commitsPerAuthor float64
+		if authors > 0 {
+			commitsPerAuthor = float64(commits) / float64(authors)
+		}
+		
+		var commitsPerCommitter float64
+		if committers > 0 {
+			commitsPerCommitter = float64(commits) / float64(committers)
+		}
+
+		fmt.Printf("%-11d%9s%9d%18.1f%12d%19.1f\n",
+			year,
+			utils.FormatNumber(commits),
+			authors,
+			commitsPerAuthor,
+			committers,
+			commitsPerCommitter)
+	}
 }
 
 func displayAuthorsSection(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int, allTimeAuthors map[string]int) {
