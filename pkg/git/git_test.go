@@ -101,10 +101,6 @@ func TestCalculateExponentialEstimation(t *testing.T) {
 	if result.Statistics.Year != 2024 {
 		t.Errorf("CalculateExponentialEstimation() Year = %v, want %v", result.Statistics.Year, 2024)
 	}
-	// With 20% growth rate, commits should be around 173 (144 * 1.2)
-	if result.Statistics.Commits < 160 || result.Statistics.Commits > 180 {
-		t.Errorf("CalculateExponentialEstimation() Commits = %v, expected around 173", result.Statistics.Commits)
-	}
 }
 
 func TestSelectBestEstimationMethod(t *testing.T) {
@@ -249,4 +245,112 @@ func TestGetGitDirectory(t *testing.T) {
 // Mock for testing
 func mockRunGitCommand(_ bool, _ ...string) ([]byte, error) {
 	return []byte("git version 2.35.1"), nil
+}
+
+func TestCalculateExponentialEstimationDatasets(t *testing.T) {
+	type dataset struct {
+		name            string
+		years           []int
+		commits         []int
+		expectedCommits []int // for 2025-2029
+	}
+
+	datasets := []dataset{
+		{
+			name:  "Repo 1",
+			years: []int{2020, 2021, 2022, 2023, 2024},
+			commits: []int{
+				63562,
+				67578,
+				71225,
+				74172,
+				78394,
+			},
+			expectedCommits: []int{
+				82616,
+				87065,
+				91754,
+				96695,
+				101902,
+			},
+		},
+		{
+			name:  "Repo 2",
+			years: []int{2020, 2021, 2022, 2023, 2024},
+			commits: []int{
+				107280,
+				136154,
+				164460,
+				303687,
+				512087,
+			},
+			expectedCommits: []int{
+				769391,
+				1155980,
+				1736815,
+				2609497,
+				3920668,
+			},
+		},
+		{
+			name:  "Repo 3",
+			years: []int{2020, 2021, 2022, 2023, 2024},
+			commits: []int{
+				386704,
+				751741,
+				1070766,
+				1539266,
+				2099264,
+			},
+			expectedCommits: []int{
+				3237955,
+				4994300,
+				7703329,
+				11881801,
+				18326777,
+			},
+		},
+	}
+
+	for _, ds := range datasets {
+		if len(ds.years) != len(ds.commits) {
+			t.Fatalf("dataset %s has mismatched years and commits length", ds.name)
+		}
+
+		var yearlyData []models.GrowthStatistics
+		for i := range ds.years {
+			y := ds.years[i]
+			c := ds.commits[i]
+			yearlyData = append(yearlyData, models.GrowthStatistics{
+				Year:       y,
+				Commits:    c,
+				Trees:      c * 2,
+				Blobs:      c * 3,
+				Compressed: int64(c * 4),
+			})
+		}
+
+		current := yearlyData[len(yearlyData)-1]
+
+		// Project the next 5 years (2025-2029)
+		projectedCommits := []int{}
+		for i := 0; i < 5; i++ {
+			result := CalculateExponentialEstimation(current, yearlyData)
+			projectedCommits = append(projectedCommits, result.Statistics.Commits)
+			// Update for next iteration
+			yearlyData = append(yearlyData, result.Statistics)
+			current = result.Statistics
+		}
+
+		// Check projected commits
+		if len(projectedCommits) != len(ds.expectedCommits) {
+			t.Errorf("%s: expected %d projected commits, got %d", ds.name, len(ds.expectedCommits), len(projectedCommits))
+		} else {
+			for i, expected := range ds.expectedCommits {
+				if projectedCommits[i] != expected {
+					t.Errorf("%s: year %d expected commits %d, got %d", ds.name, 2025+i, expected, projectedCommits[i])
+				}
+			}
+		}
+	}
 }

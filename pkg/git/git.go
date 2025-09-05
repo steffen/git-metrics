@@ -316,7 +316,7 @@ func calculateExponentialGrowthRate(yearlyData []models.GrowthStatistics, metric
 
 	for i := 1; i < len(yearlyData); i++ {
 		var current, previous float64
-		
+
 		switch metric {
 		case "commits":
 			current, previous = float64(yearlyData[i].Commits), float64(yearlyData[i-1].Commits)
@@ -349,7 +349,7 @@ func calculateExponentialFitScore(yearlyData []models.GrowthStatistics) float64 
 
 	// Calculate R² for commits as a representative metric
 	n := len(yearlyData)
-	
+
 	// Calculate mean
 	var sum float64
 	for _, data := range yearlyData {
@@ -359,10 +359,10 @@ func calculateExponentialFitScore(yearlyData []models.GrowthStatistics) float64 
 
 	// Calculate exponential fit
 	var ssRes, ssTot float64
-	
+
 	for i, data := range yearlyData {
 		observed := float64(data.Commits)
-		
+
 		// Simple exponential model: y = a * e^(bx)
 		// For simplicity, we'll use a linear approximation in log space
 		var predicted float64
@@ -375,7 +375,7 @@ func calculateExponentialFitScore(yearlyData []models.GrowthStatistics) float64 
 		} else {
 			predicted = observed
 		}
-		
+
 		ssRes += (observed - predicted) * (observed - predicted)
 		ssTot += (observed - mean) * (observed - mean)
 	}
@@ -383,7 +383,7 @@ func calculateExponentialFitScore(yearlyData []models.GrowthStatistics) float64 
 	if ssTot == 0 {
 		return 1.0 // Perfect fit if no variance
 	}
-	
+
 	r2 := 1.0 - (ssRes / ssTot)
 	if r2 < 0 {
 		return 0.0
@@ -400,11 +400,11 @@ func SelectBestEstimationMethod(current models.GrowthStatistics, average models.
 	linearResult.FitScore = calculateLinearFitScore(yearlyData, average)
 
 	// Choose the method with better fit, preferring exponential if close
-	if exponentialResult.FitScore > linearResult.FitScore || 
-	   (exponentialResult.FitScore >= linearResult.FitScore-0.1 && len(yearlyData) >= 3) {
+	if exponentialResult.FitScore > linearResult.FitScore ||
+		(exponentialResult.FitScore >= linearResult.FitScore-0.1 && len(yearlyData) >= 3) {
 		return exponentialResult
 	}
-	
+
 	return linearResult
 }
 
@@ -415,7 +415,7 @@ func calculateLinearFitScore(yearlyData []models.GrowthStatistics, average model
 	}
 
 	n := len(yearlyData)
-	
+
 	// Calculate mean
 	var sum float64
 	for _, data := range yearlyData {
@@ -425,11 +425,11 @@ func calculateLinearFitScore(yearlyData []models.GrowthStatistics, average model
 
 	// Calculate linear fit R²
 	var ssRes, ssTot float64
-	
+
 	for i, data := range yearlyData {
 		observed := float64(data.Commits)
-		predicted := float64(yearlyData[0].Commits) + float64(i) * float64(average.Commits)
-		
+		predicted := float64(yearlyData[0].Commits) + float64(i)*float64(average.Commits)
+
 		ssRes += (observed - predicted) * (observed - predicted)
 		ssTot += (observed - mean) * (observed - mean)
 	}
@@ -437,7 +437,7 @@ func calculateLinearFitScore(yearlyData []models.GrowthStatistics, average model
 	if ssTot == 0 {
 		return 1.0
 	}
-	
+
 	r2 := 1.0 - (ssRes / ssTot)
 	if r2 < 0 {
 		return 0.0
