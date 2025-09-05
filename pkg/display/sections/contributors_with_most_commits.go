@@ -14,7 +14,7 @@ import (
 const (
 	// Contributor growth section headers and dividers
 	formatGrowthHeader      = "\nCONTRIBUTOR GROWTH #########################################################################"
-	formatGrowthTableHeader = "              Commits   Authors  Commits per Author  Committers  Commits per Committer\nYear         per year                P95 P99 P100                        P95 P99 P100"
+	formatGrowthTableHeader = "Year      Commits per year  Authors  Commits per Author   Committers  Commits per Committer\n                              P50 P95 P99 P100                         P50 P95 P99 P100"
 	formatGrowthDivider     = "------------------------------------------------------------------------------------------------"
 
 	// Authors section headers and dividers
@@ -54,7 +54,7 @@ func truncateContributorName(name string) string {
 
 // DisplayContributorsWithMostCommits displays the top commit authors and committers by number of commits per year
 func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int,
-	committersByYear map[int][][3]string, totalCommittersByYear map[int]int, allTimeAuthors map[string]int, allTimeCommitters map[string]int, 
+	committersByYear map[int][][3]string, totalCommittersByYear map[int]int, allTimeAuthors map[string]int, allTimeCommitters map[string]int,
 	fullAuthorsByYear map[int]map[string]int, fullCommittersByYear map[int]map[string]int) {
 
 	// Display Contributor Growth Section first
@@ -67,7 +67,7 @@ func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, total
 	displayCommittersSection(committersByYear, totalCommittersByYear, totalCommitsByYear, allTimeCommitters)
 }
 
-func displayContributorGrowthSection(totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int, totalCommittersByYear map[int]int, 
+func displayContributorGrowthSection(totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int, totalCommittersByYear map[int]int,
 	authorsByYear map[int]map[string]int, committersByYear map[int]map[string]int) {
 	fmt.Println(formatGrowthHeader)
 	fmt.Println()
@@ -86,20 +86,20 @@ func displayContributorGrowthSection(totalAuthorsByYear map[int]int, totalCommit
 		commits := totalCommitsByYear[year]
 		authors := totalAuthorsByYear[year]
 		committers := totalCommittersByYear[year]
-		
+
 		// Calculate percentiles for authors
-		authorP95, authorP99, authorP100 := calculatePercentiles(authorsByYear[year])
+		authorP50, authorP95, authorP99, authorP100 := calculatePercentiles(authorsByYear[year])
 		
 		// Calculate percentiles for committers
-		committerP95, committerP99, committerP100 := calculatePercentiles(committersByYear[year])
+		committerP50, committerP95, committerP99, committerP100 := calculatePercentiles(committersByYear[year])
 
-		fmt.Printf("%-11d%9s%9d%8d%4d%4d%12d%8d%4d%4d\n",
+		fmt.Printf("%-4d %15s %7d %3d %3d %3d %4d %12d %3d %3d %3d %4d\n",
 			year,
 			utils.FormatNumber(commits),
 			authors,
-			authorP95, authorP99, authorP100,
+			authorP50, authorP95, authorP99, authorP100,
 			committers,
-			committerP95, committerP99, committerP100)
+			committerP50, committerP95, committerP99, committerP100)
 	}
 }
 
@@ -333,29 +333,33 @@ func displayYearRowCommittersAllTime(yearStr string, committers []contributorSta
 	displayContributorRowAllTime(yearStr, committers, totalCommits)
 }
 
-// calculatePercentiles calculates P95, P99, and P100 from a map of contributor commits
-func calculatePercentiles(contributors map[string]int) (int, int, int) {
+// calculatePercentiles calculates P50, P95, P99, and P100 from a map of contributor commits
+func calculatePercentiles(contributors map[string]int) (int, int, int, int) {
 	if len(contributors) == 0 {
-		return 0, 0, 0
+		return 0, 0, 0, 0
 	}
-	
+
 	var commits []int
 	for _, commitCount := range contributors {
 		commits = append(commits, commitCount)
 	}
 	sort.Ints(commits)
-	
+
 	n := len(commits)
+	p50Index := int(float64(n) * 0.50)
 	p95Index := int(float64(n) * 0.95)
 	p99Index := int(float64(n) * 0.99)
-	
+
 	// Ensure indices are within bounds
+	if p50Index >= n {
+		p50Index = n - 1
+	}
 	if p95Index >= n {
 		p95Index = n - 1
 	}
 	if p99Index >= n {
 		p99Index = n - 1
 	}
-	
-	return commits[p95Index], commits[p99Index], commits[n-1]
+
+	return commits[p50Index], commits[p95Index], commits[p99Index], commits[n-1]
 }
