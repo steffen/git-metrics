@@ -11,7 +11,6 @@ import (
 
 	"github.com/spf13/pflag"
 
-	"git-metrics/pkg/display"
 	"git-metrics/pkg/display/sections"
 	"git-metrics/pkg/git"
 	"git-metrics/pkg/models"
@@ -190,8 +189,8 @@ func main() {
 
 	fmt.Printf("Age                        %s\n", ageString)
 
-	// Print growth table header first
-	display.PrintGrowthTableHeader()
+	// Print historic growth table header first
+	sections.PrintGrowthHistoryHeader()
 
 	// Then calculate growth stats and totals
 	var previous models.GrowthStatistics
@@ -270,22 +269,22 @@ func main() {
 	// Print historical data
 	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
 		if statistics, ok := yearlyStatistics[year]; ok {
-			display.PrintGrowthTableRow(statistics, previous, repositoryInformation, false, currentYear)
+			sections.PrintGrowthHistoryRow(statistics, previous, repositoryInformation, currentYear)
 			previous = statistics
 		}
 	}
 
 	if estimationYears > 0 {
-		// Print separator for projections
-		fmt.Println("------------------------------------------------------------------------------------------------")
+		// Print estimated growth header
+		sections.PrintGrowthEstimatesHeader()
 
-		// Print 6 years of projections including current year
+		// Use last historical year as base for estimates
 		lastStatistics := yearlyStatistics[currentYear-1]
-
+		previousEstimate := lastStatistics
 		for i := 1; i <= estimationDisplayYears; i++ {
-			projected := git.CalculateEstimate(lastStatistics, estimationYearlyAverage)
-			display.PrintGrowthTableRow(projected, lastStatistics, repositoryInformation, true, currentYear)
-			lastStatistics = projected
+			projected := git.CalculateEstimate(previousEstimate, estimationYearlyAverage)
+			sections.PrintGrowthEstimateRow(projected, previousEstimate, repositoryInformation, currentYear)
+			previousEstimate = projected
 		}
 
 		fmt.Println("------------------------------------------------------------------------------------------------")
@@ -332,10 +331,10 @@ func main() {
 	// Print largest directories section before largest files
 	sections.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
-	display.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
+	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
 	// New call to display top 10 largest file extensions using accumulated blob data.
-	display.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
+	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
 	// Print top 3 commit authors and committers per year
 	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
