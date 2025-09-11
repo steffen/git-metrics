@@ -286,6 +286,38 @@ func main() {
 	// Explain percentage meaning for historic table too
 	fmt.Println("% Percentages show the increase relative to the current total (^)")
 
+	// Historic changes per year section (delta year over year instead of cumulative totals)
+	// Build yearly delta statistics first
+	var previousCumulative models.GrowthStatistics
+	yearlyDeltas := make(map[int]models.GrowthStatistics)
+	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
+		if cumulative, ok := yearlyStatistics[year]; ok {
+			// Compute delta for this year relative to previous cumulative snapshot
+			var delta models.GrowthStatistics
+			delta.Year = year
+			delta.Commits = cumulative.Commits - previousCumulative.Commits
+			delta.Trees = cumulative.Trees - previousCumulative.Trees
+			delta.Blobs = cumulative.Blobs - previousCumulative.Blobs
+			delta.Compressed = cumulative.Compressed - previousCumulative.Compressed
+			yearlyDeltas[year] = delta
+			previousCumulative = cumulative
+		}
+	}
+
+	// Print header and rows for historic changes per year
+	sections.PrintHistoricChangesPerYearHeader()
+	var previousDelta models.GrowthStatistics
+	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
+		if delta, ok := yearlyDeltas[year]; ok {
+			sections.PrintHistoricChangesPerYearRow(delta, previousDelta, currentYear)
+			previousDelta = delta
+		}
+	}
+	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println()
+	fmt.Println("^ Current year delta (^) compared to previous year delta")
+	fmt.Println("% Percentages show change relative to previous year's delta")
+
 	// Show estimated growth table only when estimation period is sufficient
 	sections.PrintEstimatedGrowthSectionHeader()
 

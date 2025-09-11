@@ -72,6 +72,23 @@ func TestPrintGrowthEstimateRow(t *testing.T) {
 	}
 }
 
+func TestPrintHistoricChangesPerYearHeaderAndRow(t *testing.T) {
+	output := captureOutput(func() {
+		PrintHistoricChangesPerYearHeader()
+		// Simulate two years of deltas
+		prevDelta := models.GrowthStatistics{Year: 2022, Commits: 200, Trees: 400, Blobs: 600, Compressed: 1 * 1000 * 1000}
+		currentDelta := models.GrowthStatistics{Year: 2023, Commits: 300, Trees: 500, Blobs: 700, Compressed: 2 * 1000 * 1000}
+		PrintHistoricChangesPerYearRow(prevDelta, models.GrowthStatistics{}, 2023)
+		PrintHistoricChangesPerYearRow(currentDelta, prevDelta, 2023)
+	})
+
+	for _, expected := range []string{"HISTORIC CHANGES PER YEAR", "Year", "Commits", "2023^"} {
+		if !strings.Contains(output, expected) {
+			t.Errorf("expected historic changes per year output to contain %q.\nOutput: %s", expected, output)
+		}
+	}
+}
+
 func TestPrintLargestFiles(t *testing.T) {
 	files := []models.FileInformation{
 		{Path: "file1.txt", Blobs: 10, CompressedSize: 1000 * 1000, LastChange: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)},
