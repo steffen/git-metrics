@@ -274,6 +274,18 @@ func main() {
 		}
 	}
 
+	// Separator and current totals footnote directly under historic table
+	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println()
+	if recentFetch != "" {
+		// Include year in displayed date (first 16 chars: Mon, 02 Jan 2006)
+		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
+	} else {
+		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
+	}
+	// Explain percentage meaning for historic table too
+	fmt.Println("% Percentages show the increase relative to the current total (^)")
+
 	if estimationYears > 0 {
 		// Print estimated growth header
 		sections.PrintGrowthEstimatesHeader()
@@ -289,15 +301,9 @@ func main() {
 
 		fmt.Println("------------------------------------------------------------------------------------------------")
 		fmt.Println()
-		if recentFetch != "" {
-			fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:11])
-		} else {
-			fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:11])
-		}
 		fmt.Println("* Estimated growth based on the last five years")
 		fmt.Println("% Percentages show the increase relative to the current total (^)")
 	} else {
-		fmt.Println("------------------------------------------------------------------------------------------------")
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
 
