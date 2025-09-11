@@ -85,6 +85,28 @@ func SelectBestEstimationMethod(current models.GrowthStatistics, average models.
 	return linearResult
 }
 
+// CompareModels returns the best estimation result along with both model fit scores.
+// This allows callers to display a comparison like:
+// "Linear fit score is x and exponential fit score is y, using <model> model."
+func CompareModels(current models.GrowthStatistics, average models.GrowthStatistics, yearlyData []models.GrowthStatistics) (models.EstimationResult, float64, float64) {
+	linearResult := CalculateLinearEstimation(current, average)
+	exponentialResult := CalculateExponentialEstimation(current, yearlyData)
+
+	linearResult.FitScore = calculateLinearFitScore(yearlyData, average)
+	linearFit := linearResult.FitScore
+	exponentialFit := exponentialResult.FitScore
+
+	var best models.EstimationResult
+	if exponentialResult.FitScore > linearResult.FitScore ||
+		(exponentialResult.FitScore >= linearResult.FitScore-0.1 && len(yearlyData) >= 3) {
+		best = exponentialResult
+	} else {
+		best = linearResult
+	}
+
+	return best, linearFit, exponentialFit
+}
+
 // calculateExponentialGrowthRate calculates the average annual growth rate for a specific metric
 func calculateExponentialGrowthRate(yearlyData []models.GrowthStatistics, metric string) float64 {
 	if len(yearlyData) < 2 {

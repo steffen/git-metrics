@@ -31,11 +31,11 @@ func PrintHistoricGrowthHeader() {
 }
 
 // PrintEstimatedGrowthHeader prints the header for the estimated growth section
-func PrintEstimatedGrowthHeader(method models.EstimationMethod, fitScore float64, growthRate float64) {
+func PrintEstimatedGrowthHeader(method models.EstimationMethod, fitScore float64, growthRate float64, comparison string) {
 	fmt.Println()
 	fmt.Println("ESTIMATED GROWTH ###############################################################################")
 	fmt.Println()
-	
+
 	methodInfo := fmt.Sprintf("Using %s model", method)
 	if fitScore > 0 {
 		methodInfo += fmt.Sprintf(" (fit: %.1f%%)", fitScore*100)
@@ -43,8 +43,11 @@ func PrintEstimatedGrowthHeader(method models.EstimationMethod, fitScore float64
 	if method == models.EstimationMethodExponential && growthRate != 0 {
 		methodInfo += fmt.Sprintf(", avg growth rate: %.1f%%", growthRate*100)
 	}
-	
+
 	fmt.Printf("%-100s\n", methodInfo)
+	if len(strings.TrimSpace(comparison)) > 0 {
+		fmt.Printf("%-100s\n", comparison)
+	}
 	fmt.Println()
 	fmt.Println("Year        Commits                  Trees                  Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")
