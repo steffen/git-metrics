@@ -46,6 +46,18 @@ func PrintHistoricChangesPerYearRow(statistics, previousDelta models.GrowthStati
 		yearDisplay += "^"
 	}
 
+	if previousDelta.Year == 0 { // First year: show raw deltas only without +0% noise
+		// Need to preserve column alignment where each percentage block normally takes: ' %+5.0f %%  ' => 8 chars
+		blank := "        " // 8 spaces placeholder
+		fmt.Printf("%-5s %13s %s %13s %s %13s %s %13s %s\n",
+			yearDisplay,
+			utils.FormatNumber(statistics.Commits), blank,
+			utils.FormatNumber(statistics.Trees), blank,
+			utils.FormatNumber(statistics.Blobs), blank,
+			utils.FormatSize(statistics.Compressed), blank)
+		return
+	}
+
 	fmt.Printf("%-5s %13s %+5.0f %%  %13s %+5.0f %%  %13s %+5.0f %%  %13s %+5.0f %%\n",
 		yearDisplay,
 		utils.FormatNumber(statistics.Commits), commitsDifference,
