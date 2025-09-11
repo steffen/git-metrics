@@ -2,9 +2,9 @@ package estimation
 
 import (
 	"fmt"
+	"git-metrics/pkg/models"
 	"math"
 	"strings"
-	"git-metrics/pkg/models"
 )
 
 // CalculateEstimate calculates estimated future growth based on current statistics and average growth
@@ -144,7 +144,9 @@ func GenerateFitScoreDebug(yearlyData []models.GrowthStatistics, average models.
 		fmt.Fprintf(linearBuilder, "[debug] Linear: average increment (Δ commits / year) = %d\n", avgInc)
 		// Mean
 		var sum float64
-		for _, d := range yearlyData { sum += float64(d.Commits) }
+		for _, d := range yearlyData {
+			sum += float64(d.Commits)
+		}
 		mean := sum / float64(len(yearlyData))
 		fmt.Fprintf(linearBuilder, "[debug] Linear: mean commits = %.2f\n", mean)
 		// Predicted & residuals
@@ -153,7 +155,9 @@ func GenerateFitScoreDebug(yearlyData []models.GrowthStatistics, average models.
 		linearBuilder.WriteString("[debug] Linear: predicted sequence: ")
 		for i, d := range yearlyData {
 			pred := float64(yearlyData[0].Commits) + float64(i*avgInc)
-			if i > 0 { linearBuilder.WriteString(", ") }
+			if i > 0 {
+				linearBuilder.WriteString(", ")
+			}
 			fmt.Fprintf(linearBuilder, "%d→%.0f", d.Year, pred)
 			obs := float64(d.Commits)
 			ssRes += (obs - pred) * (obs - pred)
@@ -165,7 +169,9 @@ func GenerateFitScoreDebug(yearlyData []models.GrowthStatistics, average models.
 			r2 = 1.0
 		} else {
 			r2 = 1.0 - ssRes/ssTot
-			if r2 < 0 { r2 = 0 }
+			if r2 < 0 {
+				r2 = 0
+			}
 		}
 		fmt.Fprintf(linearBuilder, "[debug] Linear: SS_res=%.2f SS_tot=%.2f R²=%.4f\n", ssRes, ssTot, r2)
 	}
@@ -185,7 +191,9 @@ func GenerateFitScoreDebug(yearlyData []models.GrowthStatistics, average models.
 		}
 		fmt.Fprintf(expBuilder, "[debug] Exponential: pair growth rates = [")
 		for i, r := range pairRates {
-			if i > 0 { expBuilder.WriteString(", ") }
+			if i > 0 {
+				expBuilder.WriteString(", ")
+			}
 			fmt.Fprintf(expBuilder, "%0.4f", r)
 		}
 		expBuilder.WriteString("]\n")
@@ -193,7 +201,9 @@ func GenerateFitScoreDebug(yearlyData []models.GrowthStatistics, average models.
 		fmt.Fprintf(expBuilder, "[debug] Exponential: average growth rate = %0.4f (%.2f%%)\n", avgRate, avgRate*100)
 		// Mean
 		var sum float64
-		for _, d := range yearlyData { sum += float64(d.Commits) }
+		for _, d := range yearlyData {
+			sum += float64(d.Commits)
+		}
 		mean := sum / float64(len(yearlyData))
 		fmt.Fprintf(expBuilder, "[debug] Exponential: mean commits = %.2f\n", mean)
 		// Predicted & residuals replicating fit logic (recomputes growth for prefix)
@@ -209,7 +219,9 @@ func GenerateFitScoreDebug(yearlyData []models.GrowthStatistics, average models.
 				g := calculateExponentialGrowthRate(yearlyData[:i+1], "commits")
 				pred = first * math.Pow(1.0+g, float64(i))
 			}
-			if i > 0 { expBuilder.WriteString(", ") }
+			if i > 0 {
+				expBuilder.WriteString(", ")
+			}
 			fmt.Fprintf(expBuilder, "%d→%.0f", d.Year, pred)
 			obs := float64(d.Commits)
 			ssRes += (obs - pred) * (obs - pred)
@@ -221,7 +233,9 @@ func GenerateFitScoreDebug(yearlyData []models.GrowthStatistics, average models.
 			r2 = 1.0
 		} else {
 			r2 = 1.0 - ssRes/ssTot
-			if r2 < 0 { r2 = 0 }
+			if r2 < 0 {
+				r2 = 0
+			}
 		}
 		fmt.Fprintf(expBuilder, "[debug] Exponential: SS_res=%.2f SS_tot=%.2f R²=%.4f\n", ssRes, ssTot, r2)
 	}

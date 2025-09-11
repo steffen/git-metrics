@@ -370,7 +370,7 @@ func TestPrintHistoricGrowthHeader(t *testing.T) {
 
 func TestPrintEstimatedGrowthHeader(t *testing.T) {
 	output := captureOutput(func() {
-		PrintEstimatedGrowthHeader(models.EstimationMethodLinear, 0.85, 0.15, "Linear fit score is 0.85 and exponential fit score is 0.80, using Linear model.")
+		PrintEstimatedGrowthHeader(models.EstimationMethodLinear, 0.85, 0.15, "Linear fit score is 0.85 and exponential fit score is 0.80, using Linear model.", "")
 	})
 
 	expectedStrings := []string{
@@ -394,7 +394,7 @@ func TestPrintEstimatedGrowthHeader(t *testing.T) {
 
 func TestPrintEstimatedGrowthHeaderExponential(t *testing.T) {
 	output := captureOutput(func() {
-		PrintEstimatedGrowthHeader(models.EstimationMethodExponential, 0.92, 0.08, "Linear fit score is 0.85 and exponential fit score is 0.92, using Exponential model.")
+		PrintEstimatedGrowthHeader(models.EstimationMethodExponential, 0.92, 0.08, "Linear fit score is 0.85 and exponential fit score is 0.92, using Exponential model.", "")
 	})
 
 	expectedStrings := []string{
