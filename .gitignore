@@ -6,3 +6,6 @@
 
 # Temporary files
 /tmp/
+
+# Temporary files during debugging sessions
+__debug_bin*
