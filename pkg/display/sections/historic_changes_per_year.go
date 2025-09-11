@@ -57,6 +57,11 @@ func PrintHistoricChangesPerYearRow(statistics, previousDelta models.GrowthStati
 		return
 	}
 
+	// For the last (current) year, print a separator before the row (if there is at least one previous delta year)
+	if statistics.Year == currentYear && previousDelta.Year != 0 {
+		fmt.Println("------------------------------------------------------------------------------------------------")
+	}
+
 	fmt.Printf("%-5s %13s %+5.0f %%  %13s %+5.0f %%  %13s %+5.0f %%  %13s %+5.0f %%\n",
 		yearDisplay,
 		utils.FormatNumber(statistics.Commits), commitsDifference,
