@@ -315,7 +315,11 @@ func main() {
 	}
 	fmt.Println("------------------------------------------------------------------------------------------------")
 	fmt.Println()
-	fmt.Println("^ Current year delta (^) compared to previous year delta")
+	if recentFetch != "" {
+		fmt.Printf("^ Current year delta as of the most recent fetch on %s\n", recentFetch[:16])
+	} else {
+		fmt.Printf("^ Current year delta as of Git directory's last modified: %s\n", lastModified[:16])
+	}
 	fmt.Println("% Percentages show change relative to previous year's delta")
 
 	// Show estimated growth table only when estimation period is sufficient
