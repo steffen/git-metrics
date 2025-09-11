@@ -293,6 +293,11 @@ func main() {
 		// Get the best estimation method
 		lastStatistics := yearlyStatistics[currentYear-1]
 		bestEstimation, linearFit, exponentialFit := estimation.CompareModels(lastStatistics, estimationYearlyAverage, yearlyDataForEstimation)
+		if debug {
+			linearDebug, exponentialDebug := estimation.GenerateFitScoreDebug(yearlyDataForEstimation, estimationYearlyAverage)
+			fmt.Print(linearDebug)
+			fmt.Print(exponentialDebug)
+		}
 
 		// Prepare comparison line and print estimated growth header with method information
 		comparisonLine := fmt.Sprintf("Linear fit score is %.2f and exponential fit score is %.2f, using %s model.", linearFit, exponentialFit, bestEstimation.Method)
