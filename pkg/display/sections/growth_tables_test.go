@@ -118,7 +118,8 @@ func TestHistoricalAndEstimateSeparation(t *testing.T) {
 	output := captureOutput(func() {
 		PrintGrowthHistoryHeader()
 		fmt.Println("(dummy historical rows)")
-		PrintGrowthEstimatesHeader()
+		PrintEstimatedGrowthSectionHeader()
+		PrintEstimatedGrowthTableHeader()
 	})
 
 	if !strings.Contains(output, "HISTORIC GROWTH") || !strings.Contains(output, "ESTIMATED GROWTH") {
