@@ -1,1 +1,2 @@
 - Don't use abbreviations in the codebase. For example, use `user` instead of `usr`.
+- Use tabs (not spaces) for indentation in all code files unless an existing file you are modifying already uses spaces; in that case, preserve that file's style.
