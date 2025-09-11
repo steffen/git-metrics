@@ -228,6 +228,25 @@ func GenerateFitScoreDebug(yearlyData []models.GrowthStatistics, average models.
 			ssTot += (obs - mean) * (obs - mean)
 		}
 		expBuilder.WriteString("\n")
+		// Detailed per-year formula explanation
+		expBuilder.WriteString("[debug] Exponential: prediction details:\n")
+		for i, d := range yearlyData {
+			if i == 0 {
+				fmt.Fprintf(expBuilder, "[debug]   %d: base value = %d\n", d.Year, d.Commits)
+				continue
+			}
+			g := calculateExponentialGrowthRate(yearlyData[:i+1], "commits")
+			pred := first * math.Pow(1.0+g, float64(i))
+			fmt.Fprintf(expBuilder, "[debug]   %d: growth rate over %d years g=%.4f => prediction = %.0f * (1+%.4f)^%d = %.4f (rounded shown as %.0f)\n",
+				d.Year,
+				i,
+				g,
+				first,
+				g,
+				i,
+				pred,
+				pred)
+		}
 		var r2 float64
 		if ssTot == 0 {
 			r2 = 1.0
