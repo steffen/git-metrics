@@ -13,6 +13,7 @@ import (
 
 	"git-metrics/pkg/display"
 	"git-metrics/pkg/display/sections"
+	"git-metrics/pkg/estimation"
 	"git-metrics/pkg/git"
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/progress"
@@ -291,8 +292,8 @@ func main() {
 	if estimationYears > 0 {
 		// Get the best estimation method
 		lastStatistics := yearlyStatistics[currentYear-1]
-		bestEstimation := git.SelectBestEstimationMethod(lastStatistics, estimationYearlyAverage, yearlyDataForEstimation)
-		
+		bestEstimation := estimation.SelectBestEstimationMethod(lastStatistics, estimationYearlyAverage, yearlyDataForEstimation)
+
 		// Print estimated growth header with method information
 		display.PrintEstimatedGrowthHeader(bestEstimation.Method, bestEstimation.FitScore, bestEstimation.GrowthRate)
 
@@ -301,13 +302,13 @@ func main() {
 		for i := 1; i <= estimationDisplayYears; i++ {
 			display.PrintGrowthTableRow(currentEstimation.Statistics, lastStatistics, repositoryInformation, true, currentYear)
 			lastStatistics = currentEstimation.Statistics
-			
+
 			// Calculate next year's estimation using the same method
 			if bestEstimation.Method == models.EstimationMethodLinear {
-				nextEstimation := git.CalculateLinearEstimation(currentEstimation.Statistics, estimationYearlyAverage)
+				nextEstimation := estimation.CalculateLinearEstimation(currentEstimation.Statistics, estimationYearlyAverage)
 				currentEstimation = nextEstimation
 			} else {
-				nextEstimation := git.CalculateExponentialEstimation(currentEstimation.Statistics, yearlyDataForEstimation)
+				nextEstimation := estimation.CalculateExponentialEstimation(currentEstimation.Statistics, yearlyDataForEstimation)
 				currentEstimation = nextEstimation
 			}
 		}
