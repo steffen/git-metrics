@@ -286,9 +286,11 @@ func main() {
 	// Explain percentage meaning for historic table too
 	fmt.Println("% Percentages show the increase relative to the current total (^)")
 
+	// Show estimated growth table only when estimation period is sufficient
+	sections.PrintEstimatedGrowthSectionHeader()
+
 	if estimationYears > 0 {
-		// Print estimated growth header
-		sections.PrintGrowthEstimatesHeader()
+		sections.PrintEstimatedGrowthTableHeader()
 
 		// Use last historical year as base for estimates
 		lastStatistics := yearlyStatistics[currentYear-1]

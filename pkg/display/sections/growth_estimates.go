@@ -7,11 +7,17 @@ import (
 	"strconv"
 )
 
-// PrintGrowthEstimatesHeader prints the header for the estimated growth table
-func PrintGrowthEstimatesHeader() {
+const estimatedGrowthBanner = "ESTIMATED GROWTH ###############################################################################"
+
+// PrintEstimatedGrowthSectionHeader prints only the section banner (with surrounding spacing)
+func PrintEstimatedGrowthSectionHeader() {
 	fmt.Println()
-	fmt.Println("ESTIMATED GROWTH ################################################################################")
+	fmt.Println(estimatedGrowthBanner)
 	fmt.Println()
+}
+
+// PrintEstimatedGrowthTableHeader prints only the table column headers + divider (no banner)
+func PrintEstimatedGrowthTableHeader() {
 	fmt.Println("Year        Commits                  Trees                  Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")
 }

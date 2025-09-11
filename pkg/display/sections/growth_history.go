@@ -10,7 +10,7 @@ import (
 // PrintGrowthHistoryHeader prints the header for the historic growth table
 func PrintGrowthHistoryHeader() {
 	fmt.Println()
-	fmt.Println("HISTORIC GROWTH #################################################################################")
+	fmt.Println("HISTORIC GROWTH ################################################################################")
 	fmt.Println()
 	fmt.Println("Year        Commits                  Trees                  Blobs           On-disk size")
 	fmt.Println("------------------------------------------------------------------------------------------------")

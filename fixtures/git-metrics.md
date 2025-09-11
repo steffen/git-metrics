@@ -7,7 +7,7 @@ REPOSITORY #####################################################################
 Most recent commit         Wed, 01 Jan 2025 (c7c82f5)
 First commit               Wed, 01 Jan 2025 (604c80)
 
-HISTORIC GROWTH #################################################################################
+HISTORIC GROWTH ################################################################################
 
 Year        Commits                  Trees                  Blobs           On-disk size
 ------------------------------------------------------------------------------------------------
@@ -16,6 +16,9 @@ Year        Commits                  Trees                  Blobs           On-d
 
 ^ Current totals as of Git directory's last modified: Thu, 11 Sep 2025
 % Percentages show the increase relative to the current total (^)
+
+ESTIMATED GROWTH ###############################################################################
+
 Growth estimation unavailable: Requires at least 2 years of commit history
 
 RATE OF CHANGES ################################################################################
