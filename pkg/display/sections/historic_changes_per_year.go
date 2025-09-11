@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/utils"
-	"strconv"
 )
 
 const historicChangesPerYearBanner = "HISTORIC CHANGES PER YEAR ######################################################################"
@@ -41,7 +40,7 @@ func PrintHistoricChangesPerYearRow(statistics, previousDelta models.GrowthStati
 		compressedDifference = float64(statistics.Compressed-previousDelta.Compressed) / float64(previousDelta.Compressed) * 100
 	}
 
-	yearDisplay := strconv.Itoa(statistics.Year)
+	yearDisplay := fmt.Sprintf("%d", statistics.Year)
 	if statistics.Year == currentYear {
 		yearDisplay += "^"
 	}
