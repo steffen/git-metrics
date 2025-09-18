@@ -24,7 +24,7 @@ fi
 
 # Remove non-deterministic rows from the input file and overwrite the input file
 temp_file="$(mktemp)"
-grep -Ev '^(Start time|Machine|Git version|Git directory|Last modified|Age|Finished)' "$input_file" > "$temp_file"
+grep -Ev '^(Start time|Machine|Git version|Git directory|Last modified|last modified|Age|Finished)' "$input_file" > "$temp_file"
 
 # Check if the temporary file was created successfully
 if [ $? -eq 0 ]; then
