@@ -307,11 +307,11 @@ func processContributors(contributors map[string]int, n int, year int) ([][3]str
 }
 
 // GetTopCommitAuthors returns the top N commit authors and committers by number of commits, grouped by year
-func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, map[int][][3]string, map[int]int, map[string]int, map[string]int, error) {
+func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, map[int][][3]string, map[int]int, map[string]int, map[string]int, map[int]map[string]int, map[int]map[string]int, error) {
 	// Get all commit authors and committers with dates
 	lines, err := GetContributors()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
 	authorsByYear := make(map[int]map[string]int)
 	committersByYear := make(map[int]map[string]int)
@@ -377,7 +377,7 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 		totalCommittersByYear[year] = total
 	}
 
-	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, allTimeAuthors, allTimeCommitters, nil
+	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, allTimeAuthors, allTimeCommitters, authorsByYear, committersByYear, nil
 }
 
 // GetRateOfChanges calculates commit rate statistics for the default branch by year
