@@ -41,6 +41,8 @@ env:
   BINARY_NAME: git-metrics
   PLATFORMS: 'linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64'
   DIST_PATH: dist
+  # Disable cgo for portable binaries (avoid host glibc dependency)
+  CGO_ENABLED: 0
 
 jobs:
   build:
@@ -250,6 +252,12 @@ jobs:
 
             rm -rf "$package_directory"
           done
+      
+      - name: Generate checksums
+        run: |
+          echo "Generating SHA256 checksums for release artifacts"
+          shasum -a 256 ${BINARY_NAME}-*.tar.gz ${BINARY_NAME}-*.zip > SHA256SUMS
+          echo "Generated checksums:" && cat SHA256SUMS
           
       - name: Generate artifact attestation
         uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
@@ -266,6 +274,7 @@ jobs:
           files: |
             ${{ env.BINARY_NAME }}-*.tar.gz
             ${{ env.BINARY_NAME }}-*.zip
+            SHA256SUMS
           generate_release_notes: true
           draft: false
           prerelease: ${{ github.event.inputs.prerelease == 'true' }}

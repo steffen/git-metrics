@@ -4,4 +4,6 @@ set -e
 
 VERSION=${VERSION:-0.0.0-build}
 echo "==> Building git-metrics version ${VERSION}…" >&2
+# Disable cgo for portability (avoid host glibc dependency)
+export CGO_ENABLED=0
 go build -ldflags "-X git-metrics/pkg/utils.GitMetricsVersion=${VERSION}" .
