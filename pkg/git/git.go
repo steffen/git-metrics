@@ -392,20 +392,30 @@ func GetCumulativeUniqueAuthorsByYear() (map[int]int, int, error) {
 	yearsSet := make(map[int]struct{})
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
-		if line == "" { continue }
+		if line == "" {
+			continue
+		}
 		parts := strings.Split(line, "|")
-		if len(parts) != 3 { continue }
+		if len(parts) != 3 {
+			continue
+		}
 		author := parts[0]
 		yearStr := parts[2]
 		year, convErr := strconv.Atoi(yearStr)
-		if convErr != nil { continue }
-		if _, ok := authorsPerYear[year]; !ok { authorsPerYear[year] = make(map[string]struct{}) }
+		if convErr != nil {
+			continue
+		}
+		if _, ok := authorsPerYear[year]; !ok {
+			authorsPerYear[year] = make(map[string]struct{})
+		}
 		authorsPerYear[year][author] = struct{}{}
 		yearsSet[year] = struct{}{}
 	}
 	// Sort years
 	var years []int
-	for y := range yearsSet { years = append(years, y) }
+	for y := range yearsSet {
+		years = append(years, y)
+	}
 	sort.Ints(years)
 	cumulativeCounts := make(map[int]int)
 	cumulativeSet := make(map[string]struct{})
