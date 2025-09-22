@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/utils"
-	"os/exec"
+	"git-metrics/pkg/git"
 	"strings"
 	"time"
 )
@@ -26,9 +26,7 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 	// Calculate total size of all files in repository
 	for _, file := range files {
 		// Get the last change date for the file
-		lastChangeCommand := exec.Command("git", "log", "-1", "--format=%cD", "--", file.Path)
-		lastChangeOutput, err := lastChangeCommand.Output()
-		if err == nil {
+		if lastChangeOutput, err := git.RunGitCommand(false, "log", "-1", "--format=%cD", "--", file.Path); err == nil {
 			lastChange, _ := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", strings.TrimSpace(string(lastChangeOutput)))
 			file.LastChange = lastChange
 		}

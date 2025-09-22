@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"sync/atomic"
 
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/utils"
@@ -19,11 +20,59 @@ import (
 // CountedObjects keeps track of Git objects that have been counted
 var CountedObjects = make(map[string]bool)
 
+// showGitCommands controls whether git commands and their timings are displayed
+var showGitCommands atomic.Bool
+
+// EnableGitCommandLogging enables or disables git command logging with timings
+func EnableGitCommandLogging(enable bool) {
+	showGitCommands.Store(enable)
+}
+
 // RunGitCommand runs a git command with the given arguments and returns its output
 func RunGitCommand(debug bool, args ...string) ([]byte, error) {
 	utils.DebugPrint(debug, "git %s", strings.Join(args, " "))
+
+	if !showGitCommands.Load() {
+		command := exec.Command("git", args...)
+		return command.Output()
+	}
+
+	startTime := time.Now()
+	fullCommand := "git " + strings.Join(args, " ")
+	// Detect if stderr is a terminal to decide whether to update in place
+	stderrIsTerminal := utils.IsTerminal(os.Stderr)
+	linePrefix := fmt.Sprintf("[git] %s", fullCommand)
+	// Initial line
+	fmt.Fprintf(os.Stderr, "%s (0s)\n", linePrefix)
+
+	done := make(chan struct{})
+	ticker := time.NewTicker(time.Second)
+	if stderrIsTerminal {
+		go func() {
+			for {
+				select {
+				case <-ticker.C:
+					elapsed := utils.FormatDuration(time.Since(startTime))
+					// Move cursor up one line, clear it, rewrite
+					fmt.Fprintf(os.Stderr, "\033[1A\033[2K%s (%s)\n", linePrefix, elapsed)
+				case <-done:
+					return
+				}
+			}
+		}()
+	}
+
 	command := exec.Command("git", args...)
-	return command.Output()
+	output, err := command.Output()
+	close(done)
+	ticker.Stop()
+	finalDuration := utils.FormatDuration(time.Since(startTime))
+	if stderrIsTerminal {
+		fmt.Fprintf(os.Stderr, "\033[1A\033[2K%s finished in %s\n", linePrefix, finalDuration)
+	} else {
+		fmt.Fprintf(os.Stderr, "%s finished in %s\n", linePrefix, finalDuration)
+	}
+	return output, err
 }
 
 // GetGitVersion returns the installed git version
@@ -37,9 +86,7 @@ func GetGitVersion() string {
 // GetDefaultBranch detects and returns the default branch name (main, master, etc.)
 func GetDefaultBranch() (string, error) {
 	// First try to get the default branch from remote origin
-	cmd := exec.Command("git", "remote", "show", "origin")
-	output, err := cmd.Output()
-	if err == nil {
+	if output, err := RunGitCommand(false, "remote", "show", "origin"); err == nil {
 		lines := strings.Split(string(output), "\n")
 		for _, line := range lines {
 			if strings.Contains(line, "HEAD branch:") {
@@ -51,16 +98,13 @@ func GetDefaultBranch() (string, error) {
 	// If that fails, check common default branch names
 	commonBranches := []string{"main", "master"}
 	for _, branch := range commonBranches {
-		cmd := exec.Command("git", "show-ref", "--verify", "--quiet", "refs/heads/"+branch)
-		if cmd.Run() == nil {
+		if _, err := RunGitCommand(false, "show-ref", "--verify", "--quiet", "refs/heads/"+branch); err == nil {
 			return branch, nil
 		}
 	}
 
 	// If all else fails, try to get current branch
-	cmd = exec.Command("git", "branch", "--show-current")
-	output, err = cmd.Output()
-	if err == nil && len(output) > 0 {
+	if output, err := RunGitCommand(false, "branch", "--show-current"); err == nil && len(output) > 0 {
 		return strings.TrimSpace(string(output)), nil
 	}
 
@@ -69,19 +113,16 @@ func GetDefaultBranch() (string, error) {
 
 // GetBranchFiles returns a map of all files in the given branch
 func GetBranchFiles(branch string) (map[string]bool, error) {
-	cmd := exec.Command("git", "ls-tree", "-r", "--name-only", branch)
-	output, err := cmd.Output()
+	output, err := RunGitCommand(false, "ls-tree", "-r", "--name-only", branch)
 	if err != nil {
 		return nil, err
 	}
-
 	files := make(map[string]bool)
 	for _, file := range strings.Split(string(output), "\n") {
 		if file != "" {
 			files[file] = true
 		}
 	}
-
 	return files, nil
 }
 
@@ -253,13 +294,10 @@ func ShellToUse() string {
 
 // GetContributors returns all commit authors and committers with dates from git history
 func GetContributors() ([]string, error) {
-	// Execute the git command to get all contributors with their commit dates
-	command := exec.Command("git", "log", "--all", "--format=%an|%cn|%cd", "--date=format:%Y")
-	output, err := command.Output()
+	output, err := RunGitCommand(false, "log", "--all", "--format=%an|%cn|%cd", "--date=format:%Y")
 	if err != nil {
 		return nil, err
 	}
-
 	return strings.Split(string(output), "\n"), nil
 }
 
@@ -434,14 +472,10 @@ func GetRateOfChanges() (map[int]models.RateStatistics, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not determine default branch: %v", err)
 	}
-
-	// Get all commits from default branch with timestamps and merge info
-	command := exec.Command("git", "log", defaultBranch, "--format=%ct|%P", "--reverse")
-	output, err := command.Output()
+	output, err := RunGitCommand(false, "log", defaultBranch, "--format=%ct|%P", "--reverse")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get commit log: %v", err)
 	}
-
 	return calculateRateStatistics(string(output))
 }
 

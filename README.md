@@ -81,6 +81,7 @@ The easiest way to install `git-metrics` is to download a prebuilt binary from t
 |--------|-------------|
 | `-r`, `--repository` | Path to Git repository (default: current directory) |
 | `--debug` | Enable debug output |
+| `-g`, `--git` | Show git commands as they run with live timing |
 | `--no-progress` | Disable progress indicators |
 | `--version` | Display version information and exit |
 

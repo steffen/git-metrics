@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"runtime"
 	"sort"
 	"strings"
@@ -32,6 +31,7 @@ func main() {
 	repositoryPath := pflag.StringP("repository", "r", ".", "Path to git repository")
 	showVersion := pflag.Bool("version", false, "Display version information and exit")
 	pflag.BoolVar(&debug, "debug", false, "Enable debug output")
+	showGitCommands := pflag.BoolP("git", "g", false, "Show git commands as they run with live timing")
 	noProgress := pflag.Bool("no-progress", false, "Disable progress indicators")
 	showHelp := pflag.BoolP("help", "h", false, "Display this help message")
 
@@ -52,6 +52,9 @@ func main() {
 	// Set progress visibility based on --no-progress flag and output destination
 	// Automatically disable progress when output is piped to a file or redirected
 	progress.ShowProgress = !*noProgress && utils.IsTerminal(os.Stdout)
+
+	// Enable git command logging if requested
+	git.EnableGitCommandLogging(*showGitCommands)
 
 	if !requirements.CheckRequirements() {
 		fmt.Println("\nRequirements not met. Please install listed dependencies above.")
@@ -116,9 +119,7 @@ func main() {
 	lastCommit := UnknownValue
 	if err == nil {
 		lastHash := strings.TrimSpace(string(lastHashOutput))
-		dateCommand := exec.Command("git", "show", "-s", "--format=%cD", lastHash)
-		commandOutput, err := dateCommand.Output()
-		if err == nil {
+		if commandOutput, err := git.RunGitCommand(debug, "show", "-s", "--format=%cD", lastHash); err == nil {
 			lastDate, _ := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", strings.TrimSpace(string(commandOutput)))
 			lastCommit = fmt.Sprintf("%s (%s)", lastDate.Format("Mon, 02 Jan 2006"), lastHash)
 		}
