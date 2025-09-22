@@ -9,6 +9,8 @@ First commit               Wed, 01 Jan 2025 (604c80)
 
 HISTORIC GROWTH ################################################################################
 
+Insufficient history for comparative growth analysis (only 1 year of data).
+
 Year        Commits                  Trees                  Blobs           On-disk size
 ------------------------------------------------------------------------------------------------
 2025^            12  +100 %             34  +100 %             18  +100 %         7.3 KB  +100 %
@@ -16,9 +18,9 @@ Year        Commits                  Trees                  Blobs           On-d
 
 % Percentages show the increase relative to the current total (^)
 
-Insufficient history for comparative growth analysis (only 1 year of data).
-
 HISTORIC CHANGES PER YEAR ######################################################################
+
+Insufficient history for year-over-year comparison (only 1 year of data).
 
 Year        Commits                  Trees                  Blobs           On-disk size
 ------------------------------------------------------------------------------------------------
@@ -27,8 +29,6 @@ Year        Commits                  Trees                  Blobs           On-d
 
 ^ Current year delta as of Git directory's last modified: Thu, 18 Sep 2025
 % Percentages show change relative to previous year's delta
-
-Insufficient history for year-over-year comparison (only 1 year of data).
 
 ESTIMATED GROWTH ###############################################################################
 

@@ -189,10 +189,7 @@ func main() {
 
 	fmt.Printf("Age                        %s\n", ageString)
 
-	// Print historic growth table header first
-	sections.PrintGrowthHistoryHeader()
-
-	// Then calculate growth stats and totals
+	// Calculate growth stats and totals first (we will print header after computing summary)
 	var previous models.GrowthStatistics
 	var totalStatistics models.GrowthStatistics
 
@@ -262,32 +259,8 @@ func main() {
 		CompressedSize: totalStatistics.Compressed,
 	}
 
-	// Print growth table using stored statistics
-	previous = models.GrowthStatistics{} // Reset for display
+	// Prepare historic growth summary (largest relative contributions) BEFORE printing table header
 	currentYear := time.Now().Year()
-
-	// Print historical data
-	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
-		if statistics, ok := yearlyStatistics[year]; ok {
-			sections.PrintGrowthHistoryRow(statistics, previous, repositoryInformation, currentYear)
-			previous = statistics
-		}
-	}
-
-	// Separator and current totals footnote directly under historic table
-	fmt.Println("------------------------------------------------------------------------------------------------")
-	fmt.Println()
-	if recentFetch != "" {
-		// Include year in displayed date (first 16 chars: Mon, 02 Jan 2006)
-		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
-	} else {
-		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
-	}
-	// Explain percentage meaning for historic table too
-	fmt.Println("% Percentages show the increase relative to the current total (^)")
-
-	// Add explanatory summary for historic growth table: identify years with largest relative contributions.
-	// We examine per-year increments (delta between cumulative years) as a percentage of current total.
 	var maxCommitYear, maxSizeYear int
 	var maxCommitPct, maxSizePct float64
 	var previousForShare models.GrowthStatistics
@@ -297,7 +270,6 @@ func main() {
 			continue
 		}
 		if year == repositoryInformation.FirstDate.Year() {
-			// First year's delta is its cumulative values
 			previousForShare = models.GrowthStatistics{}
 		}
 		commitDelta := float64(stats.Commits - previousForShare.Commits)
@@ -318,7 +290,6 @@ func main() {
 		}
 		previousForShare = stats
 	}
-
 	var growthSummary []string
 	if maxCommitYear != 0 && maxSizeYear != 0 && (repositoryInformation.FirstDate.Year() != currentYear) {
 		text := fmt.Sprintf("Year %d contributed the largest share of commits (%.0f %% of the current total), while year %d added the most on-disk size (%.0f %% of the current total).", maxCommitYear, maxCommitPct, maxSizeYear, maxSizePct)
@@ -327,10 +298,34 @@ func main() {
 		growthSummary = []string{"Insufficient history for comparative growth analysis (only 1 year of data)."}
 	}
 
+	// Print banner, summary, then table header & rows (inline instead of using helper to position summary earlier)
+	fmt.Println()
+	fmt.Println("HISTORIC GROWTH ################################################################################")
 	fmt.Println()
 	for _, line := range growthSummary {
 		fmt.Println(line)
 	}
+	fmt.Println()
+	fmt.Println("Year        Commits                  Trees                  Blobs           On-disk size")
+	fmt.Println("------------------------------------------------------------------------------------------------")
+
+	previous = models.GrowthStatistics{} // Reset for display
+	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
+		if statistics, ok := yearlyStatistics[year]; ok {
+			sections.PrintGrowthHistoryRow(statistics, previous, repositoryInformation, currentYear)
+			previous = statistics
+		}
+	}
+
+	// Separator and current totals footnote directly under historic table
+	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println()
+	if recentFetch != "" {
+		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
+	} else {
+		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
+	}
+	fmt.Println("% Percentages show the increase relative to the current total (^)")
 
 	// Historic changes per year section (delta year over year instead of cumulative totals)
 	// Build yearly delta statistics first
@@ -350,8 +345,59 @@ func main() {
 		}
 	}
 
-	// Print header and rows for historic changes per year
-	sections.PrintHistoricChangesPerYearHeader()
+	// Prepare year-over-year delta summary BEFORE printing delta header & rows
+	lastFullYear := currentYear - 1
+	previousFullYear := currentYear - 2
+	var deltaSummaryLines []string
+	if lastDelta, okLast := yearlyDeltas[lastFullYear]; okLast {
+		if prevDelta, okPrev := yearlyDeltas[previousFullYear]; okPrev && lastFullYear != currentYear && prevDelta.Year != 0 {
+			var commitsPhrase string
+			if prevDelta.Commits > 0 {
+				commitDelta := float64(lastDelta.Commits-prevDelta.Commits) / float64(prevDelta.Commits) * 100
+				word := "more"
+				if lastDelta.Commits < prevDelta.Commits {
+					word = "fewer"
+					commitDelta = -commitDelta
+				}
+				commitsPhrase = fmt.Sprintf("%.0f %% %s commits", commitDelta, word)
+			} else if lastDelta.Commits > 0 {
+				commitsPhrase = fmt.Sprintf("from 0 to %d commits", lastDelta.Commits)
+			} else {
+				commitsPhrase = "no commits change"
+			}
+			var sizePhrase string
+			if prevDelta.Compressed > 0 {
+				sizeDelta := float64(lastDelta.Compressed-prevDelta.Compressed) / float64(prevDelta.Compressed) * 100
+				verb := "increased"
+				if lastDelta.Compressed < prevDelta.Compressed {
+					verb = "decreased"
+					sizeDelta = -sizeDelta
+				}
+				sizePhrase = fmt.Sprintf("%s by %.0f %%", verb, sizeDelta)
+			} else if lastDelta.Compressed > 0 {
+				sizePhrase = "grew from 0 bytes"
+			} else {
+				sizePhrase = "did not change"
+			}
+			combined := fmt.Sprintf("Last year there were %s than the previous year and the repository's on-disk size %s.", commitsPhrase, sizePhrase)
+			deltaSummaryLines = utils.WrapText(combined, 96)
+		} else {
+			deltaSummaryLines = []string{"Insufficient history for year-over-year comparison (only 1 year of data)."}
+		}
+	} else {
+		deltaSummaryLines = []string{"Insufficient history for year-over-year comparison (only 1 year of data)."}
+	}
+
+	// Print historic changes per year banner, summary, then table header & rows
+	fmt.Println()
+	fmt.Println("HISTORIC CHANGES PER YEAR ######################################################################")
+	fmt.Println()
+	for _, line := range deltaSummaryLines {
+		fmt.Println(line)
+	}
+	fmt.Println()
+	fmt.Println("Year        Commits                  Trees                  Blobs           On-disk size")
+	fmt.Println("------------------------------------------------------------------------------------------------")
 	var previousDelta models.GrowthStatistics
 	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
 		if delta, ok := yearlyDeltas[year]; ok {
@@ -367,59 +413,6 @@ func main() {
 		fmt.Printf("^ Current year delta as of Git directory's last modified: %s\n", lastModified[:16])
 	}
 	fmt.Println("% Percentages show change relative to previous year's delta")
-
-	// Add human-readable year-over-year summary below the historic changes table.
-	// We compare the last full year's delta (excluding the current year) with the preceding year.
-	lastFullYear := currentYear - 1
-	previousFullYear := currentYear - 2
-	var summaryLines []string
-	if lastDelta, okLast := yearlyDeltas[lastFullYear]; okLast {
-		if prevDelta, okPrev := yearlyDeltas[previousFullYear]; okPrev && lastFullYear != currentYear && prevDelta.Year != 0 {
-			// Build commit comparison
-			var commitsPhrase string
-			if prevDelta.Commits > 0 {
-				commitDelta := float64(lastDelta.Commits-prevDelta.Commits) / float64(prevDelta.Commits) * 100
-				word := "more"
-				if lastDelta.Commits < prevDelta.Commits {
-					word = "fewer"
-					commitDelta = -commitDelta
-				}
-				commitsPhrase = fmt.Sprintf("%.0f %% %s commits", commitDelta, word)
-			} else if lastDelta.Commits > 0 {
-				commitsPhrase = fmt.Sprintf("from 0 to %d commits", lastDelta.Commits)
-			} else {
-				commitsPhrase = "no commits change"
-			}
-
-			// Build size comparison
-			var sizePhrase string
-			if prevDelta.Compressed > 0 {
-				sizeDelta := float64(lastDelta.Compressed-prevDelta.Compressed) / float64(prevDelta.Compressed) * 100
-				verb := "increased"
-				if lastDelta.Compressed < prevDelta.Compressed {
-					verb = "decreased"
-					sizeDelta = -sizeDelta
-				}
-				sizePhrase = fmt.Sprintf("%s by %.0f %%", verb, sizeDelta)
-			} else if lastDelta.Compressed > 0 {
-				sizePhrase = "grew from 0 bytes"
-			} else {
-				sizePhrase = "did not change"
-			}
-
-			combined := fmt.Sprintf("Last year there were %s than the previous year and the repository's on-disk size %s.", commitsPhrase, sizePhrase)
-			summaryLines = utils.WrapText(combined, 96)
-		} else {
-			summaryLines = []string{"Insufficient history for year-over-year comparison (only 1 year of data)."}
-		}
-	} else {
-		summaryLines = []string{"Insufficient history for year-over-year comparison (only 1 year of data)."}
-	}
-
-	fmt.Println()
-	for _, line := range summaryLines {
-		fmt.Println(line)
-	}
 
 	// Show estimated growth table only when estimation period is sufficient
 	sections.PrintEstimatedGrowthSectionHeader()
