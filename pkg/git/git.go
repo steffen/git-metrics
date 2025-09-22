@@ -10,8 +10,8 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"time"
 	"sync/atomic"
+	"time"
 
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/utils"

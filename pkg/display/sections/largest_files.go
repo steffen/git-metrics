@@ -2,9 +2,9 @@ package sections
 
 import (
 	"fmt"
+	"git-metrics/pkg/git"
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/utils"
-	"git-metrics/pkg/git"
 	"strings"
 	"time"
 )
