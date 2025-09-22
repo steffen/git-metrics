@@ -300,8 +300,8 @@ func main() {
 			// First year's delta is its cumulative values
 			previousForShare = models.GrowthStatistics{}
 		}
-		commitDelta := float64(stats.Commits-previousForShare.Commits)
-		sizeDelta := float64(stats.Compressed-previousForShare.Compressed)
+		commitDelta := float64(stats.Commits - previousForShare.Commits)
+		sizeDelta := float64(stats.Compressed - previousForShare.Compressed)
 		if repositoryInformation.TotalCommits > 0 {
 			pct := commitDelta / float64(repositoryInformation.TotalCommits) * 100
 			if pct > maxCommitPct {
