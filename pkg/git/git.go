@@ -380,6 +380,44 @@ func GetTopCommitAuthors(n int) (map[int][][3]string, map[int]int, map[int]int, 
 	return authorResult, totalAuthorsByYear, totalCommitsByYear, committerResult, totalCommittersByYear, allTimeAuthors, allTimeCommitters, nil
 }
 
+// GetCumulativeUniqueAuthorsByYear returns a map of year -> cumulative unique author count
+// along with the final total unique authors across all years.
+func GetCumulativeUniqueAuthorsByYear() (map[int]int, int, error) {
+	lines, err := GetContributors()
+	if err != nil {
+		return nil, 0, err
+	}
+	// authors seen per year (for union later) and global set
+	authorsPerYear := make(map[int]map[string]struct{})
+	yearsSet := make(map[int]struct{})
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" { continue }
+		parts := strings.Split(line, "|")
+		if len(parts) != 3 { continue }
+		author := parts[0]
+		yearStr := parts[2]
+		year, convErr := strconv.Atoi(yearStr)
+		if convErr != nil { continue }
+		if _, ok := authorsPerYear[year]; !ok { authorsPerYear[year] = make(map[string]struct{}) }
+		authorsPerYear[year][author] = struct{}{}
+		yearsSet[year] = struct{}{}
+	}
+	// Sort years
+	var years []int
+	for y := range yearsSet { years = append(years, y) }
+	sort.Ints(years)
+	cumulativeCounts := make(map[int]int)
+	cumulativeSet := make(map[string]struct{})
+	for _, y := range years {
+		for author := range authorsPerYear[y] {
+			cumulativeSet[author] = struct{}{}
+		}
+		cumulativeCounts[y] = len(cumulativeSet)
+	}
+	return cumulativeCounts, len(cumulativeSet), nil
+}
+
 // GetRateOfChanges calculates commit rate statistics for the default branch by year
 func GetRateOfChanges() (map[int]models.RateStatistics, error) {
 	defaultBranch, err := GetDefaultBranch()

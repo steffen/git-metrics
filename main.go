@@ -249,7 +249,19 @@ func main() {
 	}
 	progress.StopProgress() // Stop and clear progress line
 
-	// Save repository information with totals
+    // Compute cumulative unique authors per year for historic growth
+    cumulativeAuthorsByYear, totalAuthors, authorsErr := git.GetCumulativeUniqueAuthorsByYear()
+    if authorsErr == nil {
+        // Inject authors into yearly statistics
+        for year, stats := range yearlyStatistics {
+            if authorsCount, ok := cumulativeAuthorsByYear[year]; ok {
+                stats.Authors = authorsCount
+                yearlyStatistics[year] = stats
+            }
+        }
+    }
+
+	// Save repository information with totals (including authors)
 	repositoryInformation := models.RepositoryInformation{
 		Remote:         remote,
 		LastCommit:     lastCommit,
@@ -257,6 +269,7 @@ func main() {
 		Age:            ageString,
 		FirstDate:      firstCommitTime,
 		TotalCommits:   totalStatistics.Commits,
+		TotalAuthors:   totalAuthors,
 		TotalTrees:     totalStatistics.Trees,
 		TotalBlobs:     totalStatistics.Blobs,
 		CompressedSize: totalStatistics.Compressed,

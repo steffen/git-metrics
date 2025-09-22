@@ -10,6 +10,7 @@ type RepositoryInformation struct {
 	LastCommit     string
 	FirstDate      time.Time
 	TotalCommits   int
+	TotalAuthors   int
 	TotalTrees     int
 	TotalBlobs     int
 	CompressedSize int64
@@ -18,6 +19,7 @@ type RepositoryInformation struct {
 // GrowthStatistics holds statistics about repository growth
 type GrowthStatistics struct {
 	Year         int
+	Authors      int
 	Commits      int
 	Trees        int
 	Blobs        int

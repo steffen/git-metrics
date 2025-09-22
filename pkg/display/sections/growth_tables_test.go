@@ -33,7 +33,7 @@ func TestPrintGrowthHistoryHeader(t *testing.T) {
 		PrintGrowthHistoryHeader()
 	})
 
-	for _, expected := range []string{"HISTORIC GROWTH", "Year", "Commits", "Trees", "Blobs", "On-disk size"} {
+	for _, expected := range []string{"HISTORIC GROWTH", "Year", "Authors", "Commits", "On-disk size"} {
 		if !strings.Contains(output, expected) {
 			t.Errorf("expected header to contain %q.\nOutput: %s", expected, output)
 		}
@@ -41,15 +41,15 @@ func TestPrintGrowthHistoryHeader(t *testing.T) {
 }
 
 func TestPrintGrowthHistoryRow(t *testing.T) {
-	stats := models.GrowthStatistics{Year: 2023, Commits: 1000, Trees: 2000, Blobs: 3000, Compressed: 5 * 1000 * 1000}
-	prev := models.GrowthStatistics{Year: 2022, Commits: 800, Trees: 1500, Blobs: 2500, Compressed: 4 * 1000 * 1000}
-	info := models.RepositoryInformation{TotalCommits: 1000, TotalTrees: 2000, TotalBlobs: 3000, CompressedSize: 5 * 1000 * 1000}
+	stats := models.GrowthStatistics{Year: 2023, Authors: 10, Commits: 1000, Compressed: 5 * 1000 * 1000}
+	prev := models.GrowthStatistics{Year: 2022, Authors: 8, Commits: 800, Compressed: 4 * 1000 * 1000}
+	info := models.RepositoryInformation{TotalAuthors: 10, TotalCommits: 1000, CompressedSize: 5 * 1000 * 1000}
 
 	output := captureOutput(func() {
 		PrintGrowthHistoryRow(stats, prev, info, 2023)
 	})
 
-	for _, expected := range []string{"2023^", "1,000", "3,000", "5.0 MB"} {
+	for _, expected := range []string{"2023^", "10", "1,000", "5.0 MB"} {
 		if !strings.Contains(output, expected) {
 			t.Errorf("expected row to contain %q.\nOutput: %s", expected, output)
 		}
