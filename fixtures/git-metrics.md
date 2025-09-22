@@ -16,6 +16,8 @@ Year        Commits                  Trees                  Blobs           On-d
 
 % Percentages show the increase relative to the current total (^)
 
+Insufficient history for comparative growth analysis (only 1 year of data).
+
 HISTORIC CHANGES PER YEAR ######################################################################
 
 Year        Commits                  Trees                  Blobs           On-disk size
@@ -25,6 +27,8 @@ Year        Commits                  Trees                  Blobs           On-d
 
 ^ Current year delta as of Git directory's last modified: Thu, 18 Sep 2025
 % Percentages show change relative to previous year's delta
+
+Insufficient history for year-over-year comparison (only 1 year of data).
 
 ESTIMATED GROWTH ###############################################################################
 

@@ -308,3 +308,50 @@ func IsTerminal(file *os.File) bool {
 	}
 	return false
 }
+
+// WrapText wraps the provided text so that no line exceeds the specified width.
+// Wrapping occurs at space boundaries only; words longer than the width are placed
+// on their own line without splitting.
+func WrapText(text string, width int) []string {
+	if width <= 0 {
+		return []string{text}
+	}
+	words := strings.Fields(text)
+	if len(words) == 0 {
+		return []string{""}
+	}
+
+	var lines []string
+	var currentLine strings.Builder
+
+	for _, word := range words {
+		if currentLine.Len() == 0 {
+			// Start a new line
+			if len(word) > width { // Oversized single word
+				lines = append(lines, word)
+				continue
+			}
+			currentLine.WriteString(word)
+			continue
+		}
+		// Check if adding the next word would exceed width
+		if currentLine.Len()+1+len(word) > width {
+			lines = append(lines, currentLine.String())
+			currentLine.Reset()
+			if len(word) > width { // Oversized single word
+				lines = append(lines, word)
+				continue
+			}
+			currentLine.WriteString(word)
+		} else {
+			currentLine.WriteByte(' ')
+			currentLine.WriteString(word)
+		}
+	}
+
+	if currentLine.Len() > 0 {
+		lines = append(lines, currentLine.String())
+	}
+
+	return lines
+}
