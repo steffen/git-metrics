@@ -5,6 +5,7 @@ import (
 	"git-metrics/pkg/models"
 	"git-metrics/pkg/utils"
 	"strconv"
+	"strings"
 )
 
 // PrintGrowthHistoryHeader prints the combined historic growth header.
@@ -57,7 +58,15 @@ func PrintGrowthHistoryRow(cumulative, delta, previousDelta models.GrowthStatist
 
 	authorsDeltaDisplay := formatSigned(delta.Authors)
 	commitsDeltaDisplay := formatSigned(delta.Commits)
-	sizeDeltaDisplay := utils.FormatSize(delta.Compressed)
+	// Size delta with explicit sign when positive
+	var sizeDeltaDisplay string
+	if delta.Compressed >= 0 {
+		formatted := utils.FormatSize(delta.Compressed)
+		sizeDeltaDisplay = "+" + strings.TrimLeft(formatted, " ")
+	} else {
+		formatted := utils.FormatSize(-delta.Compressed)
+		sizeDeltaDisplay = "-" + strings.TrimLeft(formatted, " ")
+	}
 
 	// Helper to format integer percentage with trailing %
 	formatPercent := func(v float64) string { return fmt.Sprintf("%d %%", int(v+0.5)) }
