@@ -91,6 +91,26 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 		sizeDeltaGrowthPercent = float64(currentYearSizeDelta-previousYearSizeDelta) / float64(previousYearSizeDelta)
 	}
 
+	// Store delta percentage values for the predicted current year
+	// Calculate delta percentage for current year based on previous year's delta
+	if previousYearAuthorsDelta > 0 {
+		predictedCurrentYear.AuthorsDeltaPercent = float64(currentYearAuthorsDelta-previousYearAuthorsDelta) / float64(previousYearAuthorsDelta) * 100
+	}
+	if previousYearCommitsDelta > 0 {
+		predictedCurrentYear.CommitsDeltaPercent = float64(currentYearCommitsDelta-previousYearCommitsDelta) / float64(previousYearCommitsDelta) * 100
+	}
+	if previousYearSizeDelta > 0 {
+		predictedCurrentYear.CompressedDeltaPercent = float64(currentYearSizeDelta-previousYearSizeDelta) / float64(previousYearSizeDelta) * 100
+	}
+
+	// Store delta values for the predicted current year
+	predictedCurrentYear.AuthorsDelta = currentYearAuthorsDelta
+	predictedCurrentYear.CommitsDelta = currentYearCommitsDelta
+	predictedCurrentYear.CompressedDelta = currentYearSizeDelta
+
+	// Update the first estimate in the slice with calculated delta percentages
+	estimates[0] = predictedCurrentYear
+
 	// Project future years using delta percentage growth rates
 	previousEstimate := predictedCurrentYear
 	previousAuthorsDelta := currentYearAuthorsDelta
@@ -103,11 +123,31 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 		nextCommitsDelta := previousCommitsDelta + int(float64(previousCommitsDelta)*commitsDeltaGrowthPercent)
 		nextSizeDelta := previousSizeDelta + int64(float64(previousSizeDelta)*sizeDeltaGrowthPercent)
 
+		// Calculate delta percentages for future years (consistent with current year calculation)
+		var nextAuthorsDeltaPercent, nextCommitsDeltaPercent, nextSizeDeltaPercent float64
+		if previousAuthorsDelta > 0 {
+			nextAuthorsDeltaPercent = float64(nextAuthorsDelta-previousAuthorsDelta) / float64(previousAuthorsDelta) * 100
+		}
+		if previousCommitsDelta > 0 {
+			nextCommitsDeltaPercent = float64(nextCommitsDelta-previousCommitsDelta) / float64(previousCommitsDelta) * 100
+		}
+		if previousSizeDelta > 0 {
+			nextSizeDeltaPercent = float64(nextSizeDelta-previousSizeDelta) / float64(previousSizeDelta) * 100
+		}
+
 		nextEstimate := models.GrowthStatistics{
 			Year:       futureYear,
 			Authors:    previousEstimate.Authors + nextAuthorsDelta,
 			Commits:    previousEstimate.Commits + nextCommitsDelta,
 			Compressed: previousEstimate.Compressed + nextSizeDelta,
+			// Store delta values
+			AuthorsDelta:    nextAuthorsDelta,
+			CommitsDelta:    nextCommitsDelta,
+			CompressedDelta: nextSizeDelta,
+			// Store delta percentage values
+			AuthorsDeltaPercent:    nextAuthorsDeltaPercent,
+			CommitsDeltaPercent:    nextCommitsDeltaPercent,
+			CompressedDeltaPercent: nextSizeDeltaPercent,
 		}
 		estimates = append(estimates, nextEstimate)
 
