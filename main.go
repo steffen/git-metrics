@@ -199,7 +199,7 @@ func main() {
 	fmt.Println("Δ% columns: change of this year's delta vs previous year's delta")
 	fmt.Println()
 
-	// Print table headers before data collection
+	// Print table headers before data collection (Year widened to 6 for ^* marker)
 	fmt.Println("Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 

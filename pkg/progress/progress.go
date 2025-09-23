@@ -56,7 +56,7 @@ func UpdateProgress() {
 	if !CurrentProgress.Active || !ShowProgress {
 		return
 	}
-	fmt.Printf("\r%-5s %10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s",
+	fmt.Printf("\r%-6s%10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s",
 		fmt.Sprintf("%d%s", CurrentProgress.Year, ProgressSpinner.Next()),
 		utils.FormatNumber(CurrentProgress.Statistics.Authors),
 		"...",

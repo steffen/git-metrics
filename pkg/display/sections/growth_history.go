@@ -79,7 +79,7 @@ func PrintGrowthHistoryRow(statistics, _, previousStats models.GrowthStatistics,
 	}
 
 	// Print with adjusted spacing: % column narrower, Δ% wider (extra left padding)
-	fmt.Printf("%-5s %10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s\n",
+	fmt.Printf("%-6s%10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s\n",
 		yearDisplay,
 		utils.FormatNumber(statistics.Authors), authorsDeltaDisplay, authorsPercentDisplay, authorsDeltaPercentDisplay,
 		utils.FormatNumber(statistics.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsDeltaPercentDisplay,

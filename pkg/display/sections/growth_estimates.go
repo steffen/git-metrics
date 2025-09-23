@@ -201,6 +201,10 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 	compressedDeltaPercentChange := statistics.CompressedDeltaPercent
 
 	yearDisplay := strconv.Itoa(statistics.Year) + "*"
+	if statistics.Year == currentYear {
+		// Current year's estimate references both current totals (^) and estimated (*): show ^*
+		yearDisplay = strconv.Itoa(statistics.Year) + "^*"
+	}
 
 	// Helper to format signed integers with thousand separators
 	formatSigned := func(v int) string {
@@ -248,7 +252,7 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 	}
 
 	// Print with same formatting as historic growth: % column narrower, Δ% wider (extra left padding)
-	fmt.Printf("%-5s %10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s\n",
+	fmt.Printf("%-6s%10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s\n",
 		yearDisplay,
 		utils.FormatNumber(statistics.Authors), authorsDeltaDisplay, authorsPercentDisplay, authorsDeltaPercentDisplay,
 		utils.FormatNumber(statistics.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsDeltaPercentDisplay,
@@ -305,53 +309,13 @@ func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repo
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 	fmt.Println()
 	if recentFetch != "" {
-		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
+		fmt.Printf("^  Current totals as of the most recent fetch on %s\n", recentFetch[:16])
 	} else {
-		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
+		fmt.Printf("^  Current totals as of Git directory's last modified: %s\n", lastModified[:16])
 	}
 	if estimationYears > 0 {
-		fmt.Println("* Estimated growth based on delta changes from past years")
-	} else {
-		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
-	}
-}
-
-// DisplayGrowthEstimates handles the complete growth estimation section including calculation and display
-func DisplayGrowthEstimates(yearlyStatistics map[int]models.GrowthStatistics, repositoryInformation models.RepositoryInformation, firstCommitTime time.Time, recentFetch string) {
-	currentYear := time.Now().Year()
-
-	// Estimation
-	var estimationEndYear = time.Now().Year() - 1
-	var estimationYears = estimationEndYear - firstCommitTime.Year()
-
-	if estimationYears > 5 {
-		estimationYears = 5
-	}
-
-	// Show estimated growth table only when estimation period is sufficient
-	PrintEstimatedGrowthSectionHeader()
-
-	if estimationYears > 0 {
-		PrintEstimatedGrowthTableHeader()
-
-		// Use new prediction logic based on delta changes
-		estimates := CalculateNewEstimate(yearlyStatistics, currentYear, recentFetch)
-		for i, estimate := range estimates {
-			var previous models.GrowthStatistics
-			if i == 0 {
-				// For first estimate (current year), use previous year as comparison
-				previous = yearlyStatistics[currentYear-1]
-			} else {
-				// For subsequent estimates, use previous estimate
-				previous = estimates[i-1]
-			}
-			PrintGrowthEstimateRow(estimate, previous, repositoryInformation, currentYear)
-		}
-
-		fmt.Println("------------------------------------------------------------------------------------------------------------------------")
-		fmt.Println()
-		fmt.Println("* Estimated growth based on delta changes from past years")
-		fmt.Println("% % columns: each year's delta as share of current totals (^)")
+		fmt.Println("^* Estimated growth for current year based on year to date deltas (Δ) extrapolated to full year")
+		fmt.Println("*  Estimated growth based on current year's estimated delta percentages (Δ%)")
 	} else {
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
