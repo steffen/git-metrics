@@ -189,6 +189,15 @@ func main() {
 
 	fmt.Printf("Age                        %s\n", ageString)
 
+	// Display the section header before data collection
+	fmt.Println()
+	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##################################################################")
+	fmt.Println()
+
+	// Print table headers before data collection
+	fmt.Println("Year     Authors        Δ     %      Δ%       Commits          Δ     %      Δ%   On-disk size            Δ     %      Δ%")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
+
 	// Calculate growth stats and totals
 	var previous models.GrowthStatistics
 	var totalStatistics models.GrowthStatistics
