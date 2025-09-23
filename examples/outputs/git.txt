@@ -1,0 +1,214 @@
+RUN ############################################################################################
+
+Start time                 Thu, 21 Aug 2025 17:56 CEST
+Machine                    10 CPU cores with 64 GB memory (macOS 15.6 on Apple M1 Max)
+Git metrics version        1.3.0
+Git version                2.46.0
+
+REPOSITORY #####################################################################################
+
+Git directory              /Users/steffen/GitHub/oss/git/.git
+Remote                     https://github.com/git/git.git
+Most recent fetch          Thu, 21 Aug 2025 17:56 CEST
+Most recent commit         Sun, 17 Aug 2025 (c44beea485)
+First commit               Thu, 07 Apr 2005 (e83c51)
+Age                        20 years 4 months 14 days
+
+HISTORIC & ESTIMATED GROWTH ####################################################################
+
+Year        Commits                  Trees                  Blobs           On-disk size
+------------------------------------------------------------------------------------------------
+2005          3,215    +4 %          4,056    +3 %          5,922    +4 %         4.1 MB    +1 %
+2006          7,816    +6 %         10,459    +4 %         13,181    +5 %         8.4 MB    +2 %
+2007         13,312    +7 %         19,425    +6 %         22,503    +6 %        15.2 MB    +2 %
+2008         17,440    +5 %         26,655    +5 %         30,759    +5 %        21.0 MB    +2 %
+2009         21,267    +5 %         33,673    +4 %         37,227    +4 %        26.6 MB    +2 %
+2010         25,150    +5 %         41,060    +5 %         44,099    +4 %        32.6 MB    +2 %
+2011         28,673    +4 %         48,136    +4 %         50,231    +4 %        38.2 MB    +2 %
+2012         32,455    +5 %         55,937    +5 %         55,808    +4 %        45.4 MB    +3 %
+2013         36,772    +5 %         65,037    +6 %         62,775    +4 %        53.8 MB    +3 %
+2014         39,875    +4 %         71,108    +4 %         68,121    +3 %        62.6 MB    +3 %
+2015         43,161    +4 %         77,534    +4 %         73,436    +3 %        71.9 MB    +3 %
+2016         47,031    +5 %         85,302    +5 %         79,873    +4 %        80.5 MB    +3 %
+2017         51,617    +6 %         94,468    +6 %         88,493    +6 %        94.3 MB    +5 %
+2018         56,098    +6 %        103,740    +6 %         99,098    +7 %       115.3 MB    +7 %
+2019         59,867    +5 %        111,620    +5 %        106,638    +5 %       136.9 MB    +8 %
+2020         63,562    +5 %        119,536    +5 %        114,111    +5 %       158.3 MB    +7 %
+2021         67,578    +5 %        128,086    +5 %        121,937    +5 %       187.2 MB   +10 %
+2022         71,225    +4 %        136,302    +5 %        129,471    +5 %       216.0 MB   +10 %
+2023         74,172    +4 %        142,980    +4 %        139,020    +6 %       239.8 MB    +8 %
+2024         78,394    +5 %        152,556    +6 %        149,393    +7 %       266.0 MB    +9 %
+------------------------------------------------------------------------------------------------
+2025^        81,072    +3 %        158,302    +4 %        155,623    +4 %       286.1 MB    +7 %
+------------------------------------------------------------------------------------------------
+2025*        82,099    +5 %        160,743    +5 %        157,944    +5 %       291.9 MB    +9 %
+2026*        85,804    +5 %        168,930    +5 %        166,495    +5 %       317.7 MB    +9 %
+2027*        89,509    +5 %        177,117    +5 %        175,046    +5 %       343.5 MB    +9 %
+2028*        93,214    +5 %        185,304    +5 %        183,597    +5 %       369.4 MB    +9 %
+2029*        96,919    +5 %        193,491    +5 %        192,148    +5 %       395.2 MB    +9 %
+2030*       100,624    +5 %        201,678    +5 %        200,699    +5 %       421.0 MB    +9 %
+------------------------------------------------------------------------------------------------
+
+^ Current totals as of the most recent fetch on Thu, 21 Aug
+* Estimated growth based on the last five years
+% Percentages show the increase relative to the current total (^)
+
+RATE OF CHANGES ################################################################################
+
+Commits to default branch (master)
+
+              Commits             Peak per day            Peak per hour          Peak per minute
+Year         per year        P95    P99   P100        P95    P99   P100        P95    P99   P100
+------------------------------------------------------------------------------------------------
+2005            3,132   │     25     33     87   │      7     13     64   │      4      7     17
+2006            4,499   │     32     40     44   │      9     15     37   │      3      7     34
+2007            5,388   │     32     55    132   │      8     16    113   │      3      7    113
+2008            4,009   │     27     34     46   │      9     16     29   │      4      8     21
+2009            3,676   │     30     40     58   │     10     17     27   │      4      8     18
+2010            3,661   │     36     51     93   │     13     23     62   │      5     13     32
+2011            3,371   │     31     59     77   │     12     22     72   │      4     12     71
+2012            3,605   │     31     47     58   │     12     19     54   │      5     10     54
+2013            4,180   │     42     54     82   │     14     23     61   │      5     12     45
+2014            3,006   │     36     52     71   │     16     29     57   │      6     15     34
+2015            3,176   │     41     54     68   │     16     30     56   │      8     20     56
+2016            3,745   │     37     54     62   │     18     32     46   │      9     22     41
+2017            4,469   │     46     56     78   │     21     34     50   │     12     23     43
+2018            4,421   │     46     62     85   │     22     37     82   │     12     30     77
+2019            3,700   │     45     70     97   │     19     34     66   │     12     24     44
+2020            3,600   │     33     52     70   │     14     27     50   │     10     20     41
+2021            3,911   │     39     51     82   │     16     28     78   │     11     21     76
+2022            3,520   │     35     47     64   │     15     25     55   │     11     18     34
+2023            2,833   │     32     47     60   │     15     27     55   │     10     22     54
+2024            3,973   │     34     48     54   │     18     27     51   │     11     22     49
+2025            2,186   │     38     50     66   │     14     21     66   │     10     16     35
+
+LARGEST DIRECTORIES ############################################################################
+
+Showing directories and files that contribute more than 1% of total on-disk size.
+
+Path                                                        Blobs           On-disk size
+------------------------------------------------------------------------------------------------
+./                                                        155,623 100.0 %       181.5 MB 100.0 %
+├─ po/                                                      1,412   0.9 %        51.2 MB  28.2 %
+│  ├─ fr.po                                                   142   0.1 %         5.3 MB   2.9 %
+│  ├─ zh_CN.po                                                156   0.1 %         5.2 MB   2.8 %
+│  ├─ de.po                                                   186   0.1 %         4.9 MB   2.7 %
+│  ├─ sv.po                                                   121   0.1 %         4.7 MB   2.6 %
+│  ├─ ca.po                                                    79   0.1 %         4.5 MB   2.5 %
+│  ├─ vi.po                                                   105   0.1 %         4.1 MB   2.2 %
+│  ├─ bg.po                                                    76   0.0 %         3.9 MB   2.1 %
+│  ├─ tr.po                                                    43   0.0 %         3.2 MB   1.8 %
+│  ├─ zh_TW.po                                                 36   0.0 %         2.9 MB   1.6 %
+│  ├─ git.pot*                                                108   0.1 %         2.1 MB   1.2 %
+│  ├─ pt_PT.po                                                 38   0.0 %         2.0 MB   1.1 %
+│  └─ id.po                                                    31   0.0 %         1.9 MB   1.0 %
+├─ builtin/                                                18,974  12.2 %        22.0 MB  12.1 %
+│  └─ pack-objects.c                                          653   0.4 %         2.1 MB   1.1 %
+├─ t/                                                      29,580  19.0 %        17.3 MB   9.5 %
+├─ Documentation/                                          19,976  12.8 %        14.3 MB   7.9 %
+│  ├─ RelNotes/                                             1,850   1.2 %         3.0 MB   1.7 %
+│  └─ config.txt*                                           1,459   0.9 %         1.8 MB   1.0 %
+├─ contrib/                                                 3,780   2.4 %         3.3 MB   1.8 %
+├─ compat/                                                  1,241   0.8 %         2.2 MB   1.2 %
+├─ refs/                                                    1,196   0.8 %         2.1 MB   1.2 %
+├─ whats-cooking.txt*                                       1,387   0.9 %         4.6 MB   2.5 %
+├─ sequencer.c                                              1,058   0.7 %         4.1 MB   2.3 %
+├─ Makefile                                                 3,298   2.1 %         3.0 MB   1.7 %
+├─ diff.c                                                   1,627   1.0 %         2.4 MB   1.3 %
+└─ read-cache.c                                               842   0.5 %         2.2 MB   1.2 %
+
+* File or directory not present in latest commit of master branch (moved, renamed or removed)
+
+LARGEST FILES ##################################################################################
+
+File path                              Last commit          Blobs           On-disk size
+------------------------------------------------------------------------------------------------
+po/fr.po                                      2025            142   0.1 %         5.3 MB   2.9 %
+po/zh_CN.po                                   2025            156   0.1 %         5.2 MB   2.8 %
+po/de.po                                      2025            186   0.1 %         4.9 MB   2.7 %
+po/sv.po                                      2025            121   0.1 %         4.7 MB   2.6 %
+whats-cooking.txt                             0001          1,387   0.9 %         4.6 MB   2.5 %
+po/ca.po                                      2025             79   0.1 %         4.5 MB   2.5 %
+sequencer.c                                   2025          1,058   0.7 %         4.1 MB   2.3 %
+po/vi.po                                      2025            105   0.1 %         4.1 MB   2.2 %
+po/bg.po                                      2025             76   0.0 %         3.9 MB   2.1 %
+po/tr.po                                      2025             43   0.0 %         3.2 MB   1.8 %
+------------------------------------------------------------------------------------------------
+├─ Top 10                                                   3,353   2.2 %        44.4 MB  24.5 %
+└─ Out of 6,287                                           155,623 100.0 %       181.5 MB 100.0 %
+
+LARGEST FILE EXTENSIONS ########################################################################
+
+Extension                            Files                  Blobs           On-disk size
+------------------------------------------------------------------------------------------------
+.c                                     967  15.4 %         69,150  44.4 %        71.6 MB  25.0 %
+.po                                     63   1.0 %          1,387   0.9 %        49.8 MB  17.4 %
+.txt                                 1,323  21.0 %         20,482  13.2 %        17.8 MB   6.2 %
+.sh                                  1,538  24.5 %         30,562  19.6 %        17.0 MB   5.9 %
+No Extension                           704  11.2 %         10,183   6.5 %         7.7 MB   2.7 %
+.h                                     382   6.1 %         12,481   8.0 %         5.9 MB   2.1 %
+.perl                                   60   1.0 %          3,051   2.0 %         2.4 MB   0.8 %
+.pot                                     5   0.1 %            128   0.1 %         2.2 MB   0.8 %
+.py                                     30   0.5 %            534   0.3 %         1.4 MB   0.5 %
+.bash                                    2   0.0 %          1,115   0.7 %         1.3 MB   0.5 %
+------------------------------------------------------------------------------------------------
+├─ Top 10                            5,074  80.7 %        149,073  95.8 %       177.1 MB  97.6 %
+└─ Out of 364                        6,287 100.0 %        155,622 100.0 %       181.5 MB 100.0 %
+
+AUTHORS WITH MOST COMMITS ######################################################################
+
+Year     Author (#1)    Commits        Author (#2)    Commits        Author (#3)    Commits
+------------------------------------------------------------------------------------------------
+2005   │ Junio C Hamano   1,368  43% │ Linus Torvalds     680  21% │ Kay Sievers        139   4%
+2006   │ Junio C Hamano   2,202  48% │ Shawn O. Pe...     243   5% │ Jakub Narebski     220   5%
+2007   │ Junio C Hamano   1,606  29% │ Shawn O. Pe...     841  15% │ Johannes Sc...     244   4%
+2008   │ Junio C Hamano   1,365  33% │ Shawn O. Pe...     163   4% │ Jeff King          152   4%
+2009   │ Junio C Hamano   1,439  38% │ Jeff King          134   3% │ Johannes Sc...     104   3%
+2010   │ Junio C Hamano   1,537  40% │ Jonathan Ni...     333   9% │ Ævar Arnfjö...     121   3%
+2011   │ Junio C Hamano   1,588  45% │ Jeff King          237   7% │ Jonathan Ni...     190   5%
+2012   │ Junio C Hamano   1,743  46% │ Jeff King          314   8% │ Nguyễn Thái...     204   5%
+2013   │ Junio C Hamano   1,787  41% │ Felipe Cont...     283   7% │ Jeff King          243   6%
+2014   │ Junio C Hamano   1,220  39% │ Jeff King          340  11% │ Nguyễn Thái...     140   5%
+2015   │ Junio C Hamano   1,440  44% │ Jeff King          368  11% │ Michael Hag...     173   5%
+2016   │ Junio C Hamano   1,604  41% │ Jeff King          386  10% │ Johannes Sc...     193   5%
+2017   │ Junio C Hamano   1,739  38% │ Jeff King          405   9% │ Brandon Wil...     217   5%
+2018   │ Junio C Hamano   1,230  27% │ Nguyễn Thái...     499  11% │ Jeff King          255   6%
+2019   │ Junio C Hamano   1,095  29% │ Johannes Sc...     321   9% │ Jeff King          271   7%
+2020   │ Junio C Hamano   1,157  31% │ Jeff King          270   7% │ Johannes Sc...     208   6%
+2021   │ Junio C Hamano   1,215  30% │ Ævar Arnfjö...     606  15% │ Elijah Newren      201   5%
+2022   │ Junio C Hamano   1,187  33% │ Ævar Arnfjö...     555  15% │ Taylor Blau        181   5%
+2023   │ Junio C Hamano   1,041  35% │ Jeff King          330  11% │ Elijah Newren      195   7%
+2024   │ Junio C Hamano   1,449  34% │ Patrick Ste...   1,026  24% │ Jeff King          259   6%
+2025   │ Junio C Hamano     974  36% │ Patrick Ste...     434  16% │ Jeff King           95   4%
+------------------------------------------------------------------------------------------------
+Total  │ Junio C Hamano  29,986  37% │ Jeff King        4,598   6% │ Johannes Sc...   2,380   3%
+
+COMMITTERS WITH MOST COMMITS ###################################################################
+
+Year     Committer (#1) Commits        Committer (#2) Commits        Committer (#3) Commits
+------------------------------------------------------------------------------------------------
+2005   │ Junio C Hamano   1,794  56% │ Linus Torvalds   1,036  32% │ Kay Sievers        136   4%
+2006   │ Junio C Hamano   4,310  94% │ Shawn O. Pe...     158   3% │ Paul Mackerras      82   2%
+2007   │ Junio C Hamano   3,964  72% │ Shawn O. Pe...     842  15% │ Simon Hausmann     247   4%
+2008   │ Junio C Hamano   3,532  86% │ Shawn O. Pe...     372   9% │ Paul Mackerras     123   3%
+2009   │ Junio C Hamano   3,514  92% │ Eric Wong           96   3% │ Avery Pennarun      65   2%
+2010   │ Junio C Hamano   3,665  94% │ Eric Wong           49   1% │ Pat Thoyts          47   1%
+2011   │ Junio C Hamano   3,328  95% │ Jonathan Ni...      80   2% │ Pat Thoyts          70   2%
+2012   │ Junio C Hamano   3,348  89% │ Jeff King          153   4% │ Jiang Xin           91   2%
+2013   │ Junio C Hamano   4,093  95% │ Jonathan Ni...      81   2% │ Jiang Xin           24   1%
+2014   │ Junio C Hamano   2,967  96% │ Jiang Xin           27   1% │ Eric Wong           23   1%
+2015   │ Junio C Hamano   2,970  90% │ Jeff King          111   3% │ Jiang Xin           63   2%
+2016   │ Junio C Hamano   3,652  94% │ Jiang Xin           45   1% │ Michael Hag...      34   1%
+2017   │ Junio C Hamano   4,444  97% │ Jiang Xin           64   1% │ Jean-Noel A...      15   0%
+2018   │ Junio C Hamano   4,327  97% │ Jiang Xin           64   1% │ Jeff King           21   0%
+2019   │ Junio C Hamano   3,540  94% │ Johannes Sc...      67   2% │ Jiang Xin           53   1%
+2020   │ Junio C Hamano   3,474  94% │ Jiang Xin           62   2% │ Pratyush Yadav      41   1%
+2021   │ Junio C Hamano   3,796  95% │ Jiang Xin           81   2% │ Johannes Sc...      30   1%
+2022   │ Junio C Hamano   3,239  89% │ Taylor Blau        240   7% │ Jiang Xin           58   2%
+2023   │ Junio C Hamano   2,765  94% │ Johannes Sc...      85   3% │ Jiang Xin           36   1%
+2024   │ Junio C Hamano   3,792  90% │ Taylor Blau        218   5% │ Johannes Sc...      86   2%
+2025   │ Junio C Hamano   2,400  90% │ Taylor Blau         66   2% │ Mark Levedahl       58   2%
+------------------------------------------------------------------------------------------------
+Total  │ Junio C Hamano  72,914  90% │ Shawn O. Pe...   1,457   2% │ Linus Torvalds   1,041   1%
+
+Finished in 14s with a memory footprint of 118.7 MB.

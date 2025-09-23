@@ -1,0 +1,17 @@
+# Dependencies
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / Editor
+.DS_Store
+*.swp
+.idea/
+.vscode/
+
+# Build artifacts (none currently, placeholder)
+dist/
+.tmp/

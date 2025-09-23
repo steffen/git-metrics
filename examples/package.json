@@ -1,0 +1,12 @@
+{
+  "name": "git-metrics-examples",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Interactive examples site for git-metrics output.",
+  "scripts": {
+    "start": "serve -p 4000 ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
