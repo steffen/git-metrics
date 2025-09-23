@@ -13,7 +13,7 @@ func PrintGrowthHistoryHeader() {
 	fmt.Println("HISTORIC GROWTH ################################################################################")
 	fmt.Println()
 	// Adjusted spacing per request (narrower) with separators only between blocks (none after Year)
-	fmt.Println("Year     Authors        Δ      %     Δ%       Commits          Δ      %     Δ%   On-disk size            Δ      %     Δ%")
+	fmt.Println("Year     Authors        Δ     %      Δ%       Commits          Δ     %      Δ%   On-disk size            Δ     %      Δ%")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 }
 
@@ -82,8 +82,8 @@ func PrintGrowthHistoryRow(cumulative, delta, previousDelta models.GrowthStatist
 		compressedDeltaPercentDisplay = formatSignedPercent(compressedDeltaPercentChange)
 	}
 
-	// Print with adjusted spacing; keep under target width
-	fmt.Printf("%-5s %10s %8s %6s %6s │%12s %10s %6s %6s │%13s %12s %6s %6s\n",
+	// Print with adjusted spacing: % column narrower, Δ% wider (extra left padding)
+	fmt.Printf("%-5s %10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s\n",
 		yearDisplay,
 		utils.FormatNumber(cumulative.Authors), authorsDeltaDisplay, authorsPercentDisplay, authorsDeltaPercentDisplay,
 		utils.FormatNumber(cumulative.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsDeltaPercentDisplay,
