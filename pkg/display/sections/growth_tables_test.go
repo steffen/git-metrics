@@ -41,17 +41,28 @@ func TestPrintGrowthHistoryHeader(t *testing.T) {
 }
 
 func TestPrintGrowthHistoryRow(t *testing.T) {
-	cumulativePrev := models.GrowthStatistics{Year: 2022, Authors: 8, Commits: 800, Compressed: 4 * 1000 * 1000}
-	deltaPrev := models.GrowthStatistics{Year: 2022, Authors: 1, Commits: 100, Compressed: 500 * 1000}
-	cumulative := models.GrowthStatistics{Year: 2023, Authors: 10, Commits: 1000, Compressed: 5 * 1000 * 1000}
-	delta := models.GrowthStatistics{Year: 2023, Authors: 2, Commits: 200, Compressed: 1 * 1000 * 1000}
+	// First year statistics with delta values populated
+	cumulativePrev := models.GrowthStatistics{
+		Year: 2022, Authors: 8, Commits: 800, Compressed: 4 * 1000 * 1000,
+		AuthorsDelta: 8, CommitsDelta: 800, CompressedDelta: 4 * 1000 * 1000,
+		AuthorsPercent: 80, CommitsPercent: 80, CompressedPercent: 80,
+	}
+
+	// Second year statistics with delta values and delta percentages
+	cumulative := models.GrowthStatistics{
+		Year: 2023, Authors: 10, Commits: 1000, Compressed: 5 * 1000 * 1000,
+		AuthorsDelta: 2, CommitsDelta: 200, CompressedDelta: 1 * 1000 * 1000,
+		AuthorsPercent: 20, CommitsPercent: 20, CompressedPercent: 20,
+		AuthorsDeltaPercent: 100, CommitsDeltaPercent: 100, CompressedDeltaPercent: 100,
+	}
+
 	info := models.RepositoryInformation{TotalAuthors: 10, TotalCommits: 1000, CompressedSize: 5 * 1000 * 1000}
 
 	output := captureOutput(func() {
 		// First year row (no previous delta)
-		PrintGrowthHistoryRow(cumulativePrev, deltaPrev, models.GrowthStatistics{}, info, 2023)
+		PrintGrowthHistoryRow(cumulativePrev, cumulativePrev, models.GrowthStatistics{}, info, 2023)
 		// Second year row (with previous delta for Δ%)
-		PrintGrowthHistoryRow(cumulative, delta, deltaPrev, info, 2023)
+		PrintGrowthHistoryRow(cumulative, cumulative, cumulativePrev, info, 2023)
 	})
 
 	// Check for cumulative totals and deltas
@@ -64,7 +75,10 @@ func TestPrintGrowthHistoryRow(t *testing.T) {
 }
 
 func TestPrintGrowthEstimateRow(t *testing.T) {
-	stats := models.GrowthStatistics{Year: 2024, Commits: 1100, Trees: 2200, Blobs: 3300, Compressed: 6 * 1000 * 1000}
+	stats := models.GrowthStatistics{
+		Year: 2024, Commits: 1100, Trees: 2200, Blobs: 3300, Compressed: 6 * 1000 * 1000,
+		CommitsDeltaPercent: 25.0, // Add delta percentage for testing
+	}
 	prev := models.GrowthStatistics{Year: 2023, Commits: 1000, Trees: 2000, Blobs: 3000, Compressed: 5 * 1000 * 1000}
 	info := models.RepositoryInformation{TotalCommits: 1000, TotalTrees: 2000, TotalBlobs: 3000, CompressedSize: 5 * 1000 * 1000}
 
@@ -73,9 +87,7 @@ func TestPrintGrowthEstimateRow(t *testing.T) {
 	})
 
 	if !strings.Contains(output, "2024*") {
-		if !strings.Contains(output, "2024*") {
-			t.Errorf("expected estimate row to contain year with * marker. Output: %s", output)
-		}
+		t.Errorf("expected estimate row to contain year with * marker. Output: %s", output)
 	}
 }
 

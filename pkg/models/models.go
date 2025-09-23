@@ -26,6 +26,27 @@ type GrowthStatistics struct {
 	Compressed   int64
 	RunTime      time.Duration
 	LargestFiles []FileInformation
+
+	// Delta values (year-over-year changes)
+	AuthorsDelta    int
+	CommitsDelta    int
+	TreesDelta      int
+	BlobsDelta      int
+	CompressedDelta int64
+
+	// Percentage of total
+	AuthorsPercent    float64
+	CommitsPercent    float64
+	TreesPercent      float64
+	BlobsPercent      float64
+	CompressedPercent float64
+
+	// Delta percentage changes (Δ%)
+	AuthorsDeltaPercent    float64
+	CommitsDeltaPercent    float64
+	TreesDeltaPercent      float64
+	BlobsDeltaPercent      float64
+	CompressedDeltaPercent float64
 }
 
 // FileInformation holds information about a file in the repository

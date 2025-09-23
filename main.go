@@ -244,20 +244,66 @@ func main() {
 		CompressedSize: totalStatistics.Compressed,
 	}
 
-	// Combined historic table (totals + deltas)
+	// Calculate and store delta, percentage, and delta percentage values
 	currentYear := time.Now().Year()
 	var previousCumulative models.GrowthStatistics
 	var previousDelta models.GrowthStatistics
+
+	// Process each year to calculate and store all derived values
 	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
 		if cumulative, ok := yearlyStatistics[year]; ok {
-			delta := models.GrowthStatistics{Year: year,
-				Authors:    cumulative.Authors - previousCumulative.Authors,
-				Commits:    cumulative.Commits - previousCumulative.Commits,
-				Compressed: cumulative.Compressed - previousCumulative.Compressed,
+			// Calculate delta values (year-over-year changes)
+			cumulative.AuthorsDelta = cumulative.Authors - previousCumulative.Authors
+			cumulative.CommitsDelta = cumulative.Commits - previousCumulative.Commits
+			cumulative.TreesDelta = cumulative.Trees - previousCumulative.Trees
+			cumulative.BlobsDelta = cumulative.Blobs - previousCumulative.Blobs
+			cumulative.CompressedDelta = cumulative.Compressed - previousCumulative.Compressed
+
+			// Calculate percentage of total
+			if repositoryInformation.TotalAuthors > 0 {
+				cumulative.AuthorsPercent = float64(cumulative.AuthorsDelta) / float64(repositoryInformation.TotalAuthors) * 100
 			}
-			sections.PrintGrowthHistoryRow(cumulative, delta, previousDelta, repositoryInformation, currentYear)
+			if repositoryInformation.TotalCommits > 0 {
+				cumulative.CommitsPercent = float64(cumulative.CommitsDelta) / float64(repositoryInformation.TotalCommits) * 100
+			}
+			if repositoryInformation.TotalTrees > 0 {
+				cumulative.TreesPercent = float64(cumulative.TreesDelta) / float64(repositoryInformation.TotalTrees) * 100
+			}
+			if repositoryInformation.TotalBlobs > 0 {
+				cumulative.BlobsPercent = float64(cumulative.BlobsDelta) / float64(repositoryInformation.TotalBlobs) * 100
+			}
+			if repositoryInformation.CompressedSize > 0 {
+				cumulative.CompressedPercent = float64(cumulative.CompressedDelta) / float64(repositoryInformation.CompressedSize) * 100
+			}
+
+			// Calculate delta percentage changes (Δ%)
+			if previousDelta.Year != 0 { // Skip first year
+				if previousDelta.AuthorsDelta > 0 {
+					cumulative.AuthorsDeltaPercent = float64(cumulative.AuthorsDelta-previousDelta.AuthorsDelta) / float64(previousDelta.AuthorsDelta) * 100
+				}
+				if previousDelta.CommitsDelta > 0 {
+					cumulative.CommitsDeltaPercent = float64(cumulative.CommitsDelta-previousDelta.CommitsDelta) / float64(previousDelta.CommitsDelta) * 100
+				}
+				if previousDelta.TreesDelta > 0 {
+					cumulative.TreesDeltaPercent = float64(cumulative.TreesDelta-previousDelta.TreesDelta) / float64(previousDelta.TreesDelta) * 100
+				}
+				if previousDelta.BlobsDelta > 0 {
+					cumulative.BlobsDeltaPercent = float64(cumulative.BlobsDelta-previousDelta.BlobsDelta) / float64(previousDelta.BlobsDelta) * 100
+				}
+				if previousDelta.CompressedDelta > 0 {
+					cumulative.CompressedDeltaPercent = float64(cumulative.CompressedDelta-previousDelta.CompressedDelta) / float64(previousDelta.CompressedDelta) * 100
+				}
+			}
+
+			// Store the updated statistics back in the map
+			yearlyStatistics[year] = cumulative
+
+			// Print the row using the stored values
+			sections.PrintGrowthHistoryRow(cumulative, cumulative, previousDelta, repositoryInformation, currentYear)
+
+			// Update for next iteration
 			previousCumulative = cumulative
-			previousDelta = delta
+			previousDelta = cumulative
 		}
 	}
 

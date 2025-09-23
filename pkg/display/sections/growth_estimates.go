@@ -137,39 +137,28 @@ func PrintEstimatedGrowthTableHeader() {
 }
 
 // PrintGrowthEstimateRow prints a row in the estimated growth table
-func PrintGrowthEstimateRow(statistics, previous, previousPrevious models.GrowthStatistics, information models.RepositoryInformation, currentYear int) {
-	var authorsPercentage, commitsPercentage, compressedPercentage float64
-	if information.TotalAuthors > 0 {
-		authorsPercentage = float64(statistics.Authors-previous.Authors) / float64(information.TotalAuthors) * 100
-	}
-	if information.TotalCommits > 0 {
-		commitsPercentage = float64(statistics.Commits-previous.Commits) / float64(information.TotalCommits) * 100
-	}
-	if information.CompressedSize > 0 {
-		compressedPercentage = float64(statistics.Compressed-previous.Compressed) / float64(information.CompressedSize) * 100
-	}
-
-	// Calculate Δ% - percentage change from previous delta to current delta
-	var authorsDeltaPercentChange, commitsDeltaPercentChange, compressedDeltaPercentChange float64
+func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, information models.RepositoryInformation, currentYear int) {
+	// Calculate delta values for this estimate row
 	currentAuthorsDelta := statistics.Authors - previous.Authors
 	currentCommitsDelta := statistics.Commits - previous.Commits
 	currentSizeDelta := statistics.Compressed - previous.Compressed
 
-	if previousPrevious.Year != 0 {
-		previousAuthorsDelta := previous.Authors - previousPrevious.Authors
-		previousCommitsDelta := previous.Commits - previousPrevious.Commits
-		previousSizeDelta := previous.Compressed - previousPrevious.Compressed
-
-		if previousAuthorsDelta > 0 {
-			authorsDeltaPercentChange = float64(currentAuthorsDelta-previousAuthorsDelta) / float64(previousAuthorsDelta) * 100
-		}
-		if previousCommitsDelta > 0 {
-			commitsDeltaPercentChange = float64(currentCommitsDelta-previousCommitsDelta) / float64(previousCommitsDelta) * 100
-		}
-		if previousSizeDelta > 0 {
-			compressedDeltaPercentChange = float64(currentSizeDelta-previousSizeDelta) / float64(previousSizeDelta) * 100
-		}
+	// Calculate percentages for this estimate
+	var authorsPercentage, commitsPercentage, compressedPercentage float64
+	if information.TotalAuthors > 0 {
+		authorsPercentage = float64(currentAuthorsDelta) / float64(information.TotalAuthors) * 100
 	}
+	if information.TotalCommits > 0 {
+		commitsPercentage = float64(currentCommitsDelta) / float64(information.TotalCommits) * 100
+	}
+	if information.CompressedSize > 0 {
+		compressedPercentage = float64(currentSizeDelta) / float64(information.CompressedSize) * 100
+	}
+
+	// Use pre-calculated delta percentage values from the statistics struct
+	authorsDeltaPercentChange := statistics.AuthorsDeltaPercent
+	commitsDeltaPercentChange := statistics.CommitsDeltaPercent
+	compressedDeltaPercentChange := statistics.CompressedDeltaPercent
 
 	yearDisplay := strconv.Itoa(statistics.Year) + "*"
 
@@ -205,7 +194,7 @@ func PrintGrowthEstimateRow(statistics, previous, previousPrevious models.Growth
 	authorsDeltaPercentDisplay := "" // blank for first estimate
 	commitsDeltaPercentDisplay := ""
 	compressedDeltaPercentDisplay := ""
-	if previousPrevious.Year != 0 {
+	if previous.Year != 0 { // Use previous year check instead of previousPrevious
 		formatSignedPercent := func(v float64) string {
 			iv := int(v + 0.5)
 			if iv > 0 {
@@ -247,26 +236,15 @@ func DisplayGrowthEstimates(yearlyStatistics map[int]models.GrowthStatistics, re
 		// Use new prediction logic based on delta changes
 		estimates := CalculateNewEstimate(yearlyStatistics, currentYear, recentFetch)
 		for i, estimate := range estimates {
-			var previous, previousPrevious models.GrowthStatistics
+			var previous models.GrowthStatistics
 			if i == 0 {
 				// For first estimate (current year), use previous year as comparison
 				previous = yearlyStatistics[currentYear-1]
-				// For Δ% calculation, use year before previous
-				if twoYearsAgo, exists := yearlyStatistics[currentYear-2]; exists {
-					previousPrevious = twoYearsAgo
-				}
 			} else {
 				// For subsequent estimates, use previous estimate
 				previous = estimates[i-1]
-				// For Δ% calculation, use estimate before previous
-				if i >= 2 {
-					previousPrevious = estimates[i-2]
-				} else if i == 1 {
-					// Second estimate: use actual previous year data
-					previousPrevious = yearlyStatistics[currentYear-1]
-				}
 			}
-			PrintGrowthEstimateRow(estimate, previous, previousPrevious, repositoryInformation, currentYear)
+			PrintGrowthEstimateRow(estimate, previous, repositoryInformation, currentYear)
 		}
 
 		fmt.Println("------------------------------------------------------------------------------------------------------------------------")

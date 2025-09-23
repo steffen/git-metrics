@@ -19,32 +19,19 @@ func PrintGrowthHistoryHeader() {
 }
 
 // PrintGrowthHistoryRow prints a combined cumulative + delta row.
-// cumulative = totals up to this year, delta = per-year additions.
-func PrintGrowthHistoryRow(cumulative, delta, previousDelta models.GrowthStatistics, information models.RepositoryInformation, currentYear int) {
-	var authorsPercentage, commitsPercentage, compressedPercentage float64
-	if information.TotalAuthors > 0 {
-		authorsPercentage = float64(delta.Authors) / float64(information.TotalAuthors) * 100
-	}
-	if information.TotalCommits > 0 {
-		commitsPercentage = float64(delta.Commits) / float64(information.TotalCommits) * 100
-	}
-	if information.CompressedSize > 0 {
-		compressedPercentage = float64(delta.Compressed) / float64(information.CompressedSize) * 100
-	}
+// statistics contains both cumulative totals and pre-calculated delta values.
+func PrintGrowthHistoryRow(statistics, _, previousStats models.GrowthStatistics, information models.RepositoryInformation, currentYear int) {
+	// Use pre-calculated values from the statistics struct
+	authorsPercentage := statistics.AuthorsPercent
+	commitsPercentage := statistics.CommitsPercent
+	compressedPercentage := statistics.CompressedPercent
 
-	var authorsDeltaPercentChange, commitsDeltaPercentChange, compressedDeltaPercentChange float64
-	if previousDelta.Authors > 0 {
-		authorsDeltaPercentChange = float64(delta.Authors-previousDelta.Authors) / float64(previousDelta.Authors) * 100
-	}
-	if previousDelta.Commits > 0 {
-		commitsDeltaPercentChange = float64(delta.Commits-previousDelta.Commits) / float64(previousDelta.Commits) * 100
-	}
-	if previousDelta.Compressed > 0 {
-		compressedDeltaPercentChange = float64(delta.Compressed-previousDelta.Compressed) / float64(previousDelta.Compressed) * 100
-	}
+	authorsDeltaPercentChange := statistics.AuthorsDeltaPercent
+	commitsDeltaPercentChange := statistics.CommitsDeltaPercent
+	compressedDeltaPercentChange := statistics.CompressedDeltaPercent
 
-	yearDisplay := strconv.Itoa(cumulative.Year)
-	if cumulative.Year == currentYear {
+	yearDisplay := strconv.Itoa(statistics.Year)
+	if statistics.Year == currentYear {
 		yearDisplay += "^"
 	}
 
@@ -56,15 +43,15 @@ func PrintGrowthHistoryRow(cumulative, delta, previousDelta models.GrowthStatist
 		return "-" + utils.FormatNumber(-v)
 	}
 
-	authorsDeltaDisplay := formatSigned(delta.Authors)
-	commitsDeltaDisplay := formatSigned(delta.Commits)
+	authorsDeltaDisplay := formatSigned(statistics.AuthorsDelta)
+	commitsDeltaDisplay := formatSigned(statistics.CommitsDelta)
 	// Size delta with explicit sign when positive
 	var sizeDeltaDisplay string
-	if delta.Compressed >= 0 {
-		formatted := utils.FormatSize(delta.Compressed)
+	if statistics.CompressedDelta >= 0 {
+		formatted := utils.FormatSize(statistics.CompressedDelta)
 		sizeDeltaDisplay = "+" + strings.TrimLeft(formatted, " ")
 	} else {
-		formatted := utils.FormatSize(-delta.Compressed)
+		formatted := utils.FormatSize(-statistics.CompressedDelta)
 		sizeDeltaDisplay = "-" + strings.TrimLeft(formatted, " ")
 	}
 
@@ -78,7 +65,7 @@ func PrintGrowthHistoryRow(cumulative, delta, previousDelta models.GrowthStatist
 	authorsDeltaPercentDisplay := "" // blank for first year
 	commitsDeltaPercentDisplay := ""
 	compressedDeltaPercentDisplay := ""
-	if previousDelta.Year != 0 {
+	if previousStats.Year != 0 {
 		formatSignedPercent := func(v float64) string {
 			iv := int(v + 0.5)
 			if iv > 0 {
@@ -94,7 +81,7 @@ func PrintGrowthHistoryRow(cumulative, delta, previousDelta models.GrowthStatist
 	// Print with adjusted spacing: % column narrower, Δ% wider (extra left padding)
 	fmt.Printf("%-5s %10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s\n",
 		yearDisplay,
-		utils.FormatNumber(cumulative.Authors), authorsDeltaDisplay, authorsPercentDisplay, authorsDeltaPercentDisplay,
-		utils.FormatNumber(cumulative.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsDeltaPercentDisplay,
-		utils.FormatSize(cumulative.Compressed), sizeDeltaDisplay, compressedPercentDisplay, compressedDeltaPercentDisplay)
+		utils.FormatNumber(statistics.Authors), authorsDeltaDisplay, authorsPercentDisplay, authorsDeltaPercentDisplay,
+		utils.FormatNumber(statistics.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsDeltaPercentDisplay,
+		utils.FormatSize(statistics.Compressed), sizeDeltaDisplay, compressedPercentDisplay, compressedDeltaPercentDisplay)
 }
