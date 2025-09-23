@@ -1,7 +1,10 @@
 // script.js
 // Load the metrics output, segment it into sections, and provide synchronized navigation.
 
-const OUTPUT_FILE = 'outputs/git.txt';
+// Supported outputs. First entry loads initially.
+const OUTPUT_FILES = ['outputs/git.txt', 'outputs/linux.txt'];
+let currentOutputIndex = 0;
+function currentOutputFile(){ return OUTPUT_FILES[currentOutputIndex]; }
 // Added: alignment factor for vertical positioning of focused section (0 = top, 0.5 = center)
 const FOCUS_VERTICAL_ALIGN = 0.35; // 35% from top gives a balanced look
 
@@ -21,15 +24,25 @@ const SECTION_DEFINITIONS = [
 const outputPane = document.getElementById('outputPane');
 const explanationPane = document.getElementById('explanationPane');
 
-let sections = []; // [{id, startLine, endLine, element, explanationEl}]
+let sections = []; // [{id, startLine, endLine, explanationEl}]
 let activeIndex = 0;
+let outputIndicatorEl = null;
 
-async function loadOutput() {
-  const res = await fetch(OUTPUT_FILE);
+async function loadOutputFile(preserveSectionId){
+  const file = currentOutputFile();
+  const res = await fetch(file);
   const text = await res.text();
   const lines = text.split(/\n/);
 
-  // Build an array of section boundaries.
+  // Clear previous content
+  outputPane.innerHTML = '';
+  explanationPane.innerHTML = '';
+  sections = [];
+
+  // Reset definitions line indices before reuse
+  SECTION_DEFINITIONS.forEach(d=>{ delete d.lineIndex; delete d.endLine; });
+
+  // Build section boundaries
   SECTION_DEFINITIONS.forEach(def => {
     const idx = lines.findIndex(l => def.match.test(l));
     if (idx !== -1) def.lineIndex = idx; else def.lineIndex = Infinity;
@@ -41,9 +54,9 @@ async function loadOutput() {
     current.endLine = (next ? next.lineIndex : lines.length) - 1;
   }
 
-  // Render output lines with data-line attributes for masking.
+  // Render output lines
   const frag = document.createDocumentFragment();
-  lines.forEach((ln, i) => {
+  lines.forEach((ln,i)=>{
     const div = document.createElement('div');
     div.textContent = ln || '\u200b';
     div.className = 'masked-line';
@@ -52,9 +65,9 @@ async function loadOutput() {
   });
   outputPane.appendChild(frag);
 
-  // Create explanation sections.
+  // Explanation sections
   const expFrag = document.createDocumentFragment();
-  sortedDefs.forEach((def, i) => {
+  sortedDefs.forEach(def => {
     const sec = { id: def.id, def, startLine: def.lineIndex, endLine: def.endLine };
     const wrap = document.createElement('section');
     wrap.className = 'section-explanation';
@@ -67,14 +80,24 @@ async function loadOutput() {
   explanationPane.appendChild(expFrag);
 
   buildAnchorBar();
-  updateActiveSection(0, false);
-  window.addEventListener('keydown', onKey);
-  outputPane.addEventListener('scroll', onManualScroll);
+
+  // Determine active index to restore
+  let restoreIndex = 0;
+  if(preserveSectionId){
+    const idx = sections.findIndex(s=>s.id===preserveSectionId);
+    if(idx !== -1) restoreIndex = idx;
+  }
+  updateActiveSection(restoreIndex, false);
 }
 
 function buildAnchorBar(){
   const bar = document.createElement('div');
   bar.className='anchor-links';
+  // Output indicator
+  outputIndicatorEl = document.createElement('span');
+  outputIndicatorEl.className = 'output-indicator';
+  outputIndicatorEl.textContent = currentOutputFile();
+  bar.appendChild(outputIndicatorEl);
   sections.forEach((s,i)=>{
     const a=document.createElement('a');
     a.href='#anchor-'+s.id; a.textContent=(i+1)+'. '+s.def.title.split(' ')[0];
@@ -134,8 +157,26 @@ function updateActiveSection(newIndex, smooth=true){
 }
 
 function onKey(e){
-  if(e.key==='ArrowRight') { e.preventDefault(); updateActiveSection(Math.min(activeIndex+1, sections.length-1)); }
-  if(e.key==='ArrowLeft') { e.preventDefault(); updateActiveSection(Math.max(activeIndex-1, 0)); }
+  // Section navigation (Up/Down)
+  if(e.key==='ArrowDown'){ e.preventDefault(); updateActiveSection(Math.min(activeIndex+1, sections.length-1)); }
+  if(e.key==='ArrowUp'){ e.preventDefault(); updateActiveSection(Math.max(activeIndex-1, 0)); }
+  // Output switching (Right/Left) preserving section id
+  if(e.key==='ArrowRight'){
+    if(currentOutputIndex < OUTPUT_FILES.length - 1){
+      e.preventDefault();
+      const preserveId = sections[activeIndex]?.id;
+      currentOutputIndex++;
+      loadOutputFile(preserveId).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
+    }
+  }
+  if(e.key==='ArrowLeft'){
+    if(currentOutputIndex > 0){
+      e.preventDefault();
+      const preserveId = sections[activeIndex]?.id;
+      currentOutputIndex--;
+      loadOutputFile(preserveId).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
+    }
+  }
 }
 
 function refreshAnchors(){
@@ -143,6 +184,9 @@ function refreshAnchors(){
   links.forEach((a,i)=>a.classList.toggle('active', i===activeIndex));
 }
 
-loadOutput().catch(err=>{
-  outputPane.textContent = 'Failed to load output: '+err;
-});
+// Initial load + listeners
+loadOutputFile().then(()=>{
+  // Single persistent listener (previous duplicate with once:true caused removal after first key press)
+  window.addEventListener('keydown', onKey);
+  outputPane.addEventListener('scroll', onManualScroll);
+}).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
