@@ -70,9 +70,16 @@ func PrintGrowthHistoryRow(cumulative, delta, previousDelta models.GrowthStatist
 	commitsDeltaPercentDisplay := ""
 	compressedDeltaPercentDisplay := ""
 	if previousDelta.Year != 0 {
-		authorsDeltaPercentDisplay = formatPercent(authorsDeltaPercentChange)
-		commitsDeltaPercentDisplay = formatPercent(commitsDeltaPercentChange)
-		compressedDeltaPercentDisplay = formatPercent(compressedDeltaPercentChange)
+		formatSignedPercent := func(v float64) string {
+			iv := int(v + 0.5)
+			if iv > 0 {
+				return fmt.Sprintf("+%d %%", iv)
+			}
+			return fmt.Sprintf("%d %%", iv)
+		}
+		authorsDeltaPercentDisplay = formatSignedPercent(authorsDeltaPercentChange)
+		commitsDeltaPercentDisplay = formatSignedPercent(commitsDeltaPercentChange)
+		compressedDeltaPercentDisplay = formatSignedPercent(compressedDeltaPercentChange)
 	}
 
 	// Print with adjusted spacing; keep under target width

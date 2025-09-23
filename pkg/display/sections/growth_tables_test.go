@@ -55,7 +55,7 @@ func TestPrintGrowthHistoryRow(t *testing.T) {
 	})
 
 	// Check for cumulative totals and deltas
-	expectedSnippets := []string{"2023^", "10", "+2", "+200", "1.0 MB", "5.0 MB", "100 %"}
+	expectedSnippets := []string{"2023^", "10", "+2", "+200", "1.0 MB", "5.0 MB", "+100 %"}
 	for _, expected := range expectedSnippets {
 		if !strings.Contains(output, expected) {
 			t.Errorf("expected row output to contain %q.\nOutput: %s", expected, output)
