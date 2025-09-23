@@ -41,17 +41,24 @@ func TestPrintGrowthHistoryHeader(t *testing.T) {
 }
 
 func TestPrintGrowthHistoryRow(t *testing.T) {
-	stats := models.GrowthStatistics{Year: 2023, Authors: 10, Commits: 1000, Compressed: 5 * 1000 * 1000}
-	prev := models.GrowthStatistics{Year: 2022, Authors: 8, Commits: 800, Compressed: 4 * 1000 * 1000}
+	cumulativePrev := models.GrowthStatistics{Year: 2022, Authors: 8, Commits: 800, Compressed: 4 * 1000 * 1000}
+	deltaPrev := models.GrowthStatistics{Year: 2022, Authors: 1, Commits: 100, Compressed: 500 * 1000}
+	cumulative := models.GrowthStatistics{Year: 2023, Authors: 10, Commits: 1000, Compressed: 5 * 1000 * 1000}
+	delta := models.GrowthStatistics{Year: 2023, Authors: 2, Commits: 200, Compressed: 1 * 1000 * 1000}
 	info := models.RepositoryInformation{TotalAuthors: 10, TotalCommits: 1000, CompressedSize: 5 * 1000 * 1000}
 
 	output := captureOutput(func() {
-		PrintGrowthHistoryRow(stats, prev, info, 2023)
+		// First year row (no previous delta)
+		PrintGrowthHistoryRow(cumulativePrev, deltaPrev, models.GrowthStatistics{}, info, 2023)
+		// Second year row (with previous delta for Δ%)
+		PrintGrowthHistoryRow(cumulative, delta, deltaPrev, info, 2023)
 	})
 
-	for _, expected := range []string{"2023^", "10", "1,000", "5.0 MB"} {
+	// Check for cumulative totals and deltas
+	expectedSnippets := []string{"2023^", "10", "+2", "+200", "1.0 MB", "5.0 MB", "100 %"}
+	for _, expected := range expectedSnippets {
 		if !strings.Contains(output, expected) {
-			t.Errorf("expected row to contain %q.\nOutput: %s", expected, output)
+			t.Errorf("expected row output to contain %q.\nOutput: %s", expected, output)
 		}
 	}
 }
@@ -68,23 +75,6 @@ func TestPrintGrowthEstimateRow(t *testing.T) {
 	if !strings.Contains(output, "2024*") {
 		if !strings.Contains(output, "2024*") {
 			t.Errorf("expected estimate row to contain year with * marker. Output: %s", output)
-		}
-	}
-}
-
-func TestPrintHistoricChangesPerYearHeaderAndRow(t *testing.T) {
-	output := captureOutput(func() {
-		PrintHistoricChangesPerYearHeader()
-		// Simulate two years of deltas
-		prevDelta := models.GrowthStatistics{Year: 2022, Commits: 200, Trees: 400, Blobs: 600, Compressed: 1 * 1000 * 1000}
-		currentDelta := models.GrowthStatistics{Year: 2023, Commits: 300, Trees: 500, Blobs: 700, Compressed: 2 * 1000 * 1000}
-		PrintHistoricChangesPerYearRow(prevDelta, models.GrowthStatistics{}, 2023)
-		PrintHistoricChangesPerYearRow(currentDelta, prevDelta, 2023)
-	})
-
-	for _, expected := range []string{"HISTORIC CHANGES PER YEAR", "Year", "Commits", "2023^"} {
-		if !strings.Contains(output, expected) {
-			t.Errorf("expected historic changes per year output to contain %q.\nOutput: %s", expected, output)
 		}
 	}
 }

@@ -275,65 +275,33 @@ func main() {
 		CompressedSize: totalStatistics.Compressed,
 	}
 
-	// Print growth table using stored statistics
-	previous = models.GrowthStatistics{} // Reset for display
+	// Combined historic table (totals + deltas)
 	currentYear := time.Now().Year()
-
-	// Print historical data
+	var previousCumulative models.GrowthStatistics
+	var previousDelta models.GrowthStatistics
 	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
-		if statistics, ok := yearlyStatistics[year]; ok {
-			sections.PrintGrowthHistoryRow(statistics, previous, repositoryInformation, currentYear)
-			previous = statistics
+		if cumulative, ok := yearlyStatistics[year]; ok {
+			delta := models.GrowthStatistics{Year: year,
+				Authors:    cumulative.Authors - previousCumulative.Authors,
+				Commits:    cumulative.Commits - previousCumulative.Commits,
+				Compressed: cumulative.Compressed - previousCumulative.Compressed,
+			}
+			sections.PrintGrowthHistoryRow(cumulative, delta, previousDelta, repositoryInformation, currentYear)
+			previousCumulative = cumulative
+			previousDelta = delta
 		}
 	}
 
-	// Separator and current totals footnote directly under historic table
-	fmt.Println("------------------------------------------------------------------------------------------------")
+	// Separator and footnotes
+	fmt.Println("--------------------------------------------------------------------------------------------------------------")
 	fmt.Println()
 	if recentFetch != "" {
-		// Include year in displayed date (first 16 chars: Mon, 02 Jan 2006)
 		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
 	} else {
 		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
 	}
-	// Explain percentage meaning for historic table too
-	fmt.Println("% Percentages show the increase relative to the current total (^)")
-
-	// Historic changes per year section (delta year over year instead of cumulative totals)
-	// Build yearly delta statistics first
-	var previousCumulative models.GrowthStatistics
-	yearlyDeltas := make(map[int]models.GrowthStatistics)
-	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
-		if cumulative, ok := yearlyStatistics[year]; ok {
-			// Compute delta for this year relative to previous cumulative snapshot
-			var delta models.GrowthStatistics
-			delta.Year = year
-			delta.Commits = cumulative.Commits - previousCumulative.Commits
-			delta.Trees = cumulative.Trees - previousCumulative.Trees
-			delta.Blobs = cumulative.Blobs - previousCumulative.Blobs
-			delta.Compressed = cumulative.Compressed - previousCumulative.Compressed
-			yearlyDeltas[year] = delta
-			previousCumulative = cumulative
-		}
-	}
-
-	// Print header and rows for historic changes per year
-	sections.PrintHistoricChangesPerYearHeader()
-	var previousDelta models.GrowthStatistics
-	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
-		if delta, ok := yearlyDeltas[year]; ok {
-			sections.PrintHistoricChangesPerYearRow(delta, previousDelta, currentYear)
-			previousDelta = delta
-		}
-	}
-	fmt.Println("------------------------------------------------------------------------------------------------")
-	fmt.Println()
-	if recentFetch != "" {
-		fmt.Printf("^ Current year delta as of the most recent fetch on %s\n", recentFetch[:16])
-	} else {
-		fmt.Printf("^ Current year delta as of Git directory's last modified: %s\n", lastModified[:16])
-	}
-	fmt.Println("% Percentages show change relative to previous year's delta")
+	fmt.Println("% % columns: each year's delta as share of current totals (^)")
+	fmt.Println("% Δ% columns: change of this year's delta vs previous year's delta")
 
 	// Show estimated growth table only when estimation period is sufficient
 	sections.PrintEstimatedGrowthSectionHeader()

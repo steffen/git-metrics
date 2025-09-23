@@ -7,40 +7,78 @@ import (
 	"strconv"
 )
 
-// PrintGrowthHistoryHeader prints the header for the historic growth table
+// PrintGrowthHistoryHeader prints the combined historic growth header.
 func PrintGrowthHistoryHeader() {
 	fmt.Println()
 	fmt.Println("HISTORIC GROWTH ################################################################################")
 	fmt.Println()
-	fmt.Println("Year        Authors                 Commits           On-disk size")
-	fmt.Println("------------------------------------------------------------------------------------------------")
+	// Adjusted column widths for alignment (supports thousands separators and up to 999 % values)
+	fmt.Println("Year     Authors        Δ      %     Δ%      Commits          Δ      %     Δ%   On-disk size            Δ      %     Δ%")
+	fmt.Println("----------------------------------------------------------------------------------------------------------------------------------")
 }
 
-// PrintGrowthHistoryRow prints a row of the historic growth table
-func PrintGrowthHistoryRow(statistics, previous models.GrowthStatistics, information models.RepositoryInformation, currentYear int) {
-	var authorsDifference, commitsDifference, compressedDifference float64
+// PrintGrowthHistoryRow prints a combined cumulative + delta row.
+// cumulative = totals up to this year, delta = per-year additions.
+func PrintGrowthHistoryRow(cumulative, delta, previousDelta models.GrowthStatistics, information models.RepositoryInformation, currentYear int) {
+	var authorsPercentage, commitsPercentage, compressedPercentage float64
 	if information.TotalAuthors > 0 {
-		authorsDifference = float64(statistics.Authors-previous.Authors) / float64(information.TotalAuthors) * 100
+		authorsPercentage = float64(delta.Authors) / float64(information.TotalAuthors) * 100
 	}
 	if information.TotalCommits > 0 {
-		commitsDifference = float64(statistics.Commits-previous.Commits) / float64(information.TotalCommits) * 100
+		commitsPercentage = float64(delta.Commits) / float64(information.TotalCommits) * 100
 	}
 	if information.CompressedSize > 0 {
-		compressedDifference = float64(statistics.Compressed-previous.Compressed) / float64(information.CompressedSize) * 100
+		compressedPercentage = float64(delta.Compressed) / float64(information.CompressedSize) * 100
 	}
 
-	yearDisplay := strconv.Itoa(statistics.Year)
-	if statistics.Year == currentYear {
-		// Only print separator if there are previous years of data
-		if previous.Year > 0 {
-			fmt.Println("------------------------------------------------------------------------------------------------")
-		}
+	var authorsDeltaPercentChange, commitsDeltaPercentChange, compressedDeltaPercentChange float64
+	if previousDelta.Authors > 0 {
+		authorsDeltaPercentChange = float64(delta.Authors-previousDelta.Authors) / float64(previousDelta.Authors) * 100
+	}
+	if previousDelta.Commits > 0 {
+		commitsDeltaPercentChange = float64(delta.Commits-previousDelta.Commits) / float64(previousDelta.Commits) * 100
+	}
+	if previousDelta.Compressed > 0 {
+		compressedDeltaPercentChange = float64(delta.Compressed-previousDelta.Compressed) / float64(previousDelta.Compressed) * 100
+	}
+
+	yearDisplay := strconv.Itoa(cumulative.Year)
+	if cumulative.Year == currentYear {
 		yearDisplay += "^"
 	}
 
-	fmt.Printf("%-5s %13s %+5.0f %%  %13s %+5.0f %%  %13s %+5.0f %%\n",
+	// Helper to format signed integers with thousand separators
+	formatSigned := func(v int) string {
+		if v >= 0 {
+			return "+" + utils.FormatNumber(v)
+		}
+		return "-" + utils.FormatNumber(-v)
+	}
+
+	authorsDeltaDisplay := formatSigned(delta.Authors)
+	commitsDeltaDisplay := formatSigned(delta.Commits)
+	sizeDeltaDisplay := utils.FormatSize(delta.Compressed)
+
+	// Helper to format integer percentage with trailing %
+	formatPercent := func(v float64) string { return fmt.Sprintf("%d %%", int(v+0.5)) }
+
+	authorsPercentDisplay := formatPercent(authorsPercentage)
+	commitsPercentDisplay := formatPercent(commitsPercentage)
+	compressedPercentDisplay := formatPercent(compressedPercentage)
+
+	authorsDeltaPercentDisplay := "" // blank for first year
+	commitsDeltaPercentDisplay := ""
+	compressedDeltaPercentDisplay := ""
+	if previousDelta.Year != 0 {
+		authorsDeltaPercentDisplay = formatPercent(authorsDeltaPercentChange)
+		commitsDeltaPercentDisplay = formatPercent(commitsDeltaPercentChange)
+		compressedDeltaPercentDisplay = formatPercent(compressedDeltaPercentChange)
+	}
+
+	// Print with flexible spacing; keep under width limit
+	fmt.Printf("%-5s %10s %8s %6s %6s %12s %10s %6s %6s %14s %12s %6s %6s\n",
 		yearDisplay,
-		utils.FormatNumber(statistics.Authors), authorsDifference,
-		utils.FormatNumber(statistics.Commits), commitsDifference,
-		utils.FormatSize(statistics.Compressed), compressedDifference)
+		utils.FormatNumber(cumulative.Authors), authorsDeltaDisplay, authorsPercentDisplay, authorsDeltaPercentDisplay,
+		utils.FormatNumber(cumulative.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsDeltaPercentDisplay,
+		utils.FormatSize(cumulative.Compressed), sizeDeltaDisplay, compressedPercentDisplay, compressedDeltaPercentDisplay)
 }
