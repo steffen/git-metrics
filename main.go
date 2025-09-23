@@ -194,6 +194,11 @@ func main() {
 	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##########################################################################################")
 	fmt.Println()
 
+	// Print footnotes above table headers
+	fmt.Println("% columns: each year's delta as share of current totals (^)")
+	fmt.Println("Δ% columns: change of this year's delta vs previous year's delta")
+	fmt.Println()
+
 	// Print table headers before data collection
 	fmt.Println("Year     Authors        Δ     %      Δ%       Commits          Δ     %      Δ%   On-disk size            Δ     %      Δ%")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
