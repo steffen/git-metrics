@@ -309,12 +309,12 @@ func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repo
 	} else {
 		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
 	}
-	fmt.Println("% % columns: each year's delta as share of current totals (^)")
-	fmt.Println("% Δ% columns: change of this year's delta vs previous year's delta")
+	fmt.Println("% columns: each year's delta as share of current totals (^)")
+	fmt.Println("Δ% columns: change of this year's delta vs previous year's delta")
 	if estimationYears > 0 {
-		fmt.Println("% * Estimated growth based on delta changes from past years")
+		fmt.Println("* Estimated growth based on delta changes from past years")
 	} else {
-		fmt.Println("% Growth estimation unavailable: Requires at least 2 years of commit history")
+		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
 }
 
