@@ -56,15 +56,20 @@ func UpdateProgress() {
 	if !CurrentProgress.Active || !ShowProgress {
 		return
 	}
-	elapsedTime := time.Since(CurrentProgress.ProgramStart)
-	fmt.Printf("\r%-4d %s%13s          %13s          %13s          %13s  %6s",
-		CurrentProgress.Year,
-		ProgressSpinner.Next(),
+	fmt.Printf("\r%-5s %10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s",
+		fmt.Sprintf("%d%s", CurrentProgress.Year, ProgressSpinner.Next()),
+		utils.FormatNumber(CurrentProgress.Statistics.Authors),
+		"...",
+		"...",
+		"...",
 		utils.FormatNumber(CurrentProgress.Statistics.Commits),
-		utils.FormatNumber(CurrentProgress.Statistics.Trees),
-		utils.FormatNumber(CurrentProgress.Statistics.Blobs),
+		"...",
+		"...",
+		"...",
 		utils.FormatSize(CurrentProgress.Statistics.Compressed),
-		utils.FormatDuration(elapsedTime))
+		"...",
+		"...",
+		"...")
 }
 
 // StartProgress starts progress tracking
