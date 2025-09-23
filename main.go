@@ -197,18 +197,11 @@ func main() {
 	var totalStatistics models.GrowthStatistics
 
 	// Estimation
-	var estimationTotalDeltaStatistics models.GrowthStatistics
-	var estimationYearlyAverage models.GrowthStatistics
-	var estimationStartYear = firstCommitTime.Year() + 1
 	var estimationEndYear = time.Now().Year() - 1
-	var estimationYears = estimationEndYear - estimationStartYear + 1
-	var minimumRequiredEstimationYears = 1
-	var maximumEstimationYears = 5
-	var estimationDisplayYears = 6
+	var estimationYears = estimationEndYear - firstCommitTime.Year()
 
-	if estimationYears > maximumEstimationYears {
+	if estimationYears > 5 {
 		estimationYears = 5
-		estimationStartYear = estimationEndYear - maximumEstimationYears + 1
 	}
 
 	yearlyStatistics := make(map[int]models.GrowthStatistics)
@@ -218,33 +211,9 @@ func main() {
 		progress.StartProgress(year, previous, startTime) // Start progress updates
 		if cumulativeStatistics, err := git.GetGrowthStats(year, previous, debug); err == nil {
 			totalStatistics = cumulativeStatistics
-			previousForEstimation := previous
 			previous = cumulativeStatistics
 			yearlyStatistics[year] = cumulativeStatistics
 			progress.CurrentProgress.Statistics = cumulativeStatistics // Update current progress
-
-			if estimationYears < minimumRequiredEstimationYears {
-				continue
-			}
-
-			if year < estimationStartYear || year > estimationEndYear {
-				continue
-			}
-
-			estimationTotalDeltaStatistics.Commits += totalStatistics.Commits - previousForEstimation.Commits
-			estimationTotalDeltaStatistics.Trees += totalStatistics.Trees - previousForEstimation.Trees
-			estimationTotalDeltaStatistics.Blobs += totalStatistics.Blobs - previousForEstimation.Blobs
-			estimationTotalDeltaStatistics.Compressed += totalStatistics.Compressed - previousForEstimation.Compressed
-
-			if year == estimationEndYear {
-				// Calculate average growth per year for the estimation period
-				estimationYearlyAverage = models.GrowthStatistics{
-					Commits:    estimationTotalDeltaStatistics.Commits / estimationYears,
-					Trees:      estimationTotalDeltaStatistics.Trees / estimationYears,
-					Blobs:      estimationTotalDeltaStatistics.Blobs / estimationYears,
-					Compressed: estimationTotalDeltaStatistics.Compressed / int64(estimationYears),
-				}
-			}
 		}
 	}
 	progress.StopProgress() // Stop and clear progress line
@@ -303,28 +272,8 @@ func main() {
 	fmt.Println("% % columns: each year's delta as share of current totals (^)")
 	fmt.Println("% Δ% columns: change of this year's delta vs previous year's delta")
 
-	// Show estimated growth table only when estimation period is sufficient
-	sections.PrintEstimatedGrowthSectionHeader()
-
-	if estimationYears > 0 {
-		sections.PrintEstimatedGrowthTableHeader()
-
-		// Use last historical year as base for estimates
-		lastStatistics := yearlyStatistics[currentYear-1]
-		previousEstimate := lastStatistics
-		for i := 1; i <= estimationDisplayYears; i++ {
-			projected := git.CalculateEstimate(previousEstimate, estimationYearlyAverage)
-			sections.PrintGrowthEstimateRow(projected, previousEstimate, repositoryInformation, currentYear)
-			previousEstimate = projected
-		}
-
-		fmt.Println("------------------------------------------------------------------------------------------------")
-		fmt.Println()
-		fmt.Println("* Estimated growth based on the last five years")
-		fmt.Println("% Percentages show the increase relative to the current total (^)")
-	} else {
-		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
-	}
+	// Display growth estimates using the dedicated function
+	sections.DisplayGrowthEstimates(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch)
 
 	// Rate of changes analysis - add after historic growth and before largest directories
 	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {

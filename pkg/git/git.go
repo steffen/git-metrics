@@ -233,17 +233,6 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	return currentStatistics, nil
 }
 
-// CalculateEstimate calculates estimated future growth based on current stats and average growth
-func CalculateEstimate(current models.GrowthStatistics, average models.GrowthStatistics) models.GrowthStatistics {
-	return models.GrowthStatistics{
-		Year:         current.Year + 1,
-		Commits:      current.Commits + average.Commits,
-		Trees:        current.Trees + average.Trees,
-		Blobs:        current.Blobs + average.Blobs,
-		Compressed:   current.Compressed + average.Compressed,
-		LargestFiles: []models.FileInformation{}, // No estimate for largest files
-	}
-}
 func ShellToUse() string {
 	if runtime.GOOS == "windows" {
 		return "bash"
