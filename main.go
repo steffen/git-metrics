@@ -72,7 +72,7 @@ func main() {
 
 	sections.DisplayRunInformation()
 
-	fmt.Println("\nREPOSITORY #####################################################################################")
+	fmt.Println("\nREPOSITORY #############################################################################################################")
 	fmt.Println()
 
 	// Get Git directory last modified time
@@ -191,7 +191,7 @@ func main() {
 
 	// Display the section header before data collection
 	fmt.Println()
-	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##################################################################")
+	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##########################################################################################")
 	fmt.Println()
 
 	// Print table headers before data collection
