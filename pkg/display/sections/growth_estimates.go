@@ -255,6 +255,75 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 		utils.FormatSize(statistics.Compressed), sizeDeltaDisplay, compressedPercentDisplay, compressedDeltaPercentDisplay)
 }
 
+// DisplayUnifiedGrowth handles the complete unified historic and estimated growth section
+func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repositoryInformation models.RepositoryInformation, firstCommitTime time.Time, recentFetch string, lastModified string) {
+	currentYear := time.Now().Year()
+
+	// Print unified section header
+	fmt.Println()
+	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##################################################################")
+	fmt.Println()
+	fmt.Println("Year     Authors        Δ     %      Δ%       Commits          Δ     %      Δ%   On-disk size            Δ     %      Δ%")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
+
+	// Display historic growth data
+	var previousDelta models.GrowthStatistics
+	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
+		if cumulative, ok := yearlyStatistics[year]; ok {
+			// Add row separator before current year
+			if year == currentYear {
+				fmt.Println("------------------------------------------------------------------------------------------------------------------------")
+			}
+			PrintGrowthHistoryRow(cumulative, cumulative, previousDelta, repositoryInformation, currentYear)
+			// Add row separator after current year
+			if year == currentYear {
+				fmt.Println("------------------------------------------------------------------------------------------------------------------------")
+			}
+			previousDelta = cumulative
+		}
+	}
+
+	// Display estimated growth data if sufficient history exists
+	var estimationEndYear = time.Now().Year() - 1
+	var estimationYears = estimationEndYear - firstCommitTime.Year()
+
+	if estimationYears > 5 {
+		estimationYears = 5
+	}
+
+	if estimationYears > 0 {
+		// Use new prediction logic based on delta changes
+		estimates := CalculateNewEstimate(yearlyStatistics, currentYear, recentFetch)
+		for i, estimate := range estimates {
+			var previous models.GrowthStatistics
+			if i == 0 {
+				// For first estimate (current year), use previous year as comparison
+				previous = yearlyStatistics[currentYear-1]
+			} else {
+				// For subsequent estimates, use previous estimate
+				previous = estimates[i-1]
+			}
+			PrintGrowthEstimateRow(estimate, previous, repositoryInformation, currentYear)
+		}
+	}
+
+	// Separator and footnotes
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
+	fmt.Println()
+	if recentFetch != "" {
+		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
+	} else {
+		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
+	}
+	fmt.Println("% % columns: each year's delta as share of current totals (^)")
+	fmt.Println("% Δ% columns: change of this year's delta vs previous year's delta")
+	if estimationYears > 0 {
+		fmt.Println("% * Estimated growth based on delta changes from past years")
+	} else {
+		fmt.Println("% Growth estimation unavailable: Requires at least 2 years of commit history")
+	}
+}
+
 // DisplayGrowthEstimates handles the complete growth estimation section including calculation and display
 func DisplayGrowthEstimates(yearlyStatistics map[int]models.GrowthStatistics, repositoryInformation models.RepositoryInformation, firstCommitTime time.Time, recentFetch string) {
 	currentYear := time.Now().Year()

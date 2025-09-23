@@ -189,20 +189,9 @@ func main() {
 
 	fmt.Printf("Age                        %s\n", ageString)
 
-	// Print historic growth table header first
-	sections.PrintGrowthHistoryHeader()
-
-	// Then calculate growth stats and totals
+	// Calculate growth stats and totals
 	var previous models.GrowthStatistics
 	var totalStatistics models.GrowthStatistics
-
-	// Estimation
-	var estimationEndYear = time.Now().Year() - 1
-	var estimationYears = estimationEndYear - firstCommitTime.Year()
-
-	if estimationYears > 5 {
-		estimationYears = 5
-	}
 
 	yearlyStatistics := make(map[int]models.GrowthStatistics)
 
@@ -298,28 +287,14 @@ func main() {
 			// Store the updated statistics back in the map
 			yearlyStatistics[year] = cumulative
 
-			// Print the row using the stored values
-			sections.PrintGrowthHistoryRow(cumulative, cumulative, previousDelta, repositoryInformation, currentYear)
-
 			// Update for next iteration
 			previousCumulative = cumulative
 			previousDelta = cumulative
 		}
 	}
 
-	// Separator and footnotes
-	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
-	fmt.Println()
-	if recentFetch != "" {
-		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
-	} else {
-		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
-	}
-	fmt.Println("% % columns: each year's delta as share of current totals (^)")
-	fmt.Println("% Δ% columns: change of this year's delta vs previous year's delta")
-
-	// Display growth estimates using the dedicated function
-	sections.DisplayGrowthEstimates(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch)
+	// Display unified historic and estimated growth using the new function
+	sections.DisplayUnifiedGrowth(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch, lastModified)
 
 	// Rate of changes analysis - add after historic growth and before largest directories
 	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
