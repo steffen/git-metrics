@@ -172,7 +172,7 @@ func PrintEstimatedGrowthSectionHeader() {
 
 // PrintEstimatedGrowthTableHeader prints only the table column headers + divider (no banner)
 func PrintEstimatedGrowthTableHeader() {
-	fmt.Println("Year     Authors        Δ     %      Δ%       Commits          Δ     %      Δ%   On-disk size            Δ     %      Δ%")
+	fmt.Println("Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 }
 

@@ -195,12 +195,12 @@ func main() {
 	fmt.Println()
 
 	// Print footnotes above table headers
-	fmt.Println("% columns: each year's delta as share of current totals (^)")
+	fmt.Println("T% columns: each year's delta as share of current totals (^)")
 	fmt.Println("Δ% columns: change of this year's delta vs previous year's delta")
 	fmt.Println()
 
 	// Print table headers before data collection
-	fmt.Println("Year     Authors        Δ     %      Δ%       Commits          Δ     %      Δ%   On-disk size            Δ     %      Δ%")
+	fmt.Println("Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Calculate growth stats and totals

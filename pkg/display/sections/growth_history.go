@@ -14,7 +14,7 @@ func PrintGrowthHistoryHeader() {
 	fmt.Println("HISTORIC GROWTH ################################################################################")
 	fmt.Println()
 	// Adjusted spacing per request (narrower) with separators only between blocks (none after Year)
-	fmt.Println("Year     Authors        Δ     %      Δ%       Commits          Δ     %      Δ%   On-disk size            Δ     %      Δ%")
+	fmt.Println("Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 }
 
