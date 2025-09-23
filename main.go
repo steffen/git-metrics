@@ -293,7 +293,7 @@ func main() {
 	}
 
 	// Separator and footnotes
-	fmt.Println("--------------------------------------------------------------------------------------------------------------")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 	fmt.Println()
 	if recentFetch != "" {
 		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
