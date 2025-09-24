@@ -19,7 +19,8 @@ mkdir -p "$OUTPUT_DIR"
 DEFAULT_BASE="${EXAMPLE_REPOSITORIES_BASE:-$HOME/GitHub/oss}"
 
 REPOSITORIES="git|https://github.com/git/git.git|${GIT_REPOSITORY_PATH:-$DEFAULT_BASE/git}
-linux|https://github.com/torvalds/linux.git|${LINUX_REPOSITORY_PATH:-$DEFAULT_BASE/linux}"
+linux|https://github.com/torvalds/linux.git|${LINUX_REPOSITORY_PATH:-$DEFAULT_BASE/linux}
+chromium|https://github.com/chromium/chromium.git|${CHROMIUM_REPOSITORY_PATH:-$DEFAULT_BASE/chromium}"
 
 update_repository() {
   name="$1"
@@ -54,4 +55,6 @@ cat <<EOF >&2
 Notes:
 - Override base directory via EXAMPLE_REPOSITORIES_BASE or per repository via GIT_REPOSITORY_PATH / LINUX_REPOSITORY_PATH.
 - The Linux repository is very large; the initial clone can take several minutes and multiple gigabytes of disk space.
+- The Chromium repository is extremely large (tens of gigabytes) and requires `gclient` for full dependency checkout; this script only runs if you have an existing git clone at CHROMIUM_REPOSITORY_PATH.
+  (Clone step is intentionally disabled by default to avoid very long download times.)
 EOF
