@@ -2,7 +2,7 @@
 // Load the metrics output, segment it into sections, and provide synchronized navigation.
 
 // Supported outputs. First entry loads initially.
-const OUTPUT_FILES = ['outputs/git.txt', 'outputs/linux.txt'];
+const OUTPUT_FILES = ['outputs/git.txt', 'outputs/linux.txt', 'outputs/chromium.txt'];
 let currentOutputIndex = 0;
 function currentOutputFile(){ return OUTPUT_FILES[currentOutputIndex]; }
 // Added: alignment factor for vertical positioning of focused section (0 = top, 0.5 = center)
