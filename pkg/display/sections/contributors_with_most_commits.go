@@ -13,22 +13,26 @@ import (
 // Format strings for contributor table rows and formatting
 const (
 	// Authors section headers and dividers
-	formatAuthorsHeader      = "\nAUTHORS WITH MOST COMMITS ######################################################################"
-	formatAuthorsTableHeader = "Year     Author (#1)    Commits        Author (#2)    Commits        Author (#3)    Commits"
-	formatAuthorsDivider     = "------------------------------------------------------------------------------------------------"
+	// Target total table width for 3-column rows is now 120 characters.
+	// Name columns have been expanded from 14 to 22 chars each (adding 24 chars total across 3 columns).
+	formatAuthorsHeader = "\nAUTHORS WITH MOST COMMITS " +
+		"##############################################################################################" // 25 (text+space) + 95 '#' = 120
+	formatAuthorsTableHeader = "Year     Author (#1)            Commits        Author (#2)            Commits        Author (#3)            Commits"
+	formatAuthorsDivider     = "------------------------------------------------------------------------------------------------------------------------" // 120 '-'
 
 	// Committers section headers and dividers
-	formatCommittersHeader      = "\nCOMMITTERS WITH MOST COMMITS ###################################################################"
-	formatCommittersTableHeader = "Year     Committer (#1) Commits        Committer (#2) Commits        Committer (#3) Commits"
-	formatCommittersDivider     = "------------------------------------------------------------------------------------------------"
+	formatCommittersHeader = "\nCOMMITTERS WITH MOST COMMITS " +
+		"###########################################################################################" // 29 (text+space) + 91 '#' = 120
+	formatCommittersTableHeader = "Year     Committer (#1)         Commits        Committer (#2)         Commits        Committer (#3)         Commits"
+	formatCommittersDivider     = "------------------------------------------------------------------------------------------------------------------------" // 120 '-'
 
 	// Row formats for 3-column layout
-	formatThreeColumnRow = "%-6s │ %-14s%8s %3.0f%% │ %-14s%8s %3.0f%% │ %-14s%8s %3.0f%%\n"
-	formatTwoColumnRow   = "%-6s │ %-14s%8s %3.0f%% │ %-14s%8s %3.0f%%\n"
-	formatOneColumnRow   = "%-6s │ %-14s%8s %3.0f%%\n"
+	formatThreeColumnRow = "%-6s │ %-22s%8s %3.0f%% │ %-22s%8s %3.0f%% │ %-22s%8s %3.0f%%\n"
+	formatTwoColumnRow   = "%-6s │ %-22s%8s %3.0f%% │ %-22s%8s %3.0f%%\n"
+	formatOneColumnRow   = "%-6s │ %-22s%8s %3.0f%%\n"
 
 	// Maximum contributor name length
-	maxNameLength = 14
+	maxNameLength = 22
 )
 
 // contributorStats holds contributor name and commit count
@@ -244,7 +248,7 @@ func displayAllTimeAuthors(allTimeAuthorCommits map[string]int, allTimeTotalComm
 	}
 
 	// Print all-time stats
-	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Print total row for all-time authors
 	displayYearRowAuthorsAllTime("Total", allTimeAuthorsList, allTimeTotalCommits)
@@ -274,7 +278,7 @@ func displayAllTimeCommitters(allTimeCommitterCommits map[string]int, allTimeTot
 	}
 
 	// Print all-time stats
-	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Print total row for all-time committers
 	displayYearRowCommittersAllTime("Total", allTimeCommittersList, allTimeTotalCommits)

@@ -310,7 +310,12 @@ func main() {
 	// Display unified historic and estimated growth using the new function
 	sections.DisplayUnifiedGrowth(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch, lastModified)
 
-	// Rate of changes analysis - add after historic growth and before largest directories
+	// Print top 3 commit authors and committers per year
+	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
+		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
+	}
+
+	// Rate of changes analysis
 	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
 		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
 			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
@@ -344,11 +349,6 @@ func main() {
 
 	// New call to display top 10 largest file extensions using accumulated blob data.
 	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
-
-	// Print top 3 commit authors and committers per year
-	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
-		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
-	}
 
 	// Get memory statistics for final output
 	var memoryStatistics runtime.MemStats
