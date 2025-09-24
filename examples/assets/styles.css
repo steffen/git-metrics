@@ -13,6 +13,7 @@
   --code-font: 'SFMono-Regular', ui-monospace, 'Cascadia Mono', 'Liberation Mono', Menlo, monospace;
   --transition: 260ms cubic-bezier(.4,.1,.2,1);
   --section-height: 100vh;
+  --output-content-width:100ch;
 }
 body{
   background:linear-gradient(120deg,#0d1117,#111a23 35%,#0d1117);
@@ -22,11 +23,11 @@ body{
   height:100vh;
   overflow:hidden;
 }
-.layout{display:grid;grid-template-columns: minmax(44ch,48vw) 1fr;height:100%;}
+.layout{display:grid;grid-template-columns:calc(var(--output-content-width) + 3rem) 1fr;height:100%;font-family:var(--code-font);} /* Use monospace so 1ch matches output width */
 .output-pane{position:relative;overflow-y:auto;padding:2rem 1.5rem;font-family:var(--code-font);white-space:pre;line-height:1.2;font-size:.82rem;background:var(--bg-alt);border-right:1px solid var(--border);scroll-behavior:smooth;}
 .output-pane pre{margin-bottom:3rem;}
 .output-pane::-webkit-scrollbar{width:.6rem}.output-pane::-webkit-scrollbar-track{background:transparent}.output-pane::-webkit-scrollbar-thumb{background:#222f3b;border-radius:4px}
-.explanation-pane{position:relative;overflow:hidden;padding:2.5rem 2.5rem 4rem;display:flex;flex-direction:column;gap:2rem;scroll-behavior:smooth;}
+.explanation-pane{position:relative;overflow:hidden;padding:2.5rem 2.5rem 4rem;display:flex;flex-direction:column;gap:2rem;scroll-behavior:smooth;font-family: system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;} /* Restore UI font */
 .section-explanation{flex:0 0 var(--section-height);display:flex;flex-direction:column;justify-content:center;opacity:.25;filter:blur(2px);transform:scale(.98);transition:var(--transition);padding-right:1rem;max-width:60ch;}
 .section-explanation.active{opacity:1;filter:none;transform:scale(1);}
 .section-explanation h2{font-size:1.9rem;margin-bottom:1rem;letter-spacing:.5px;}
