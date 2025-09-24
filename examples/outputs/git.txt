@@ -1,57 +1,116 @@
-RUN ############################################################################################
+RUN ####################################################################################################################
 
-Start time                 Thu, 21 Aug 2025 17:56 CEST
-Machine                    10 CPU cores with 64 GB memory (macOS 15.6 on Apple M1 Max)
-Git metrics version        1.3.0
+Start time                 Wed, 24 Sep 2025 13:56 PDT
+Machine                    10 CPU cores with 64 GB memory (macOS 15.6.1 on Apple M1 Max)
+Git metrics version        0.0.0-examples
 Git version                2.46.0
 
-REPOSITORY #####################################################################################
+REPOSITORY #############################################################################################################
 
 Git directory              /Users/steffen/GitHub/oss/git/.git
 Remote                     https://github.com/git/git.git
-Most recent fetch          Thu, 21 Aug 2025 17:56 CEST
+Most recent fetch          Thu, 21 Aug 2025 08:56 PDT
 Most recent commit         Sun, 17 Aug 2025 (c44beea485)
 First commit               Thu, 07 Apr 2005 (e83c51)
-Age                        20 years 4 months 14 days
+Age                        20 years 5 months 17 days
 
-HISTORIC & ESTIMATED GROWTH ####################################################################
+HISTORIC AND ESTIMATED GROWTH ##########################################################################################
 
-Year        Commits                  Trees                  Blobs           On-disk size
-------------------------------------------------------------------------------------------------
-2005          3,215    +4 %          4,056    +3 %          5,922    +4 %         4.1 MB    +1 %
-2006          7,816    +6 %         10,459    +4 %         13,181    +5 %         8.4 MB    +2 %
-2007         13,312    +7 %         19,425    +6 %         22,503    +6 %        15.2 MB    +2 %
-2008         17,440    +5 %         26,655    +5 %         30,759    +5 %        21.0 MB    +2 %
-2009         21,267    +5 %         33,673    +4 %         37,227    +4 %        26.6 MB    +2 %
-2010         25,150    +5 %         41,060    +5 %         44,099    +4 %        32.6 MB    +2 %
-2011         28,673    +4 %         48,136    +4 %         50,231    +4 %        38.2 MB    +2 %
-2012         32,455    +5 %         55,937    +5 %         55,808    +4 %        45.4 MB    +3 %
-2013         36,772    +5 %         65,037    +6 %         62,775    +4 %        53.8 MB    +3 %
-2014         39,875    +4 %         71,108    +4 %         68,121    +3 %        62.6 MB    +3 %
-2015         43,161    +4 %         77,534    +4 %         73,436    +3 %        71.9 MB    +3 %
-2016         47,031    +5 %         85,302    +5 %         79,873    +4 %        80.5 MB    +3 %
-2017         51,617    +6 %         94,468    +6 %         88,493    +6 %        94.3 MB    +5 %
-2018         56,098    +6 %        103,740    +6 %         99,098    +7 %       115.3 MB    +7 %
-2019         59,867    +5 %        111,620    +5 %        106,638    +5 %       136.9 MB    +8 %
-2020         63,562    +5 %        119,536    +5 %        114,111    +5 %       158.3 MB    +7 %
-2021         67,578    +5 %        128,086    +5 %        121,937    +5 %       187.2 MB   +10 %
-2022         71,225    +4 %        136,302    +5 %        129,471    +5 %       216.0 MB   +10 %
-2023         74,172    +4 %        142,980    +4 %        139,020    +6 %       239.8 MB    +8 %
-2024         78,394    +5 %        152,556    +6 %        149,393    +7 %       266.0 MB    +9 %
-------------------------------------------------------------------------------------------------
-2025^        81,072    +3 %        158,302    +4 %        155,623    +4 %       286.1 MB    +7 %
-------------------------------------------------------------------------------------------------
-2025*        82,099    +5 %        160,743    +5 %        157,944    +5 %       291.9 MB    +9 %
-2026*        85,804    +5 %        168,930    +5 %        166,495    +5 %       317.7 MB    +9 %
-2027*        89,509    +5 %        177,117    +5 %        175,046    +5 %       343.5 MB    +9 %
-2028*        93,214    +5 %        185,304    +5 %        183,597    +5 %       369.4 MB    +9 %
-2029*        96,919    +5 %        193,491    +5 %        192,148    +5 %       395.2 MB    +9 %
-2030*       100,624    +5 %        201,678    +5 %        200,699    +5 %       421.0 MB    +9 %
-------------------------------------------------------------------------------------------------
+T% columns: each year's delta as share of current totals (^)
+Δ% columns: change of this year's delta vs previous year's delta
 
-^ Current totals as of the most recent fetch on Thu, 21 Aug
-* Estimated growth based on the last five years
-% Percentages show the increase relative to the current total (^)
+Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%
+------------------------------------------------------------------------------------------------------------------------
+2005         131     +131   6 %         │       3,215     +3,215   4 %         │       4.1 MB      +4.1 MB   1 %        
+2006         240     +109   5 %   -16 % │       7,816     +4,601   6 %   +43 % │       8.4 MB      +4.4 MB   2 %    +7 %
+2007         435     +195   8 %   +79 % │      13,312     +5,496   7 %   +19 % │      15.2 MB      +6.8 MB   2 %   +55 %
+2008         618     +183   8 %    -5 % │      17,440     +4,128   5 %   -24 % │      21.0 MB      +5.8 MB   2 %   -13 %
+2009         771     +153   7 %   -15 % │      21,267     +3,827   5 %    -6 % │      26.6 MB      +5.6 MB   2 %    -3 %
+2010         887     +116   5 %   -23 % │      25,150     +3,883   5 %    +1 % │      32.6 MB      +6.0 MB   2 %    +7 %
+2011         980      +93   4 %   -19 % │      28,673     +3,523   4 %    -8 % │      38.2 MB      +5.6 MB   2 %    -5 %
+2012       1,095     +115   5 %   +24 % │      32,457     +3,784   5 %    +7 % │      45.4 MB      +7.2 MB   3 %   +28 %
+2013       1,221     +126   5 %   +10 % │      36,772     +4,315   5 %   +14 % │      53.8 MB      +8.4 MB   3 %   +16 %
+2014       1,336     +115   5 %    -8 % │      39,875     +3,103   4 %   -27 % │      62.6 MB      +8.8 MB   3 %    +5 %
+2015       1,431      +95   4 %   -16 % │      43,161     +3,286   4 %    +6 % │      71.9 MB      +9.3 MB   3 %    +5 %
+2016       1,529      +98   4 %    +3 % │      47,031     +3,870   5 %   +18 % │      80.5 MB      +8.6 MB   3 %    -6 %
+2017       1,627      +98   4 %     0 % │      51,617     +4,586   6 %   +19 % │      94.3 MB     +13.7 MB   5 %   +60 %
+2018       1,718      +91   4 %    -6 % │      56,098     +4,481   6 %    -1 % │     115.3 MB     +21.1 MB   7 %   +53 %
+2019       1,828     +110   5 %   +21 % │      59,867     +3,769   5 %   -15 % │     136.9 MB     +21.6 MB   8 %    +2 %
+2020       1,931     +103   4 %    -5 % │      63,562     +3,695   5 %    -1 % │     158.3 MB     +21.5 MB   7 %     0 %
+2021       2,021      +90   4 %   -12 % │      67,578     +4,016   5 %    +9 % │     187.2 MB     +28.9 MB  10 %   +35 %
+2022       2,097      +76   3 %   -15 % │      71,225     +3,647   4 %    -8 % │     216.0 MB     +28.8 MB  10 %     0 %
+2023       2,161      +64   3 %   -15 % │      74,172     +2,947   4 %   -18 % │     239.8 MB     +23.8 MB   8 %   -16 %
+2024       2,255      +94   4 %   +47 % │      78,398     +4,226   5 %   +43 % │     266.1 MB     +26.3 MB   9 %   +10 %
+------------------------------------------------------------------------------------------------------------------------
+2025^      2,321      +66   3 %   -29 % │      81,072     +2,674   3 %   -36 % │     286.1 MB     +20.1 MB   7 %   -23 %
+------------------------------------------------------------------------------------------------------------------------
+2025^*     2,358     +103   4 %   +10 % │      82,604     +4,206   5 %     0 % │     297.6 MB     +31.6 MB  11 %   +20 %
+2026*      2,470     +112   5 %    +9 % │      86,791     +4,187   5 %     0 % │     335.6 MB     +38.0 MB  13 %   +20 %
+2027*      2,592     +122   5 %    +9 % │      90,959     +4,168   5 %     0 % │     381.3 MB     +45.7 MB  16 %   +20 %
+2028*      2,725     +133   6 %    +9 % │      95,108     +4,149   5 %     0 % │     436.2 MB     +54.9 MB  19 %   +20 %
+2029*      2,870     +145   6 %    +9 % │      99,238     +4,130   5 %     0 % │     502.2 MB     +66.0 MB  23 %   +20 %
+2030*      3,028     +158   7 %    +9 % │     103,349     +4,111   5 %     0 % │     581.6 MB     +79.4 MB  28 %   +20 %
+------------------------------------------------------------------------------------------------------------------------
+
+^  Current totals as of the most recent fetch on Thu, 21 Aug 2025
+^* Estimated growth for current year based on year to date deltas (Δ) extrapolated to full year
+*  Estimated growth based on current year's estimated delta percentages (Δ%)
+
+AUTHORS WITH MOST COMMITS ##############################################################################################
+
+Year     Author (#1)            Commits        Author (#2)            Commits        Author (#3)            Commits
+------------------------------------------------------------------------------------------------------------------------
+2005   │ Junio C Hamano           1,368  43% │ Linus Torvalds             680  21% │ Kay Sievers                139   4%
+2006   │ Junio C Hamano           2,202  48% │ Shawn O. Pearce            243   5% │ Jakub Narebski             220   5%
+2007   │ Junio C Hamano           1,606  29% │ Shawn O. Pearce            841  15% │ Johannes Schindelin        244   4%
+2008   │ Junio C Hamano           1,365  33% │ Shawn O. Pearce            163   4% │ Jeff King                  152   4%
+2009   │ Junio C Hamano           1,439  38% │ Jeff King                  134   3% │ Johannes Schindelin        104   3%
+2010   │ Junio C Hamano           1,537  40% │ Jonathan Nieder            333   9% │ Ævar Arnfjörð Bjarm...     121   3%
+2011   │ Junio C Hamano           1,588  45% │ Jeff King                  237   7% │ Jonathan Nieder            190   5%
+2012   │ Junio C Hamano           1,743  46% │ Jeff King                  314   8% │ Nguyễn Thái Ngọc Duy       204   5%
+2013   │ Junio C Hamano           1,787  41% │ Felipe Contreras           283   7% │ Jeff King                  243   6%
+2014   │ Junio C Hamano           1,220  39% │ Jeff King                  340  11% │ Nguyễn Thái Ngọc Duy       140   5%
+2015   │ Junio C Hamano           1,440  44% │ Jeff King                  368  11% │ Michael Haggerty           173   5%
+2016   │ Junio C Hamano           1,604  41% │ Jeff King                  386  10% │ Johannes Schindelin        193   5%
+2017   │ Junio C Hamano           1,739  38% │ Jeff King                  405   9% │ Brandon Williams           217   5%
+2018   │ Junio C Hamano           1,230  27% │ Nguyễn Thái Ngọc Duy       499  11% │ Jeff King                  255   6%
+2019   │ Junio C Hamano           1,095  29% │ Johannes Schindelin        321   9% │ Jeff King                  271   7%
+2020   │ Junio C Hamano           1,157  31% │ Jeff King                  270   7% │ Johannes Schindelin        208   6%
+2021   │ Junio C Hamano           1,215  30% │ Ævar Arnfjörð Bjarm...     606  15% │ Elijah Newren              201   5%
+2022   │ Junio C Hamano           1,187  33% │ Ævar Arnfjörð Bjarm...     555  15% │ Taylor Blau                181   5%
+2023   │ Junio C Hamano           1,041  35% │ Jeff King                  330  11% │ Elijah Newren              195   7%
+2024   │ Junio C Hamano           1,449  34% │ Patrick Steinhardt       1,026  24% │ Jeff King                  259   6%
+2025   │ Junio C Hamano             974  36% │ Patrick Steinhardt         434  16% │ Jeff King                   95   4%
+------------------------------------------------------------------------------------------------------------------------
+Total  │ Junio C Hamano          29,986  37% │ Jeff King                4,598   6% │ Johannes Schindelin      2,380   3%
+
+COMMITTERS WITH MOST COMMITS ###########################################################################################
+
+Year     Committer (#1)         Commits        Committer (#2)         Commits        Committer (#3)         Commits
+------------------------------------------------------------------------------------------------------------------------
+2005   │ Junio C Hamano           1,794  56% │ Linus Torvalds           1,036  32% │ Kay Sievers                136   4%
+2006   │ Junio C Hamano           4,310  94% │ Shawn O. Pearce            158   3% │ Paul Mackerras              82   2%
+2007   │ Junio C Hamano           3,964  72% │ Shawn O. Pearce            842  15% │ Simon Hausmann             247   4%
+2008   │ Junio C Hamano           3,532  86% │ Shawn O. Pearce            372   9% │ Paul Mackerras             123   3%
+2009   │ Junio C Hamano           3,514  92% │ Eric Wong                   96   3% │ Avery Pennarun              65   2%
+2010   │ Junio C Hamano           3,665  94% │ Eric Wong                   49   1% │ Pat Thoyts                  47   1%
+2011   │ Junio C Hamano           3,328  95% │ Jonathan Nieder             80   2% │ Pat Thoyts                  70   2%
+2012   │ Junio C Hamano           3,348  89% │ Jeff King                  153   4% │ Jiang Xin                   91   2%
+2013   │ Junio C Hamano           4,093  95% │ Jonathan Nieder             81   2% │ Jiang Xin                   24   1%
+2014   │ Junio C Hamano           2,967  96% │ Jiang Xin                   27   1% │ Eric Wong                   23   1%
+2015   │ Junio C Hamano           2,970  90% │ Jeff King                  111   3% │ Jiang Xin                   63   2%
+2016   │ Junio C Hamano           3,652  94% │ Jiang Xin                   45   1% │ Michael Haggerty            34   1%
+2017   │ Junio C Hamano           4,444  97% │ Jiang Xin                   64   1% │ Jean-Noel Avila             15   0%
+2018   │ Junio C Hamano           4,327  97% │ Jiang Xin                   64   1% │ Jeff King                   21   0%
+2019   │ Junio C Hamano           3,540  94% │ Johannes Schindelin         67   2% │ Jiang Xin                   53   1%
+2020   │ Junio C Hamano           3,474  94% │ Jiang Xin                   62   2% │ Pratyush Yadav              41   1%
+2021   │ Junio C Hamano           3,796  95% │ Jiang Xin                   81   2% │ Johannes Schindelin         30   1%
+2022   │ Junio C Hamano           3,239  89% │ Taylor Blau                240   7% │ Jiang Xin                   58   2%
+2023   │ Junio C Hamano           2,765  94% │ Johannes Schindelin         85   3% │ Jiang Xin                   36   1%
+2024   │ Junio C Hamano           3,792  90% │ Taylor Blau                218   5% │ Johannes Schindelin         86   2%
+2025   │ Junio C Hamano           2,400  90% │ Taylor Blau                 66   2% │ Mark Levedahl               58   2%
+------------------------------------------------------------------------------------------------------------------------
+Total  │ Junio C Hamano          72,914  90% │ Shawn O. Pearce          1,457   2% │ Linus Torvalds           1,041   1%
 
 RATE OF CHANGES ################################################################################
 
@@ -60,27 +119,27 @@ Commits to default branch (master)
               Commits             Peak per day            Peak per hour          Peak per minute
 Year         per year        P95    P99   P100        P95    P99   P100        P95    P99   P100
 ------------------------------------------------------------------------------------------------
-2005            3,132   │     25     33     87   │      7     13     64   │      4      7     17
-2006            4,499   │     32     40     44   │      9     15     37   │      3      7     34
-2007            5,388   │     32     55    132   │      8     16    113   │      3      7    113
-2008            4,009   │     27     34     46   │      9     16     29   │      4      8     21
-2009            3,676   │     30     40     58   │     10     17     27   │      4      8     18
-2010            3,661   │     36     51     93   │     13     23     62   │      5     13     32
-2011            3,371   │     31     59     77   │     12     22     72   │      4     12     71
-2012            3,605   │     31     47     58   │     12     19     54   │      5     10     54
-2013            4,180   │     42     54     82   │     14     23     61   │      5     12     45
-2014            3,006   │     36     52     71   │     16     29     57   │      6     15     34
-2015            3,176   │     41     54     68   │     16     30     56   │      8     20     56
-2016            3,745   │     37     54     62   │     18     32     46   │      9     22     41
-2017            4,469   │     46     56     78   │     21     34     50   │     12     23     43
-2018            4,421   │     46     62     85   │     22     37     82   │     12     30     77
-2019            3,700   │     45     70     97   │     19     34     66   │     12     24     44
-2020            3,600   │     33     52     70   │     14     27     50   │     10     20     41
-2021            3,911   │     39     51     82   │     16     28     78   │     11     21     76
-2022            3,520   │     35     47     64   │     15     25     55   │     11     18     34
-2023            2,833   │     32     47     60   │     15     27     55   │     10     22     54
-2024            3,973   │     34     48     54   │     18     27     51   │     11     22     49
-2025            2,186   │     38     50     66   │     14     21     66   │     10     16     35
+2005            3,132   │     24     37     88   │      7     13     64   │      4      7     17
+2006            4,509   │     30     40     53   │      9     15     37   │      3      7     34
+2007            5,378   │     36     48    119   │      8     16    113   │      3      7    113
+2008            4,009   │     29     39     55   │      9     16     29   │      4      8     21
+2009            3,678   │     31     39     55   │     10     17     27   │      4      8     18
+2010            3,659   │     35     62     95   │     13     23     62   │      5     13     32
+2011            3,371   │     30     61     97   │     12     22     72   │      4     12     71
+2012            3,606   │     28     38     62   │     12     19     54   │      5     10     54
+2013            4,179   │     37     51     83   │     14     23     61   │      5     12     45
+2014            3,006   │     37     50     71   │     16     29     57   │      6     15     34
+2015            3,176   │     39     53     68   │     16     30     56   │      8     20     56
+2016            3,745   │     37     57     61   │     18     32     46   │      9     22     41
+2017            4,469   │     46     66     78   │     21     34     50   │     12     23     43
+2018            4,421   │     47     63     85   │     22     37     82   │     12     30     77
+2019            3,701   │     45     69     98   │     19     34     66   │     12     24     44
+2020            3,599   │     34     54     70   │     14     27     50   │     10     20     41
+2021            3,911   │     39     50     93   │     16     28     78   │     11     21     76
+2022            3,520   │     32     55     64   │     15     25     55   │     11     18     34
+2023            2,833   │     34     52     68   │     15     27     55   │     10     22     54
+2024            3,973   │     39     48     61   │     18     27     51   │     11     22     49
+2025            2,186   │     40     57     66   │     14     21     66   │     10     16     35
 
 LARGEST DIRECTORIES ############################################################################
 
@@ -155,60 +214,4 @@ No Extension                           704  11.2 %         10,183   6.5 %       
 ├─ Top 10                            5,074  80.7 %        149,073  95.8 %       177.1 MB  97.6 %
 └─ Out of 364                        6,287 100.0 %        155,622 100.0 %       181.5 MB 100.0 %
 
-AUTHORS WITH MOST COMMITS ######################################################################
-
-Year     Author (#1)    Commits        Author (#2)    Commits        Author (#3)    Commits
-------------------------------------------------------------------------------------------------
-2005   │ Junio C Hamano   1,368  43% │ Linus Torvalds     680  21% │ Kay Sievers        139   4%
-2006   │ Junio C Hamano   2,202  48% │ Shawn O. Pe...     243   5% │ Jakub Narebski     220   5%
-2007   │ Junio C Hamano   1,606  29% │ Shawn O. Pe...     841  15% │ Johannes Sc...     244   4%
-2008   │ Junio C Hamano   1,365  33% │ Shawn O. Pe...     163   4% │ Jeff King          152   4%
-2009   │ Junio C Hamano   1,439  38% │ Jeff King          134   3% │ Johannes Sc...     104   3%
-2010   │ Junio C Hamano   1,537  40% │ Jonathan Ni...     333   9% │ Ævar Arnfjö...     121   3%
-2011   │ Junio C Hamano   1,588  45% │ Jeff King          237   7% │ Jonathan Ni...     190   5%
-2012   │ Junio C Hamano   1,743  46% │ Jeff King          314   8% │ Nguyễn Thái...     204   5%
-2013   │ Junio C Hamano   1,787  41% │ Felipe Cont...     283   7% │ Jeff King          243   6%
-2014   │ Junio C Hamano   1,220  39% │ Jeff King          340  11% │ Nguyễn Thái...     140   5%
-2015   │ Junio C Hamano   1,440  44% │ Jeff King          368  11% │ Michael Hag...     173   5%
-2016   │ Junio C Hamano   1,604  41% │ Jeff King          386  10% │ Johannes Sc...     193   5%
-2017   │ Junio C Hamano   1,739  38% │ Jeff King          405   9% │ Brandon Wil...     217   5%
-2018   │ Junio C Hamano   1,230  27% │ Nguyễn Thái...     499  11% │ Jeff King          255   6%
-2019   │ Junio C Hamano   1,095  29% │ Johannes Sc...     321   9% │ Jeff King          271   7%
-2020   │ Junio C Hamano   1,157  31% │ Jeff King          270   7% │ Johannes Sc...     208   6%
-2021   │ Junio C Hamano   1,215  30% │ Ævar Arnfjö...     606  15% │ Elijah Newren      201   5%
-2022   │ Junio C Hamano   1,187  33% │ Ævar Arnfjö...     555  15% │ Taylor Blau        181   5%
-2023   │ Junio C Hamano   1,041  35% │ Jeff King          330  11% │ Elijah Newren      195   7%
-2024   │ Junio C Hamano   1,449  34% │ Patrick Ste...   1,026  24% │ Jeff King          259   6%
-2025   │ Junio C Hamano     974  36% │ Patrick Ste...     434  16% │ Jeff King           95   4%
-------------------------------------------------------------------------------------------------
-Total  │ Junio C Hamano  29,986  37% │ Jeff King        4,598   6% │ Johannes Sc...   2,380   3%
-
-COMMITTERS WITH MOST COMMITS ###################################################################
-
-Year     Committer (#1) Commits        Committer (#2) Commits        Committer (#3) Commits
-------------------------------------------------------------------------------------------------
-2005   │ Junio C Hamano   1,794  56% │ Linus Torvalds   1,036  32% │ Kay Sievers        136   4%
-2006   │ Junio C Hamano   4,310  94% │ Shawn O. Pe...     158   3% │ Paul Mackerras      82   2%
-2007   │ Junio C Hamano   3,964  72% │ Shawn O. Pe...     842  15% │ Simon Hausmann     247   4%
-2008   │ Junio C Hamano   3,532  86% │ Shawn O. Pe...     372   9% │ Paul Mackerras     123   3%
-2009   │ Junio C Hamano   3,514  92% │ Eric Wong           96   3% │ Avery Pennarun      65   2%
-2010   │ Junio C Hamano   3,665  94% │ Eric Wong           49   1% │ Pat Thoyts          47   1%
-2011   │ Junio C Hamano   3,328  95% │ Jonathan Ni...      80   2% │ Pat Thoyts          70   2%
-2012   │ Junio C Hamano   3,348  89% │ Jeff King          153   4% │ Jiang Xin           91   2%
-2013   │ Junio C Hamano   4,093  95% │ Jonathan Ni...      81   2% │ Jiang Xin           24   1%
-2014   │ Junio C Hamano   2,967  96% │ Jiang Xin           27   1% │ Eric Wong           23   1%
-2015   │ Junio C Hamano   2,970  90% │ Jeff King          111   3% │ Jiang Xin           63   2%
-2016   │ Junio C Hamano   3,652  94% │ Jiang Xin           45   1% │ Michael Hag...      34   1%
-2017   │ Junio C Hamano   4,444  97% │ Jiang Xin           64   1% │ Jean-Noel A...      15   0%
-2018   │ Junio C Hamano   4,327  97% │ Jiang Xin           64   1% │ Jeff King           21   0%
-2019   │ Junio C Hamano   3,540  94% │ Johannes Sc...      67   2% │ Jiang Xin           53   1%
-2020   │ Junio C Hamano   3,474  94% │ Jiang Xin           62   2% │ Pratyush Yadav      41   1%
-2021   │ Junio C Hamano   3,796  95% │ Jiang Xin           81   2% │ Johannes Sc...      30   1%
-2022   │ Junio C Hamano   3,239  89% │ Taylor Blau        240   7% │ Jiang Xin           58   2%
-2023   │ Junio C Hamano   2,765  94% │ Johannes Sc...      85   3% │ Jiang Xin           36   1%
-2024   │ Junio C Hamano   3,792  90% │ Taylor Blau        218   5% │ Johannes Sc...      86   2%
-2025   │ Junio C Hamano   2,400  90% │ Taylor Blau         66   2% │ Mark Levedahl       58   2%
-------------------------------------------------------------------------------------------------
-Total  │ Junio C Hamano  72,914  90% │ Shawn O. Pe...   1,457   2% │ Linus Torvalds   1,041   1%
-
-Finished in 14s with a memory footprint of 118.7 MB.
+Finished in 16s with a memory footprint of 122.8 MB.
