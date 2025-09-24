@@ -23,7 +23,6 @@ Year        Commits                  Trees                  Blobs           On-d
 2025^            12                     34                     18                 7.3 KB         
 ------------------------------------------------------------------------------------------------
 
-^ Current year delta as of Git directory's last modified: Tue, 23 Sep 2025
 % Percentages show change relative to previous year's delta
 
 ESTIMATED GROWTH ###############################################################################
