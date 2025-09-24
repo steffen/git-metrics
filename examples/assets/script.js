@@ -23,10 +23,17 @@ const SECTION_DEFINITIONS = [
 
 const outputPane = document.getElementById('outputPane');
 const explanationPane = document.getElementById('explanationPane');
+const repoBadgeEl = document.getElementById('repoBadge');
+const outputContentEl = document.getElementById('outputContent');
 
 let sections = []; // [{id, startLine, endLine, explanationEl}]
 let activeIndex = 0;
 let outputIndicatorEl = null;
+
+function deriveRepoName(filePath){
+  const base = filePath.split('/').pop() || filePath;
+  return base.replace(/\.txt$/,'');
+}
 
 async function loadOutputFile(preserveSectionId){
   const file = currentOutputFile();
@@ -35,9 +42,14 @@ async function loadOutputFile(preserveSectionId){
   const lines = text.split(/\n/);
 
   // Clear previous content
-  outputPane.innerHTML = '';
+  outputContentEl.innerHTML = '';
   explanationPane.innerHTML = '';
   sections = [];
+
+  // Update repository badge
+  if(repoBadgeEl){
+    repoBadgeEl.textContent = deriveRepoName(file);
+  }
 
   // Reset definitions line indices before reuse
   SECTION_DEFINITIONS.forEach(d=>{ delete d.lineIndex; delete d.endLine; });
@@ -63,7 +75,7 @@ async function loadOutputFile(preserveSectionId){
     div.dataset.line = i;
     frag.appendChild(div);
   });
-  outputPane.appendChild(frag);
+  outputContentEl.appendChild(frag);
 
   // Explanation sections
   const expFrag = document.createDocumentFragment();
