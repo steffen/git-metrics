@@ -5,56 +5,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
-
-	"git-metrics/pkg/models"
 )
-
-func TestCalculateEstimate(t *testing.T) {
-	current := models.GrowthStatistics{
-		Year:       2023,
-		Commits:    1000,
-		Trees:      2000,
-		Blobs:      3000,
-		Compressed: 4000,
-	}
-
-	average := models.GrowthStatistics{
-		Commits:    100,
-		Trees:      200,
-		Blobs:      300,
-		Compressed: 400,
-	}
-
-	expected := models.GrowthStatistics{
-		Year:         2024,
-		Commits:      1100,
-		Trees:        2200,
-		Blobs:        3300,
-		Compressed:   4400,
-		LargestFiles: []models.FileInformation{},
-	}
-
-	result := CalculateEstimate(current, average)
-
-	if result.Year != expected.Year {
-		t.Errorf("CalculateEstimate() Year = %v, want %v", result.Year, expected.Year)
-	}
-	if result.Commits != expected.Commits {
-		t.Errorf("CalculateEstimate() Commits = %v, want %v", result.Commits, expected.Commits)
-	}
-	if result.Trees != expected.Trees {
-		t.Errorf("CalculateEstimate() Trees = %v, want %v", result.Trees, expected.Trees)
-	}
-	if result.Blobs != expected.Blobs {
-		t.Errorf("CalculateEstimate() Blobs = %v, want %v", result.Blobs, expected.Blobs)
-	}
-	if result.Compressed != expected.Compressed {
-		t.Errorf("CalculateEstimate() Compressed = %v, want %v", result.Compressed, expected.Compressed)
-	}
-	if len(result.LargestFiles) != len(expected.LargestFiles) {
-		t.Errorf("CalculateEstimate() LargestFiles length = %v, want %v", len(result.LargestFiles), len(expected.LargestFiles))
-	}
-}
 
 func TestGetGitVersion(t *testing.T) {
 	version := GetGitVersion()

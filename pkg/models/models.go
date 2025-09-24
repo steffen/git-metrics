@@ -10,6 +10,7 @@ type RepositoryInformation struct {
 	LastCommit     string
 	FirstDate      time.Time
 	TotalCommits   int
+	TotalAuthors   int
 	TotalTrees     int
 	TotalBlobs     int
 	CompressedSize int64
@@ -18,12 +19,34 @@ type RepositoryInformation struct {
 // GrowthStatistics holds statistics about repository growth
 type GrowthStatistics struct {
 	Year         int
+	Authors      int
 	Commits      int
 	Trees        int
 	Blobs        int
 	Compressed   int64
 	RunTime      time.Duration
 	LargestFiles []FileInformation
+
+	// Delta values (year-over-year changes)
+	AuthorsDelta    int
+	CommitsDelta    int
+	TreesDelta      int
+	BlobsDelta      int
+	CompressedDelta int64
+
+	// Percentage of total
+	AuthorsPercent    float64
+	CommitsPercent    float64
+	TreesPercent      float64
+	BlobsPercent      float64
+	CompressedPercent float64
+
+	// Delta percentage changes (Δ%)
+	AuthorsDeltaPercent    float64
+	CommitsDeltaPercent    float64
+	TreesDeltaPercent      float64
+	BlobsDeltaPercent      float64
+	CompressedDeltaPercent float64
 }
 
 // FileInformation holds information about a file in the repository

@@ -10,7 +10,7 @@ import (
 
 // DisplayRunInformation prints information about the system
 func DisplayRunInformation() {
-	fmt.Println("RUN ############################################################################################")
+	fmt.Println("RUN ####################################################################################################################")
 	fmt.Println()
 	fmt.Printf("Start time                 %s\n", time.Now().Format("Mon, 02 Jan 2006 15:04 MST"))
 	fmt.Printf("Machine                    %d CPU cores with %d GB memory (%s on %s)\n",

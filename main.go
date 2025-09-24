@@ -72,7 +72,7 @@ func main() {
 
 	sections.DisplayRunInformation()
 
-	fmt.Println("\nREPOSITORY #####################################################################################")
+	fmt.Println("\nREPOSITORY #############################################################################################################")
 	fmt.Println()
 
 	// Get Git directory last modified time
@@ -189,27 +189,23 @@ func main() {
 
 	fmt.Printf("Age                        %s\n", ageString)
 
-	// Print historic growth table header first
-	sections.PrintGrowthHistoryHeader()
+	// Display the section header before data collection
+	fmt.Println()
+	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##########################################################################################")
+	fmt.Println()
 
-	// Then calculate growth stats and totals
+	// Print footnotes above table headers
+	fmt.Println("T% columns: each year's delta as share of current totals (^)")
+	fmt.Println("Δ% columns: change of this year's delta vs previous year's delta")
+	fmt.Println()
+
+	// Print table headers before data collection (Year widened to 6 for ^* marker)
+	fmt.Println("Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
+
+	// Calculate growth stats and totals
 	var previous models.GrowthStatistics
 	var totalStatistics models.GrowthStatistics
-
-	// Estimation
-	var estimationTotalDeltaStatistics models.GrowthStatistics
-	var estimationYearlyAverage models.GrowthStatistics
-	var estimationStartYear = firstCommitTime.Year() + 1
-	var estimationEndYear = time.Now().Year() - 1
-	var estimationYears = estimationEndYear - estimationStartYear + 1
-	var minimumRequiredEstimationYears = 1
-	var maximumEstimationYears = 5
-	var estimationDisplayYears = 6
-
-	if estimationYears > maximumEstimationYears {
-		estimationYears = 5
-		estimationStartYear = estimationEndYear - maximumEstimationYears + 1
-	}
 
 	yearlyStatistics := make(map[int]models.GrowthStatistics)
 
@@ -218,38 +214,26 @@ func main() {
 		progress.StartProgress(year, previous, startTime) // Start progress updates
 		if cumulativeStatistics, err := git.GetGrowthStats(year, previous, debug); err == nil {
 			totalStatistics = cumulativeStatistics
-			previousForEstimation := previous
 			previous = cumulativeStatistics
 			yearlyStatistics[year] = cumulativeStatistics
 			progress.CurrentProgress.Statistics = cumulativeStatistics // Update current progress
-
-			if estimationYears < minimumRequiredEstimationYears {
-				continue
-			}
-
-			if year < estimationStartYear || year > estimationEndYear {
-				continue
-			}
-
-			estimationTotalDeltaStatistics.Commits += totalStatistics.Commits - previousForEstimation.Commits
-			estimationTotalDeltaStatistics.Trees += totalStatistics.Trees - previousForEstimation.Trees
-			estimationTotalDeltaStatistics.Blobs += totalStatistics.Blobs - previousForEstimation.Blobs
-			estimationTotalDeltaStatistics.Compressed += totalStatistics.Compressed - previousForEstimation.Compressed
-
-			if year == estimationEndYear {
-				// Calculate average growth per year for the estimation period
-				estimationYearlyAverage = models.GrowthStatistics{
-					Commits:    estimationTotalDeltaStatistics.Commits / estimationYears,
-					Trees:      estimationTotalDeltaStatistics.Trees / estimationYears,
-					Blobs:      estimationTotalDeltaStatistics.Blobs / estimationYears,
-					Compressed: estimationTotalDeltaStatistics.Compressed / int64(estimationYears),
-				}
-			}
 		}
 	}
 	progress.StopProgress() // Stop and clear progress line
 
-	// Save repository information with totals
+	// Compute cumulative unique authors per year for historic growth
+	cumulativeAuthorsByYear, totalAuthors, authorsErr := git.GetCumulativeUniqueAuthorsByYear()
+	if authorsErr == nil {
+		// Inject authors into yearly statistics
+		for year, stats := range yearlyStatistics {
+			if authorsCount, ok := cumulativeAuthorsByYear[year]; ok {
+				stats.Authors = authorsCount
+				yearlyStatistics[year] = stats
+			}
+		}
+	}
+
+	// Save repository information with totals (including authors)
 	repositoryInformation := models.RepositoryInformation{
 		Remote:         remote,
 		LastCommit:     lastCommit,
@@ -257,93 +241,74 @@ func main() {
 		Age:            ageString,
 		FirstDate:      firstCommitTime,
 		TotalCommits:   totalStatistics.Commits,
+		TotalAuthors:   totalAuthors,
 		TotalTrees:     totalStatistics.Trees,
 		TotalBlobs:     totalStatistics.Blobs,
 		CompressedSize: totalStatistics.Compressed,
 	}
 
-	// Print growth table using stored statistics
-	previous = models.GrowthStatistics{} // Reset for display
+	// Calculate and store delta, percentage, and delta percentage values
 	currentYear := time.Now().Year()
-
-	// Print historical data
-	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
-		if statistics, ok := yearlyStatistics[year]; ok {
-			sections.PrintGrowthHistoryRow(statistics, previous, repositoryInformation, currentYear)
-			previous = statistics
-		}
-	}
-
-	// Separator and current totals footnote directly under historic table
-	fmt.Println("------------------------------------------------------------------------------------------------")
-	fmt.Println()
-	if recentFetch != "" {
-		// Include year in displayed date (first 16 chars: Mon, 02 Jan 2006)
-		fmt.Printf("^ Current totals as of the most recent fetch on %s\n", recentFetch[:16])
-	} else {
-		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
-	}
-	// Explain percentage meaning for historic table too
-	fmt.Println("% Percentages show the increase relative to the current total (^)")
-
-	// Historic changes per year section (delta year over year instead of cumulative totals)
-	// Build yearly delta statistics first
 	var previousCumulative models.GrowthStatistics
-	yearlyDeltas := make(map[int]models.GrowthStatistics)
+	var previousDelta models.GrowthStatistics
+
+	// Process each year to calculate and store all derived values
 	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
 		if cumulative, ok := yearlyStatistics[year]; ok {
-			// Compute delta for this year relative to previous cumulative snapshot
-			var delta models.GrowthStatistics
-			delta.Year = year
-			delta.Commits = cumulative.Commits - previousCumulative.Commits
-			delta.Trees = cumulative.Trees - previousCumulative.Trees
-			delta.Blobs = cumulative.Blobs - previousCumulative.Blobs
-			delta.Compressed = cumulative.Compressed - previousCumulative.Compressed
-			yearlyDeltas[year] = delta
+			// Calculate delta values (year-over-year changes)
+			cumulative.AuthorsDelta = cumulative.Authors - previousCumulative.Authors
+			cumulative.CommitsDelta = cumulative.Commits - previousCumulative.Commits
+			cumulative.TreesDelta = cumulative.Trees - previousCumulative.Trees
+			cumulative.BlobsDelta = cumulative.Blobs - previousCumulative.Blobs
+			cumulative.CompressedDelta = cumulative.Compressed - previousCumulative.Compressed
+
+			// Calculate percentage of total
+			if repositoryInformation.TotalAuthors > 0 {
+				cumulative.AuthorsPercent = float64(cumulative.AuthorsDelta) / float64(repositoryInformation.TotalAuthors) * 100
+			}
+			if repositoryInformation.TotalCommits > 0 {
+				cumulative.CommitsPercent = float64(cumulative.CommitsDelta) / float64(repositoryInformation.TotalCommits) * 100
+			}
+			if repositoryInformation.TotalTrees > 0 {
+				cumulative.TreesPercent = float64(cumulative.TreesDelta) / float64(repositoryInformation.TotalTrees) * 100
+			}
+			if repositoryInformation.TotalBlobs > 0 {
+				cumulative.BlobsPercent = float64(cumulative.BlobsDelta) / float64(repositoryInformation.TotalBlobs) * 100
+			}
+			if repositoryInformation.CompressedSize > 0 {
+				cumulative.CompressedPercent = float64(cumulative.CompressedDelta) / float64(repositoryInformation.CompressedSize) * 100
+			}
+
+			// Calculate delta percentage changes (Δ%)
+			if previousDelta.Year != 0 { // Skip first year
+				if previousDelta.AuthorsDelta > 0 {
+					cumulative.AuthorsDeltaPercent = float64(cumulative.AuthorsDelta-previousDelta.AuthorsDelta) / float64(previousDelta.AuthorsDelta) * 100
+				}
+				if previousDelta.CommitsDelta > 0 {
+					cumulative.CommitsDeltaPercent = float64(cumulative.CommitsDelta-previousDelta.CommitsDelta) / float64(previousDelta.CommitsDelta) * 100
+				}
+				if previousDelta.TreesDelta > 0 {
+					cumulative.TreesDeltaPercent = float64(cumulative.TreesDelta-previousDelta.TreesDelta) / float64(previousDelta.TreesDelta) * 100
+				}
+				if previousDelta.BlobsDelta > 0 {
+					cumulative.BlobsDeltaPercent = float64(cumulative.BlobsDelta-previousDelta.BlobsDelta) / float64(previousDelta.BlobsDelta) * 100
+				}
+				if previousDelta.CompressedDelta > 0 {
+					cumulative.CompressedDeltaPercent = float64(cumulative.CompressedDelta-previousDelta.CompressedDelta) / float64(previousDelta.CompressedDelta) * 100
+				}
+			}
+
+			// Store the updated statistics back in the map
+			yearlyStatistics[year] = cumulative
+
+			// Update for next iteration
 			previousCumulative = cumulative
+			previousDelta = cumulative
 		}
 	}
 
-	// Print header and rows for historic changes per year
-	sections.PrintHistoricChangesPerYearHeader()
-	var previousDelta models.GrowthStatistics
-	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
-		if delta, ok := yearlyDeltas[year]; ok {
-			sections.PrintHistoricChangesPerYearRow(delta, previousDelta, currentYear)
-			previousDelta = delta
-		}
-	}
-	fmt.Println("------------------------------------------------------------------------------------------------")
-	fmt.Println()
-	if recentFetch != "" {
-		fmt.Printf("^ Current year delta as of the most recent fetch on %s\n", recentFetch[:16])
-	} else {
-		fmt.Printf("^ Current year delta as of Git directory's last modified: %s\n", lastModified[:16])
-	}
-	fmt.Println("% Percentages show change relative to previous year's delta")
-
-	// Show estimated growth table only when estimation period is sufficient
-	sections.PrintEstimatedGrowthSectionHeader()
-
-	if estimationYears > 0 {
-		sections.PrintEstimatedGrowthTableHeader()
-
-		// Use last historical year as base for estimates
-		lastStatistics := yearlyStatistics[currentYear-1]
-		previousEstimate := lastStatistics
-		for i := 1; i <= estimationDisplayYears; i++ {
-			projected := git.CalculateEstimate(previousEstimate, estimationYearlyAverage)
-			sections.PrintGrowthEstimateRow(projected, previousEstimate, repositoryInformation, currentYear)
-			previousEstimate = projected
-		}
-
-		fmt.Println("------------------------------------------------------------------------------------------------")
-		fmt.Println()
-		fmt.Println("* Estimated growth based on the last five years")
-		fmt.Println("% Percentages show the increase relative to the current total (^)")
-	} else {
-		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
-	}
+	// Display unified historic and estimated growth using the new function
+	sections.DisplayUnifiedGrowth(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch, lastModified)
 
 	// Rate of changes analysis - add after historic growth and before largest directories
 	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
