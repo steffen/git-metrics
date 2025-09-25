@@ -89,3 +89,20 @@ type RateStatistics struct {
 	WeekendCommits       int     // Commits during weekends
 	WorkdayWeekendRatio  float64 // Ratio of workday to weekend commits
 }
+
+// AuthorSizeContribution holds information about an author's contribution by on-disk size
+type AuthorSizeContribution struct {
+	Author           string
+	TotalSize        int64
+	FileCount        int
+	AverageFileSize  int64
+}
+
+// AuthorFileContribution holds information about an author's contributions to specific files
+type AuthorFileContribution struct {
+	Author     string
+	FilePath   string
+	Size       int64
+	CommitHash string
+	CommitDate time.Time
+}

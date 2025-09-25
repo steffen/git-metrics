@@ -615,3 +615,115 @@ func calculatePercentile(sortedData []int, percentile int) int {
 func isLeapYear(year int) bool {
 	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
 }
+
+// GetAuthorSizeContributions returns the top N authors by their total on-disk size contributions, grouped by year
+func GetAuthorSizeContributions(n int, largestFiles []models.FileInformation) (map[int][][3]string, map[int]int64, map[string]int64, error) {
+	// First, get all commits with their authors and dates to build a mapping
+	cmd := exec.Command("git", "log", "--all", "--format=%H|%an|%cd", "--date=format:%Y")
+	output, err := cmd.Output()
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("failed to get git log: %v", err)
+	}
+
+	// Build a map of commit hash -> author info
+	commitToAuthor := make(map[string]struct {
+		author string
+		year   int
+	})
+	
+	lines := strings.Split(string(output), "\n")
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		
+		parts := strings.Split(line, "|")
+		if len(parts) == 3 {
+			commitHash := parts[0]
+			author := parts[1]
+			if year, err := strconv.Atoi(parts[2]); err == nil {
+				commitToAuthor[commitHash] = struct {
+					author string
+					year   int
+				}{author: author, year: year}
+			}
+		}
+	}
+
+	// Now, for each file, find who last modified it and when
+	authorSizeByYear := make(map[int]map[string]int64)
+	allTimeAuthorSizes := make(map[string]int64)
+	totalSizeByYear := make(map[int]int64)
+	
+	for _, file := range largestFiles {
+		// Find the last commit that modified this file
+		cmd := exec.Command("git", "log", "-1", "--format=%H", "--", file.Path)
+		output, err := cmd.Output()
+		if err != nil {
+			continue
+		}
+		
+		commitHash := strings.TrimSpace(string(output))
+		if commitHash == "" {
+			continue
+		}
+		
+		// Look up the author and year for this commit
+		if authorInfo, exists := commitToAuthor[commitHash]; exists {
+			// Initialize maps if needed
+			if _, exists := authorSizeByYear[authorInfo.year]; !exists {
+				authorSizeByYear[authorInfo.year] = make(map[string]int64)
+			}
+			
+			// Add file size to author's contributions
+			authorSizeByYear[authorInfo.year][authorInfo.author] += file.CompressedSize
+			allTimeAuthorSizes[authorInfo.author] += file.CompressedSize
+			totalSizeByYear[authorInfo.year] += file.CompressedSize
+		}
+	}
+	
+	// Convert to result format: map[year] -> sorted authors by size
+	result := make(map[int][][3]string)
+	
+	for year, authors := range authorSizeByYear {
+		// Convert map to slice of entries
+		var entries []struct {
+			name string
+			size int64
+		}
+		
+		for name, size := range authors {
+			entries = append(entries, struct {
+				name string
+				size int64
+			}{name: name, size: size})
+		}
+		
+		// Sort by size descending, then by name ascending for consistency
+		sort.Slice(entries, func(i, j int) bool {
+			if entries[i].size != entries[j].size {
+				return entries[i].size > entries[j].size
+			}
+			return strings.ToLower(entries[i].name) < strings.ToLower(entries[j].name)
+		})
+		
+		// Take top N entries
+		maxCount := n
+		if len(entries) < maxCount {
+			maxCount = len(entries)
+		}
+		
+		var yearAuthors [][3]string
+		for i := 0; i < maxCount; i++ {
+			yearAuthors = append(yearAuthors, [3]string{
+				entries[i].name,
+				strconv.FormatInt(entries[i].size, 10),
+				"", // Reserved for future use
+			})
+		}
+		result[year] = yearAuthors
+	}
+	
+	return result, totalSizeByYear, allTimeAuthorSizes, nil
+}
