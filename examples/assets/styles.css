@@ -13,7 +13,7 @@
   --code-font: 'SFMono-Regular', ui-monospace, 'Cascadia Mono', 'Liberation Mono', Menlo, monospace;
   --transition: 260ms cubic-bezier(.4,.1,.2,1);
   --section-height: 100vh;
-  --output-content-width:100ch;
+  --output-content-width: 100ch;
 }
 body{
   background:linear-gradient(120deg,#0d1117,#111a23 35%,#0d1117);
