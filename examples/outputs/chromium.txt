@@ -1,0 +1,263 @@
+RUN ####################################################################################################################
+
+Start time                 Wed, 24 Sep 2025 14:41 PDT
+Machine                    10 CPU cores with 64 GB memory (macOS 15.6.1 on Apple M1 Max)
+Git metrics version        0.0.0-examples
+Git version                2.46.0
+
+REPOSITORY #############################################################################################################
+
+Git directory              /Users/steffen/GitHub/oss/chromium/.git
+Last modified              Thu, 11 Sep 2025 02:17 PDT
+Remote                     https://github.com/chromium/chromium.git
+Most recent commit         Thu, 11 Sep 2025 (a706b0a63b4fe)
+First commit               Fri, 24 Aug 2001 (a5068f)
+Age                        24 years 1 months
+
+HISTORIC AND ESTIMATED GROWTH ##########################################################################################
+
+T% columns: each year's delta as share of current totals (^)
+Δ% columns: change of this year's delta vs previous year's delta
+
+Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%
+------------------------------------------------------------------------------------------------------------------------
+2001           7       +7   0 %         │         518       +518   0 %         │       5.4 MB      +5.4 MB   0 %        
+2002          13       +6   0 %   -13 % │       3,040     +2,522   0 %  +387 % │      11.2 MB      +5.8 MB   0 %    +8 %
+2003          14       +1   0 %   -82 % │       5,242     +2,202   0 %   -12 % │      16.7 MB      +5.5 MB   0 %    -4 %
+2004          18       +4   0 %  +300 % │       7,262     +2,020   0 %    -7 % │      21.0 MB      +4.3 MB   0 %   -21 %
+2005          32      +14   0 %  +250 % │       9,943     +2,681   0 %   +33 % │      33.8 MB     +12.8 MB   0 %  +198 %
+2006          56      +24   0 %   +71 % │      15,233     +5,290   0 %   +97 % │      68.9 MB     +35.1 MB   0 %  +174 %
+2007         108      +52   0 %  +117 % │      22,590     +7,357   0 %   +39 % │     105.1 MB     +36.2 MB   0 %    +3 %
+2008         250     +142   1 %  +173 % │      36,858    +14,268   1 %   +94 % │     582.4 MB    +477.3 MB   1 % +1217 %
+2009         484     +234   2 %   +65 % │      72,905    +36,047   2 %  +153 % │       1.2 GB    +661.9 MB   1 %   +39 %
+2010         760     +276   2 %   +18 % │     123,337    +50,432   3 %   +40 % │       1.5 GB    +271.8 MB   0 %   -58 %
+2011       1,220     +460   4 %   +67 % │     190,006    +66,669   4 %   +32 % │       1.8 GB    +321.6 MB   1 %   +18 %
+2012       1,699     +479   4 %    +4 % │     291,882   +101,876   5 %   +53 % │       2.4 GB    +534.3 MB   1 %   +66 %
+2013       2,281     +582   5 %   +22 % │     391,342    +99,460   5 %    -1 % │       2.9 GB    +540.3 MB   1 %    +1 %
+2014       4,056   +1,775  14 %  +205 % │     493,709   +102,367   5 %    +3 % │       3.7 GB    +737.9 MB   1 %   +37 %
+2015       5,050     +994   8 %   -43 % │     574,827    +81,118   4 %   -20 % │       4.8 GB      +1.2 GB   2 %   +58 %
+2016       5,769     +719   6 %   -27 % │     660,034    +85,207   4 %    +5 % │       6.5 GB      +1.7 GB   3 %   +48 %
+2017       6,971   +1,202  10 %   +67 % │     756,663    +96,629   5 %   +13 % │       8.6 GB      +2.1 GB   3 %   +19 %
+2018       7,772     +801   6 %   -32 % │     860,636   +103,973   5 %    +8 % │      12.3 GB      +3.7 GB   6 %   +82 %
+2019       8,604     +832   7 %    +4 % │     980,605   +119,969   6 %   +15 % │      16.6 GB      +4.3 GB   7 %   +15 %
+2020       9,352     +748   6 %    -9 % │   1,107,139   +126,534   7 %    +5 % │      21.5 GB      +4.9 GB   8 %   +13 %
+2021      10,065     +713   6 %    -4 % │   1,241,718   +134,579   7 %    +6 % │      25.9 GB      +4.4 GB   8 %    -8 %
+2022      11,041     +976   8 %   +37 % │   1,395,797   +154,079   8 %   +14 % │      34.4 GB      +8.5 GB  14 %   +92 %
+2023      11,634     +593   5 %   -38 % │   1,573,550   +177,753   9 %   +15 % │      43.4 GB      +9.1 GB  15 %    +7 %
+2024      12,204     +570   5 %    -3 % │   1,759,925   +186,375  10 %    +5 % │      52.6 GB      +9.1 GB  16 %    +1 %
+------------------------------------------------------------------------------------------------------------------------
+2025^     12,634     +430   3 %   -24 % │   1,902,791   +142,866   8 %   -22 % │      58.7 GB      +6.1 GB  10 %   -33 %
+------------------------------------------------------------------------------------------------------------------------
+2025^*    12,794     +590   5 %    +4 % │   1,955,962   +196,037  10 %    +5 % │      60.9 GB      +8.3 GB  14 %    -8 %
+2026*     13,404     +610   5 %    +3 % │   2,162,161   +206,199  11 %    +5 % │      68.5 GB      +7.6 GB  13 %    -8 %
+2027*     14,035     +631   5 %    +3 % │   2,379,049   +216,888  11 %    +5 % │      75.4 GB      +6.9 GB  12 %    -8 %
+2028*     14,688     +653   5 %    +3 % │   2,607,180   +228,131  12 %    +5 % │      81.7 GB      +6.3 GB  11 %    -8 %
+2029*     15,363     +675   5 %    +3 % │   2,847,137   +239,957  13 %    +5 % │      87.4 GB      +5.7 GB  10 %    -8 %
+2030*     16,061     +698   6 %    +3 % │   3,099,533   +252,396  13 %    +5 % │      92.7 GB      +5.2 GB   9 %    -8 %
+------------------------------------------------------------------------------------------------------------------------
+
+^  Current totals as of Git directory's last modified: Thu, 11 Sep 2025
+^* Estimated growth for current year based on year to date deltas (Δ) extrapolated to full year
+*  Estimated growth based on current year's estimated delta percentages (Δ%)
+
+AUTHORS WITH MOST COMMITS ##############################################################################################
+
+Year     Author (#1)            Commits        Author (#2)            Commits        Author (#3)            Commits
+------------------------------------------------------------------------------------------------------------------------
+2001   │ kocienda                   185  36% │ gramps                     135  26% │ rjw                        103  20%
+2002   │ darin                      856  34% │ rjw                        438  17% │ mjs                        307  12%
+2003   │ darin                      526  24% │ hyatt                      487  22% │ mjs                        296  13%
+2004   │ kocienda                   375  19% │ darin                      358  18% │ hyatt                      340  17%
+2005   │ darin                      560  21% │ eseidel                    320  12% │ mjs                        304  11%
+2006   │ darin                      844  15% │ hyatt                      528   9% │ eseidel                    450   8%
+2007   │ bdash                      492   7% │ darin                      439   6% │ weinig                     368   5%
+2008   │ hausmann@webkit.org        711   5% │ hyatt@apple.com            557   4% │ darin@apple.com            556   4%
+2009   │ eric@webkit.org          1,646   5% │ estade@chromium.org        784   2% │ darin@chromium.org         662   2%
+2010   │ eric@webkit.org          2,427   5% │ commit-queue@webkit...   1,517   3% │ chrome-release@goog...     977   2%
+2011   │ commit-queue@webkit...   3,785   6% │ chrome-release@goog...   1,219   2% │ abarth@webkit.org        1,171   2%
+2012   │ gitdeps                 17,318  17% │ commit-queue@webkit...   7,079   7% │ chrome-admin@google...   2,562   3%
+2013   │ gitdeps                 15,327  15% │ chrome-admin@google...   2,528   3% │ chrome-release@goog...   1,995   2%
+2014   │ gitdeps                 12,107  12% │ chrome-admin@google...   2,263   2% │ chrome-tpm               2,160   2%
+2015   │ chrome-tpm               6,188   8% │ blink-deps-roller        3,079   4% │ skia-deps-roller         1,331   2%
+2016   │ chrome-cron              4,733   6% │ skia-deps-roller         1,596   2% │ v8-autoroll              1,589   2%
+2017   │ chrome-release-bot       3,445   4% │ chrome-cron              1,864   2% │ v8-autoroll              1,343   1%
+2018   │ chrome-release-bot       4,701   5% │ chromium-autoroll        2,747   3% │ chromium-internal-a...   1,201   1%
+2019   │ chromium-autoroll       12,010  10% │ chrome-release-bot       4,770   4% │ chromium-internal-a...   3,520   3%
+2020   │ chromium-autoroll       16,953  13% │ chrome-release-bot       4,796   4% │ chromium-internal-a...   2,600   2%
+2021   │ chromium-autoroll       20,096  15% │ Chrome Release Auto...   4,911   4% │ chrome-release-bot       4,160   3%
+2022   │ chromium-autoroll       24,015  16% │ Chrome Release Bot ...   7,397   5% │ Chrome Release Auto...   6,139   4%
+2023   │ chromium-autoroll       28,077  16% │ chromium-internal-a...   9,376   5% │ Chrome Release Auto...   7,846   4%
+2024   │ chromium-autoroll       34,809  19% │ chromium-internal-a...  10,777   6% │ Chrome Release Auto...   9,194   5%
+2025   │ chromium-autoroll       33,037  23% │ Chrome Release Auto...  15,252  11% │ chromium-internal-a...   6,509   5%
+------------------------------------------------------------------------------------------------------------------------
+Total  │ chromium-autoroll      171,744   9% │ Chrome Release Auto...  44,942   2% │ gitdeps                 44,752   2%
+
+COMMITTERS WITH MOST COMMITS ###########################################################################################
+
+Year     Committer (#1)         Commits        Committer (#2)         Commits        Committer (#3)         Commits
+------------------------------------------------------------------------------------------------------------------------
+2001   │ kocienda                   185  36% │ gramps                     135  26% │ rjw                        103  20%
+2002   │ darin                      856  34% │ rjw                        438  17% │ mjs                        307  12%
+2003   │ darin                      526  24% │ hyatt                      487  22% │ mjs                        296  13%
+2004   │ kocienda                   375  19% │ darin                      358  18% │ hyatt                      340  17%
+2005   │ darin                      560  21% │ eseidel                    320  12% │ mjs                        304  11%
+2006   │ darin                      844  15% │ hyatt                      528   9% │ eseidel                    450   8%
+2007   │ bdash                      492   7% │ darin                      439   6% │ weinig                     368   5%
+2008   │ hausmann@webkit.org        711   5% │ hyatt@apple.com            557   4% │ darin@apple.com            556   4%
+2009   │ eric@webkit.org          1,646   5% │ estade@chromium.org        784   2% │ darin@chromium.org         662   2%
+2010   │ eric@webkit.org          2,427   5% │ commit-queue@webkit...   1,517   3% │ chrome-release@goog...     977   2%
+2011   │ commit-queue@webkit...   3,785   6% │ chrome-release@goog...   1,219   2% │ abarth@webkit.org        1,171   2%
+2012   │ gitdeps                 17,318  17% │ commit-queue@webkit...   7,079   7% │ chrome-admin@google...   2,562   3%
+2013   │ gitdeps                 15,327  15% │ chrome-admin@google...   2,528   3% │ chrome-release@goog...   1,995   2%
+2014   │ Commit bot              20,045  20% │ gitdeps                 12,107  12% │ chrome-admin@google...   2,263   2%
+2015   │ Commit bot              55,619  69% │ chrome-tpm               6,188   8% │ pdr@chromium.org           538   1%
+2016   │ Commit bot              72,375  85% │ chrome-cron              4,733   6% │ chrome-tpm               1,365   2%
+2017   │ Commit Bot              51,835  54% │ Commit bot              32,701  34% │ chrome-release-bot       2,402   2%
+2018   │ Commit Bot              91,266  88% │ chrome-release-bot@...   2,487   2% │ chrome-release-bot       2,216   2%
+2019   │ Commit Bot             107,872  90% │ chrome-release-bot       2,194   2% │ chrome-release-bot@...   1,526   1%
+2020   │ Commit Bot             111,157  88% │ Chromium LUCI CQ         9,016   7% │ Chrome Release Bot ...   2,606   2%
+2021   │ Chromium LUCI CQ       128,058  95% │ Chrome Release Bot ...   3,618   3% │ chrome-release-bot       2,090   2%
+2022   │ Chromium LUCI CQ       145,908  95% │ Chrome Release Bot ...   7,397   5% │ Chrome Release Auto...     294   0%
+2023   │ Chromium LUCI CQ       169,928  96% │ Chrome Release Bot ...   7,152   4% │ Krishna Govind             166   0%
+2024   │ Chromium LUCI CQ       179,987  97% │ Chrome Release Bot ...   5,719   3% │ Krishna Govind             115   0%
+2025   │ Chromium LUCI CQ       138,870  97% │ Chrome Release Bot ...   3,774   3% │ Krishna Govind              74   0%
+------------------------------------------------------------------------------------------------------------------------
+Total  │ Chromium LUCI CQ       771,767  41% │ Commit Bot             362,130  19% │ Commit bot             180,740   9%
+
+RATE OF CHANGES ################################################################################
+
+Commits to default branch (main)
+
+              Commits             Peak per day            Peak per hour          Peak per minute
+Year         per year        P95    P99   P100        P95    P99   P100        P95    P99   P100
+------------------------------------------------------------------------------------------------
+2001              518   │     19     21     22   │      4      6      9   │      1      2      3
+2002            2,520   │     18     22     26   │      3      4      9   │      1      2      2
+2003            2,204   │     17     22     24   │      3      5     10   │      1      2      2
+2004            2,020   │     15     20     22   │      4      5      7   │      1      2      3
+2005            2,681   │     18     28     34   │      4      5      8   │      1      2      2
+2006            5,602   │     31     45     51   │      4      6     35   │      1      2      5
+2007            7,352   │     42     73    179   │      5      8     57   │      1      2     18
+2008           14,278   │     95    115    137   │      9     13     23   │      2      2      8
+2009           35,109   │    173    192    224   │     15     20     32   │      2      2      7
+2010           46,842   │    224    255    265   │     16     21     34   │      2      2      8
+2011           62,814   │    285    336    404   │     21     27     59   │      2      3      7
+2012           79,951   │    370    402    444   │     25     31     43   │      2      3      6
+2013           78,194   │    356    398    467   │     25     31     47   │      2      3      7
+2014           76,693   │    362    407    431   │     25     32     55   │      2      3     46
+2015           71,251   │    337    366    413   │     23     30     69   │      2      2     18
+2016           73,829   │    339    372    431   │     24     32     66   │      2      3     28
+2017           85,427   │    394    436    513   │     27     34     91   │      2      2      5
+2018           93,315   │    436    491    560   │     30     38     85   │      2      2      8
+2019          108,604   │    486    525    638   │     33     43    108   │      2      2      4
+2020          111,970   │    502    574    731   │     34     44    102   │      2      2     39
+2021          114,896   │    515    554    568   │     35     46     87   │      2      2     13
+2022          133,117   │    582    622    651   │     38     49    101   │      2      2      5
+2023          153,829   │    672    703    901   │     44     55    107   │      2      2      9
+2024          159,484   │    670    690    722   │     46     56    104   │      2      2      5
+2025          112,916   │    664    697    705   │     45     56     96   │      2      2      6
+
+LARGEST DIRECTORIES ############################################################################
+
+Showing directories and files that contribute more than 1% of total on-disk size.
+
+Path                                                        Blobs           On-disk size
+------------------------------------------------------------------------------------------------
+./                                                     10,887,662 100.0 %        54.7 GB 100.0 %
+├─ chrome/                                              2,984,843  27.4 %        23.6 GB  43.2 %
+│  ├─ app/                                                339,277   3.1 %        16.9 GB  30.8 %
+│  │  └─ resources/                                       283,173   2.6 %        16.6 GB  30.3 %
+│  ├─ browser/                                          1,882,770  17.3 %         5.1 GB   9.4 %
+│  │  └─ ui/                                              550,586   5.1 %         2.7 GB   4.9 %
+│  │     └─ android/                                      116,143   1.1 %         2.0 GB   3.6 %
+│  │        └─ strings/                                    89,119   0.8 %         1.9 GB   3.6 %
+│  │           └─ translations/                            85,341   0.8 %         1.9 GB   3.5 %
+│  ├─ android/                                            265,845   2.4 %       661.4 MB   1.2 %
+│  └─ test/                                               150,297   1.4 %       547.2 MB   1.0 %
+├─ third_party/                                         3,183,333  29.2 %        10.4 GB  19.0 %
+│  ├─ blink/                                              969,675   8.9 %         5.8 GB  10.5 %
+│  │  ├─ web_tests/                                       471,192   4.3 %         4.8 GB   8.9 %
+│  │  │  ├─ external/                                     231,036   2.1 %         2.3 GB   4.2 %
+│  │  │  │  └─ WPT_BASE_MANIFEST_8.json                     3,216   0.0 %         1.9 GB   3.4 %
+│  │  │  ├─ platform/                                     100,357   0.9 %         1.6 GB   2.9 %
+│  │  │  │  └─ linux/                                      35,347   0.3 %       659.1 MB   1.2 %
+│  │  │  └─ flag-specific/                                 27,254   0.3 %       629.0 MB   1.2 %
+│  │  └─ renderer/                                        452,234   4.2 %       816.5 MB   1.5 %
+│  └─ WebKit/*                                          1,987,129  18.3 %         3.4 GB   6.2 %
+│     └─ LayoutTests/*                                    860,842   7.9 %         2.5 GB   4.7 %
+│        └─ platform/*                                    406,931   3.7 %         1.9 GB   3.5 %
+│           └─ linux/*                                     65,597   0.6 %       689.8 MB   1.3 %
+├─ components/                                            846,042   7.8 %         5.6 GB  10.3 %
+│  ├─ strings/                                            119,072   1.1 %         2.9 GB   5.2 %
+│  └─ policy/                                              62,315   0.6 %         1.6 GB   2.9 %
+│     └─ resources/                                        46,491   0.4 %         1.6 GB   2.9 %
+├─ tools/                                                 215,745   2.0 %         4.6 GB   8.5 %
+│  ├─ metrics/                                            102,598   0.9 %         3.9 GB   7.1 %
+│  │  └─ histograms/                                       97,059   0.9 %         3.8 GB   6.9 %
+│  │     ├─ enums.xml                                      22,002   0.2 %         1.9 GB   3.5 %
+│  │     └─ histograms.xml*                                17,248   0.2 %         1.4 GB   2.5 %
+│  └─ perf/                                                32,123   0.3 %       693.6 MB   1.3 %
+│     └─ contrib/                                             781   0.0 %       666.4 MB   1.2 %
+│        └─ leak_detection/                                    59   0.0 %       666.0 MB   1.2 %
+│           └─ data/                                           20   0.0 %       666.0 MB   1.2 %
+├─ ios/                                                   476,897   4.4 %         2.4 GB   4.4 %
+│  └─ chrome/                                             404,195   3.7 %         2.4 GB   4.3 %
+│     └─ app/                                             150,659   1.4 %         2.1 GB   3.8 %
+│        └─ strings/                                      144,039   1.3 %         2.0 GB   3.7 %
+│           └─ resources/                                 139,021   1.3 %         2.0 GB   3.7 %
+├─ ash/                                                   376,635   3.5 %         1.9 GB   3.5 %
+│  └─ strings/                                             84,060   0.8 %         1.5 GB   2.7 %
+├─ content/                                               571,326   5.2 %         1.3 GB   2.4 %
+│  └─ browser/                                            305,900   2.8 %       983.9 MB   1.8 %
+├─ chromeos/                                              173,239   1.6 %       841.3 MB   1.5 %
+│  └─ strings/                                             51,021   0.5 %       719.7 MB   1.3 %
+└─ ui/                                                    339,391   3.1 %       779.1 MB   1.4 %
+
+* File or directory not present in latest commit of main branch (moved, renamed or removed)
+
+LARGEST FILES ##################################################################################
+
+File path                              Last commit          Blobs           On-disk size
+------------------------------------------------------------------------------------------------
+tools/metrics/histograms/enums.xml            2025         22,002   0.2 %         1.9 GB   3.5 %
+third_party/blink/...SE_MANIFEST_8.json [1]   2025          3,216   0.0 %         1.9 GB   3.4 %
+tools/metrics/histograms/histograms.xml       2024         17,248   0.2 %         1.4 GB   2.5 %
+tools/perf/contrib...n_aad9952e9d.wprgo [2]   2019              1   0.0 %       532.3 MB   1.0 %
+chrome/app/resourc...d_resources_th.xtb [3]   2025          2,431   0.0 %       521.3 MB   1.0 %
+chrome/app/resourc...d_resources_mr.xtb [4]   2025          2,391   0.0 %       390.2 MB   0.7 %
+chrome/app/resourc...d_resources_sr.xtb [5]   2025          2,362   0.0 %       381.6 MB   0.7 %
+chrome/app/resourc...d_resources_te.xtb [6]   2025          2,688   0.0 %       372.7 MB   0.7 %
+chrome/app/resourc...d_resources_ru.xtb [7]   2025          2,748   0.0 %       358.2 MB   0.7 %
+chrome/app/resourc...d_resources_hi.xtb [8]   2025          2,620   0.0 %       328.5 MB   0.6 %
+------------------------------------------------------------------------------------------------
+├─ Top 10                                                  57,707   0.5 %         8.1 GB  14.7 %
+└─ Out of 1,261,351                                    10,887,662 100.0 %        54.7 GB 100.0 %
+
+[1] third_party/blink/web_tests/external/WPT_BASE_MANIFEST_8.json
+[2] tools/perf/contrib/leak_detection/data/leak_detection_aad9952e9d.wprgo
+[3] chrome/app/resources/generated_resources_th.xtb
+[4] chrome/app/resources/generated_resources_mr.xtb
+[5] chrome/app/resources/generated_resources_sr.xtb
+[6] chrome/app/resources/generated_resources_te.xtb
+[7] chrome/app/resources/generated_resources_ru.xtb
+[8] chrome/app/resources/generated_resources_hi.xtb
+
+LARGEST FILE EXTENSIONS ########################################################################
+
+Extension                            Files                  Blobs           On-disk size
+------------------------------------------------------------------------------------------------
+.xtb                                 8,373   0.7 %      1,015,323   9.3 %        28.3 GB  48.3 %
+.cc                                155,280  12.3 %      3,073,267  28.2 %         6.2 GB  10.5 %
+.png                               117,165   9.3 %        299,685   2.8 %         5.0 GB   8.6 %
+.xml                                 8,558   0.7 %        131,101   1.2 %         3.9 GB   6.6 %
+.json                               17,077   1.4 %        171,370   1.6 %         3.0 GB   5.1 %
+.h                                 169,279  13.4 %      1,823,278  16.7 %         1.3 GB   2.2 %
+No Extension                        28,027   2.2 %        581,477   5.3 %       720.7 MB   1.2 %
+.gn                                 11,366   0.9 %        283,633   2.6 %       713.2 MB   1.2 %
+.wprgo                                   5   0.0 %              5   0.0 %       666.0 MB   1.1 %
+.java                               26,025   2.1 %        321,816   3.0 %       419.8 MB   0.7 %
+------------------------------------------------------------------------------------------------
+├─ Top 10                          541,155  42.9 %      7,700,955  70.7 %        50.2 GB  91.9 %
+└─ Out of 1,213                  1,261,351 100.0 %     10,887,662 100.0 %        54.7 GB 100.0 %
+
+Finished in 20m41s with a memory footprint of 8.5 GB.
