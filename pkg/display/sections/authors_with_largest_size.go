@@ -81,11 +81,20 @@ func displayAuthorSizeRow(yearStr string, authors [][3]string, totalSize int64) 
 	// Print the row based on how many authors we actually have
 	if len(authors) >= 3 {
 		// All 3 columns filled
-		author1Size, _ := strconv.ParseInt(authors[0][1], 10, 64)
+		author1Size, err1 := strconv.ParseInt(authors[0][1], 10, 64)
+		if err1 != nil {
+			author1Size = 0
+		}
 		author1Percentage := float64(author1Size) / float64(totalSize) * 100
-		author2Size, _ := strconv.ParseInt(authors[1][1], 10, 64)
+		author2Size, err2 := strconv.ParseInt(authors[1][1], 10, 64)
+		if err2 != nil {
+			author2Size = 0
+		}
 		author2Percentage := float64(author2Size) / float64(totalSize) * 100
-		author3Size, _ := strconv.ParseInt(authors[2][1], 10, 64)
+		author3Size, err3 := strconv.ParseInt(authors[2][1], 10, 64)
+		if err3 != nil {
+			author3Size = 0
+		}
 		author3Percentage := float64(author3Size) / float64(totalSize) * 100
 
 		fmt.Printf(formatThreeColumnSizeRow,
@@ -95,9 +104,15 @@ func displayAuthorSizeRow(yearStr string, authors [][3]string, totalSize int64) 
 			truncateAuthorName(authors[2][0]), utils.FormatSize(author3Size), author3Percentage)
 	} else if len(authors) == 2 {
 		// Only 2 columns filled
-		author1Size, _ := strconv.ParseInt(authors[0][1], 10, 64)
+		author1Size, err1 := strconv.ParseInt(authors[0][1], 10, 64)
+		if err1 != nil {
+			author1Size = 0
+		}
 		author1Percentage := float64(author1Size) / float64(totalSize) * 100
-		author2Size, _ := strconv.ParseInt(authors[1][1], 10, 64)
+		author2Size, err2 := strconv.ParseInt(authors[1][1], 10, 64)
+		if err2 != nil {
+			author2Size = 0
+		}
 		author2Percentage := float64(author2Size) / float64(totalSize) * 100
 
 		fmt.Printf(formatTwoColumnSizeRow,
@@ -106,7 +121,10 @@ func displayAuthorSizeRow(yearStr string, authors [][3]string, totalSize int64) 
 			truncateAuthorName(authors[1][0]), utils.FormatSize(author2Size), author2Percentage)
 	} else if len(authors) == 1 {
 		// Only 1 column filled
-		author1Size, _ := strconv.ParseInt(authors[0][1], 10, 64)
+		author1Size, err1 := strconv.ParseInt(authors[0][1], 10, 64)
+		if err1 != nil {
+			author1Size = 0
+		}
 		author1Percentage := float64(author1Size) / float64(totalSize) * 100
 
 		fmt.Printf(formatOneColumnSizeRow,
@@ -180,9 +198,5 @@ func displayAllTimeAuthorsBySize(allTimeAuthorSizes map[string]int64, allTimeTot
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Print total row for all-time authors
-	displayYearRowAuthorsBySizeAllTime("Total", allTimeAuthorsList, allTimeTotalSize)
-}
-
-func displayYearRowAuthorsBySizeAllTime(yearStr string, authors []authorSizeStats, totalSize int64) {
-	displayAuthorSizeRowAllTime(yearStr, authors, totalSize)
+	displayAuthorSizeRowAllTime("Total", allTimeAuthorsList, allTimeTotalSize)
 }

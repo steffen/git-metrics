@@ -719,7 +719,7 @@ func GetAuthorSizeContributions(n int, largestFiles []models.FileInformation) (m
 			yearAuthors = append(yearAuthors, [3]string{
 				entries[i].name,
 				strconv.FormatInt(entries[i].size, 10),
-				"", // Reserved for future use
+				"", // Unused field, keeping for consistency with other contributor functions
 			})
 		}
 		result[year] = yearAuthors
