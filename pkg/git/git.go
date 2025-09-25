@@ -417,6 +417,46 @@ func GetCumulativeUniqueAuthorsByYear() (map[int]int, int, error) {
 	return cumulativeCounts, len(cumulativeSet), nil
 }
 
+// GetActiveAuthorsByYear returns a map of year -> active author count (authors who authored commits in that specific year)
+// along with the final total unique authors across all years.
+func GetActiveAuthorsByYear() (map[int]int, int, error) {
+	lines, err := GetContributors()
+	if err != nil {
+		return nil, 0, err
+	}
+	// authors seen per year (for union later) and global set
+	authorsPerYear := make(map[int]map[string]struct{})
+	globalAuthors := make(map[string]struct{})
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		parts := strings.Split(line, "|")
+		if len(parts) != 3 {
+			continue
+		}
+		author := parts[0]
+		yearStr := parts[2]
+		year, convErr := strconv.Atoi(yearStr)
+		if convErr != nil {
+			continue
+		}
+		if _, ok := authorsPerYear[year]; !ok {
+			authorsPerYear[year] = make(map[string]struct{})
+		}
+		authorsPerYear[year][author] = struct{}{}
+		globalAuthors[author] = struct{}{}
+	}
+	
+	// Return active authors per year (not cumulative)
+	activeCounts := make(map[int]int)
+	for year, authors := range authorsPerYear {
+		activeCounts[year] = len(authors)
+	}
+	return activeCounts, len(globalAuthors), nil
+}
+
 // GetRateOfChanges calculates commit rate statistics for the default branch by year
 func GetRateOfChanges() (map[int]models.RateStatistics, error) {
 	defaultBranch, err := GetDefaultBranch()
