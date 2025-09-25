@@ -424,7 +424,7 @@ func GetActiveAuthorsByYear() (map[int]int, int, error) {
 	if err != nil {
 		return nil, 0, err
 	}
-	// authors seen per year (for union later) and global set
+	// authors seen per year and global set for total count
 	authorsPerYear := make(map[int]map[string]struct{})
 	globalAuthors := make(map[string]struct{})
 	for _, line := range lines {
