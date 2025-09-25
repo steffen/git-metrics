@@ -350,6 +350,9 @@ func main() {
 	// New call to display top 10 largest file extensions using accumulated blob data.
 	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
+	// Display file extension growth statistics
+	sections.PrintFileExtensionGrowth(yearlyStatistics)
+
 	// Get memory statistics for final output
 	var memoryStatistics runtime.MemStats
 	runtime.ReadMemStats(&memoryStatistics)

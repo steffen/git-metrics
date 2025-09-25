@@ -145,3 +145,67 @@ func TestHistoricalAndEstimateSeparation(t *testing.T) {
 		t.Errorf("expected both historic and estimated growth headers. Output: %s", output)
 	}
 }
+
+func TestPrintFileExtensionGrowth(t *testing.T) {
+	// Create test data with multiple years
+	yearlyStats := map[int]models.GrowthStatistics{
+		2022: {
+			Year: 2022,
+			LargestFiles: []models.FileInformation{
+				{Path: "app.go", CompressedSize: 100 * 1000},
+				{Path: "README.md", CompressedSize: 50 * 1000},
+				{Path: "config.json", CompressedSize: 25 * 1000},
+			},
+		},
+		2023: {
+			Year: 2023,
+			LargestFiles: []models.FileInformation{
+				{Path: "app.go", CompressedSize: 200 * 1000},        // +100KB .go growth
+				{Path: "main.go", CompressedSize: 150 * 1000},       // +150KB .go growth (new file)
+				{Path: "README.md", CompressedSize: 75 * 1000},      // +25KB .md growth
+				{Path: "config.json", CompressedSize: 30 * 1000},    // +5KB .json growth
+				{Path: "test.py", CompressedSize: 80 * 1000},        // +80KB .py growth (new extension)
+			},
+		},
+	}
+
+	output := captureOutput(func() {
+		PrintFileExtensionGrowth(yearlyStats)
+	})
+
+	// Check that the function produces expected content
+	expectedSnippets := []string{
+		"LARGEST FILE EXTENSIONS ON-DISK SIZE GROWTH",
+		"2023", // Year should be displayed
+		".go",  // Should show .go extension (highest growth: 250KB)
+		".py",  // Should show .py extension (second highest: 80KB)
+		".md",  // Should show .md extension (third highest: 25KB)
+	}
+
+	for _, expected := range expectedSnippets {
+		if !strings.Contains(output, expected) {
+			t.Errorf("expected output to contain %q.\nOutput: %s", expected, output)
+		}
+	}
+}
+
+func TestPrintFileExtensionGrowthInsufficientData(t *testing.T) {
+	// Test with only one year of data
+	yearlyStats := map[int]models.GrowthStatistics{
+		2023: {
+			Year: 2023,
+			LargestFiles: []models.FileInformation{
+				{Path: "app.go", CompressedSize: 200 * 1000},
+			},
+		},
+	}
+
+	output := captureOutput(func() {
+		PrintFileExtensionGrowth(yearlyStats)
+	})
+
+	// Should produce no output when there's insufficient data
+	if output != "" {
+		t.Errorf("expected no output with insufficient data, got: %s", output)
+	}
+}
