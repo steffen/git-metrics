@@ -110,16 +110,14 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 // Format strings for extension growth table
 const (
 	formatExtensionGrowthHeader = "\nLARGEST FILE EXTENSIONS ON-DISK SIZE GROWTH " +
-		"#############################################################################" // 44 (text+space) + 76 '#' = 120
-	formatExtensionGrowthTableHeader = "Year     Extension (#1)         Growth        Extension (#2)         Growth        Extension (#3)         Growth        Extension (#4)         Growth        Extension (#5)         Growth"
-	
-	// Row formats for 5-column layout
-	formatFiveColumnRow  = "%-6s │ %-18s%10s │ %-18s%10s │ %-18s%10s │ %-18s%10s │ %-18s%10s\n"
-	formatFourColumnRow  = "%-6s │ %-18s%10s │ %-18s%10s │ %-18s%10s │ %-18s%10s\n"
-	formatThreeColumnRowExt = "%-6s │ %-18s%10s │ %-18s%10s │ %-18s%10s\n"
-	formatTwoColumnRowExt   = "%-6s │ %-18s%10s │ %-18s%10s\n"
-	formatOneColumnRowExt   = "%-6s │ %-18s%10s\n"
-	
+		"############################################################################"
+	formatExtensionGrowthTableHeader = "Year     Extension (#1)         Growth     %   Extension (#2)         Growth     %   Extension (#3)         Growth     %   "
+
+	// Row formats for 3-column layout with percentages
+	formatThreeColumnRowExt = "%-6s │ %-19s%10s%6.0f │ %-19s%10s%6.0f │ %-19s%10s%6.0f\n"
+	formatTwoColumnRowExt   = "%-6s │ %-19s%10s%6.0f │ %-19s%10s%6.0f\n"
+	formatOneColumnRowExt   = "%-6s │ %-19s%10s%6.0f\n"
+
 	// Maximum extension name length
 	maxExtensionNameLength = 18
 )
@@ -130,31 +128,31 @@ type extensionGrowthStats struct {
 	growth    int64
 }
 
-// PrintFileExtensionGrowth displays the top 5 extensions with largest size growth per year
+// PrintFileExtensionGrowth displays the top 3 extensions with largest size growth per year
 func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) {
 	if len(yearlyStatistics) < 2 {
 		return // Need at least 2 years to calculate growth
 	}
-	
+
 	fmt.Println(formatExtensionGrowthHeader)
 	fmt.Println()
 	fmt.Println(formatExtensionGrowthTableHeader)
-	fmt.Println(strings.Repeat("-", 184)) // 184 '-' for 5-column layout
-	
+	fmt.Println(strings.Repeat("-", 120))
+
 	// Get years and sort them
 	var years []int
 	for year := range yearlyStatistics {
 		years = append(years, year)
 	}
 	sort.Ints(years)
-	
+
 	// Calculate extension statistics for each year
 	yearlyExtensionStats := make(map[int]map[string]int64)
-	
+
 	for _, year := range years {
 		stats := yearlyStatistics[year]
 		extensionSizes := make(map[string]int64)
-		
+
 		for _, blob := range stats.LargestFiles {
 			extension := filepath.Ext(blob.Path)
 			if extension == "" {
@@ -162,21 +160,22 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 			}
 			extensionSizes[extension] += blob.CompressedSize
 		}
-		
+
 		yearlyExtensionStats[year] = extensionSizes
 	}
-	
+
 	// Display growth for each year (starting from second year)
 	for i := 1; i < len(years); i++ {
 		currentYear := years[i]
 		previousYear := years[i-1]
-		
+
 		currentStats := yearlyExtensionStats[currentYear]
 		previousStats := yearlyExtensionStats[previousYear]
-		
+
 		// Calculate growth for each extension
 		var growthStats []extensionGrowthStats
-		
+		var totalYearlyDelta int64
+
 		for extension, currentSize := range currentStats {
 			previousSize := previousStats[extension] // will be 0 if extension didn't exist previously
 			growth := currentSize - previousSize
@@ -185,21 +184,22 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 					extension: extension,
 					growth:    growth,
 				})
+				totalYearlyDelta += growth
 			}
 		}
-		
+
 		// Sort by growth (descending)
 		sort.Slice(growthStats, func(i, j int) bool {
 			return growthStats[i].growth > growthStats[j].growth
 		})
-		
-		// Limit to top 5
-		if len(growthStats) > 5 {
-			growthStats = growthStats[:5]
+
+		// Limit to top 3
+		if len(growthStats) > 3 {
+			growthStats = growthStats[:3]
 		}
-		
+
 		// Display the row
-		displayExtensionGrowthRow(strconv.Itoa(currentYear), growthStats)
+		displayExtensionGrowthRow(strconv.Itoa(currentYear), growthStats, totalYearlyDelta)
 	}
 }
 
@@ -211,53 +211,43 @@ func truncateExtensionName(name string) string {
 	return name[:maxExtensionNameLength-3] + "..."
 }
 
-// displayExtensionGrowthRow displays a row of extensions with their growth
-func displayExtensionGrowthRow(yearStr string, growthStats []extensionGrowthStats) {
+// displayExtensionGrowthRow displays a row of extensions with their growth and percentages
+func displayExtensionGrowthRow(yearStr string, growthStats []extensionGrowthStats, totalYearlyDelta int64) {
 	// Prepare data arrays for each column
-	var extensions [5]string
-	var growths [5]string
-	
-	for i := 0; i < 5; i++ {
+	var extensions [3]string
+	var growths [3]string
+	var percentages [3]float64
+
+	for i := 0; i < 3; i++ {
 		if i < len(growthStats) {
 			extensions[i] = truncateExtensionName(growthStats[i].extension)
-			growths[i] = utils.FormatSize(growthStats[i].growth)
+			growths[i] = "+" + strings.TrimSpace(utils.FormatSize(growthStats[i].growth))
+			if totalYearlyDelta > 0 {
+				percentages[i] = float64(growthStats[i].growth) / float64(totalYearlyDelta) * 100
+			}
 		} else {
 			extensions[i] = ""
 			growths[i] = ""
+			percentages[i] = 0
 		}
 	}
-	
+
 	// Print the row based on how many extensions we actually have
 	switch len(growthStats) {
-	case 5:
-		fmt.Printf(formatFiveColumnRow,
-			yearStr,
-			extensions[0], growths[0],
-			extensions[1], growths[1],
-			extensions[2], growths[2],
-			extensions[3], growths[3],
-			extensions[4], growths[4])
-	case 4:
-		fmt.Printf(formatFourColumnRow,
-			yearStr,
-			extensions[0], growths[0],
-			extensions[1], growths[1],
-			extensions[2], growths[2],
-			extensions[3], growths[3])
 	case 3:
 		fmt.Printf(formatThreeColumnRowExt,
 			yearStr,
-			extensions[0], growths[0],
-			extensions[1], growths[1],
-			extensions[2], growths[2])
+			extensions[0], growths[0], percentages[0],
+			extensions[1], growths[1], percentages[1],
+			extensions[2], growths[2], percentages[2])
 	case 2:
 		fmt.Printf(formatTwoColumnRowExt,
 			yearStr,
-			extensions[0], growths[0],
-			extensions[1], growths[1])
+			extensions[0], growths[0], percentages[0],
+			extensions[1], growths[1], percentages[1])
 	case 1:
 		fmt.Printf(formatOneColumnRowExt,
 			yearStr,
-			extensions[0], growths[0])
+			extensions[0], growths[0], percentages[0])
 	}
 }
