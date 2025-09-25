@@ -1,14 +1,17 @@
 // script.js
 // Load the metrics output, segment it into sections, and provide synchronized navigation.
 
-const OUTPUT_FILE = 'outputs/git.txt';
+// Supported outputs. First entry loads initially.
+const OUTPUT_FILES = ['outputs/git.txt', 'outputs/linux.txt', 'outputs/chromium.txt'];
+let currentOutputIndex = 0;
+function currentOutputFile(){ return OUTPUT_FILES[currentOutputIndex]; }
 // Added: alignment factor for vertical positioning of focused section (0 = top, 0.5 = center)
 const FOCUS_VERTICAL_ALIGN = 0.35; // 35% from top gives a balanced look
 
 const SECTION_DEFINITIONS = [
   { id: 'run', title: 'Run Metadata', match: /^RUN /i, explain: () => `General metadata about when and where the report was generated (start time, host machine, versions). Useful to contextualize measurements and reproduce runs.`},
   { id: 'repository', title: 'Repository Info', match: /^REPOSITORY /i, explain: () => `Origin information: repository path, remote URL, most recent commit and age. Helps anchor the report to a specific revision set.`},
-  { id: 'growth', title: 'Historic & Estimated Growth', match: /^HISTORIC & ESTIMATED GROWTH /i, explain: () => `Shows yearly totals of core Git objects (commits, trees, blobs) along with on-disk size. Past years are actual; rows with ^ are current totals; rows with * are projections extrapolated from recent growth.`},
+  { id: 'growth', title: 'Historic & Estimated Growth', match: /^HISTORIC AND ESTIMATED GROWTH /i, explain: () => `Shows yearly totals of core Git objects (commits, trees, blobs) along with on-disk size. Past years are actual; rows with ^ are current totals; rows with * are projections extrapolated from recent growth.`},
   { id: 'rate', title: 'Rate of Changes', match: /^RATE OF CHANGES /i, explain: () => `Focuses on commit cadence to the default branch. P95/P99/P100 peaks per day/hour/minute reveal burstiness and scaling of integration workflow.`},
   { id: 'largest-dirs', title: 'Largest Directories', match: /^LARGEST DIRECTORIES /i, explain: () => `Identifies directories contributing ≥1% of repository storage. Highlights translation files, tests, docs, and core source areas for optimization or pruning.`},
   { id: 'largest-files', title: 'Largest Files', match: /^LARGEST FILES /i, explain: () => `Top individual files by cumulative blob storage, signaling hotspots for size bloat and potential candidates for history rewriting or splitting.`},
@@ -20,16 +23,38 @@ const SECTION_DEFINITIONS = [
 
 const outputPane = document.getElementById('outputPane');
 const explanationPane = document.getElementById('explanationPane');
+const repoBadgeEl = document.getElementById('repoBadge');
+const outputContentEl = document.getElementById('outputContent');
 
-let sections = []; // [{id, startLine, endLine, element, explanationEl}]
+let sections = []; // [{id, startLine, endLine, explanationEl}]
 let activeIndex = 0;
+let outputIndicatorEl = null;
 
-async function loadOutput() {
-  const res = await fetch(OUTPUT_FILE);
+function deriveRepoName(filePath){
+  const base = filePath.split('/').pop() || filePath;
+  return base.replace(/\.txt$/,'');
+}
+
+async function loadOutputFile(preserveSectionId){
+  const file = currentOutputFile();
+  const res = await fetch(file);
   const text = await res.text();
   const lines = text.split(/\n/);
 
-  // Build an array of section boundaries.
+  // Clear previous content
+  outputContentEl.innerHTML = '';
+  explanationPane.innerHTML = '';
+  sections = [];
+
+  // Update repository badge
+  if(repoBadgeEl){
+    repoBadgeEl.textContent = deriveRepoName(file);
+  }
+
+  // Reset definitions line indices before reuse
+  SECTION_DEFINITIONS.forEach(d=>{ delete d.lineIndex; delete d.endLine; });
+
+  // Build section boundaries
   SECTION_DEFINITIONS.forEach(def => {
     const idx = lines.findIndex(l => def.match.test(l));
     if (idx !== -1) def.lineIndex = idx; else def.lineIndex = Infinity;
@@ -41,20 +66,20 @@ async function loadOutput() {
     current.endLine = (next ? next.lineIndex : lines.length) - 1;
   }
 
-  // Render output lines with data-line attributes for masking.
+  // Render output lines
   const frag = document.createDocumentFragment();
-  lines.forEach((ln, i) => {
+  lines.forEach((ln,i)=>{
     const div = document.createElement('div');
     div.textContent = ln || '\u200b';
     div.className = 'masked-line';
     div.dataset.line = i;
     frag.appendChild(div);
   });
-  outputPane.appendChild(frag);
+  outputContentEl.appendChild(frag);
 
-  // Create explanation sections.
+  // Explanation sections
   const expFrag = document.createDocumentFragment();
-  sortedDefs.forEach((def, i) => {
+  sortedDefs.forEach(def => {
     const sec = { id: def.id, def, startLine: def.lineIndex, endLine: def.endLine };
     const wrap = document.createElement('section');
     wrap.className = 'section-explanation';
@@ -67,14 +92,24 @@ async function loadOutput() {
   explanationPane.appendChild(expFrag);
 
   buildAnchorBar();
-  updateActiveSection(0, false);
-  window.addEventListener('keydown', onKey);
-  outputPane.addEventListener('scroll', onManualScroll);
+
+  // Determine active index to restore
+  let restoreIndex = 0;
+  if(preserveSectionId){
+    const idx = sections.findIndex(s=>s.id===preserveSectionId);
+    if(idx !== -1) restoreIndex = idx;
+  }
+  updateActiveSection(restoreIndex, false);
 }
 
 function buildAnchorBar(){
   const bar = document.createElement('div');
   bar.className='anchor-links';
+  // Output indicator
+  outputIndicatorEl = document.createElement('span');
+  outputIndicatorEl.className = 'output-indicator';
+  outputIndicatorEl.textContent = currentOutputFile();
+  bar.appendChild(outputIndicatorEl);
   sections.forEach((s,i)=>{
     const a=document.createElement('a');
     a.href='#anchor-'+s.id; a.textContent=(i+1)+'. '+s.def.title.split(' ')[0];
@@ -134,8 +169,26 @@ function updateActiveSection(newIndex, smooth=true){
 }
 
 function onKey(e){
-  if(e.key==='ArrowRight') { e.preventDefault(); updateActiveSection(Math.min(activeIndex+1, sections.length-1)); }
-  if(e.key==='ArrowLeft') { e.preventDefault(); updateActiveSection(Math.max(activeIndex-1, 0)); }
+  // Section navigation (Up/Down)
+  if(e.key==='ArrowDown'){ e.preventDefault(); updateActiveSection(Math.min(activeIndex+1, sections.length-1)); }
+  if(e.key==='ArrowUp'){ e.preventDefault(); updateActiveSection(Math.max(activeIndex-1, 0)); }
+  // Output switching (Right/Left) preserving section id
+  if(e.key==='ArrowRight'){
+    if(currentOutputIndex < OUTPUT_FILES.length - 1){
+      e.preventDefault();
+      const preserveId = sections[activeIndex]?.id;
+      currentOutputIndex++;
+      loadOutputFile(preserveId).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
+    }
+  }
+  if(e.key==='ArrowLeft'){
+    if(currentOutputIndex > 0){
+      e.preventDefault();
+      const preserveId = sections[activeIndex]?.id;
+      currentOutputIndex--;
+      loadOutputFile(preserveId).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
+    }
+  }
 }
 
 function refreshAnchors(){
@@ -143,6 +196,9 @@ function refreshAnchors(){
   links.forEach((a,i)=>a.classList.toggle('active', i===activeIndex));
 }
 
-loadOutput().catch(err=>{
-  outputPane.textContent = 'Failed to load output: '+err;
-});
+// Initial load + listeners
+loadOutputFile().then(()=>{
+  // Single persistent listener (previous duplicate with once:true caused removal after first key press)
+  window.addEventListener('keydown', onKey);
+  outputPane.addEventListener('scroll', onManualScroll);
+}).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
