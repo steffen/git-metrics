@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // PrintTopFileExtensions prints the top file extensions by size
@@ -111,7 +112,6 @@ const (
 	formatExtensionGrowthHeader = "\nLARGEST FILE EXTENSIONS ON-DISK SIZE GROWTH " +
 		"#############################################################################" // 44 (text+space) + 76 '#' = 120
 	formatExtensionGrowthTableHeader = "Year     Extension (#1)         Growth        Extension (#2)         Growth        Extension (#3)         Growth        Extension (#4)         Growth        Extension (#5)         Growth"
-	formatExtensionGrowthDivider     = "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------" // 184 '-' for 5-column layout
 	
 	// Row formats for 5-column layout
 	formatFiveColumnRow  = "%-6s │ %-18s%10s │ %-18s%10s │ %-18s%10s │ %-18s%10s │ %-18s%10s\n"
@@ -126,9 +126,8 @@ const (
 
 // extensionGrowthStats holds extension growth information
 type extensionGrowthStats struct {
-	extension  string
-	growth     int64
-	percentage float64
+	extension string
+	growth    int64
 }
 
 // PrintFileExtensionGrowth displays the top 5 extensions with largest size growth per year
@@ -140,7 +139,7 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 	fmt.Println(formatExtensionGrowthHeader)
 	fmt.Println()
 	fmt.Println(formatExtensionGrowthTableHeader)
-	fmt.Println(formatExtensionGrowthDivider)
+	fmt.Println(strings.Repeat("-", 184)) // 184 '-' for 5-column layout
 	
 	// Get years and sort them
 	var years []int
@@ -177,7 +176,6 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 		
 		// Calculate growth for each extension
 		var growthStats []extensionGrowthStats
-		totalGrowth := int64(0)
 		
 		for extension, currentSize := range currentStats {
 			previousSize := previousStats[extension] // will be 0 if extension didn't exist previously
@@ -187,7 +185,6 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 					extension: extension,
 					growth:    growth,
 				})
-				totalGrowth += growth
 			}
 		}
 		
@@ -195,13 +192,6 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 		sort.Slice(growthStats, func(i, j int) bool {
 			return growthStats[i].growth > growthStats[j].growth
 		})
-		
-		// Calculate percentages
-		for j := range growthStats {
-			if totalGrowth > 0 {
-				growthStats[j].percentage = float64(growthStats[j].growth) / float64(totalGrowth) * 100
-			}
-		}
 		
 		// Limit to top 5
 		if len(growthStats) > 5 {
