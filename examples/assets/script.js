@@ -21,10 +21,53 @@ const SECTION_DEFINITIONS = [
   { id: 'footer', title: 'Footer / Summary', match: /^Finished in /i, explain: () => `Runtime performance of the metrics tool itself (execution time, memory footprint).`}
 ];
 
+// Mapping of section identifiers to one or more Git commands (or derivations) used to produce the data.
+// Placeholders:
+//   <default_branch>  – resolved default branch (e.g. main / master)
+//   <year>            – iterated year during growth calculation loop
+//   <file>            – each candidate file when determining largest files
+const GIT_COMMANDS_BY_SECTION = {
+  'run': [
+    'git version'
+  ],
+  'repository': [
+    'git remote get-url origin',
+    'git rev-parse --short HEAD',
+    'git show -s --format=%cD <hash>',
+    'git rev-list --max-parents=0 HEAD --format=%cD'
+  ],
+  'growth': [
+    // For every <year> in the range first_commit_year..current_year
+    `git rev-list --objects --all --before <year>-01-01 --after <year>-12-31 | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize:disk) %(rest)'`
+  ],
+  'top-authors': [
+    'git log --all --format=%an|%cn|%cd --date=format:%Y'
+  ],
+  'top-committers': [
+    'git log --all --format=%an|%cn|%cd --date=format:%Y'
+  ],
+  'rate': [
+    'git remote show origin   # read default branch (HEAD branch line)',
+    'git log <default_branch> --format=%ct|%P --reverse'
+  ],
+  'largest-dirs': [
+    'git ls-tree -r --name-only <default_branch>'
+  ],
+  'largest-files': [
+    'git log -1 --format=%cD -- <file>   # per listed file'
+  ],
+  'largest-ext': [
+    // Extension statistics are derived from the blob listing produced by growth commands
+    '(derived from growth blob inventory)'
+  ],
+  'footer': []
+};
+
 const outputPane = document.getElementById('outputPane');
 const explanationPane = document.getElementById('explanationPane');
-const repoBadgeEl = document.getElementById('repoBadge');
+const repoBadgeEl = document.getElementById('repoBadge'); // deprecated visual usage (hidden)
 const outputContentEl = document.getElementById('outputContent');
+let outputTitleEl = null; // large title on right side
 
 let sections = []; // [{id, startLine, endLine, explanationEl}]
 let activeIndex = 0;
@@ -46,7 +89,7 @@ async function loadOutputFile(preserveSectionId){
   explanationPane.innerHTML = '';
   sections = [];
 
-  // Update repository badge
+  // Update (hidden) repository badge for accessibility only
   if(repoBadgeEl){
     repoBadgeEl.textContent = deriveRepoName(file);
   }
@@ -91,7 +134,19 @@ async function loadOutputFile(preserveSectionId){
   });
   explanationPane.appendChild(expFrag);
 
+  // Attach Git command displays after section elements exist
+  attachGitCommands();
+
   buildAnchorBar();
+
+  // Ensure output title exists (large heading on right side)
+  if(!outputTitleEl){
+    outputTitleEl = document.createElement('h1');
+    outputTitleEl.className = 'output-title';
+  }
+  outputTitleEl.textContent = deriveRepoName(file);
+  // Prepend so it appears above anchor bar
+  explanationPane.prepend(outputTitleEl);
 
   // Determine active index to restore
   let restoreIndex = 0;
@@ -102,14 +157,38 @@ async function loadOutputFile(preserveSectionId){
   updateActiveSection(restoreIndex, false);
 }
 
+// Add a bottom-left list of Git commands used for each section (if any)
+function attachGitCommands(){
+  sections.forEach(sectionEntry => {
+    const commands = GIT_COMMANDS_BY_SECTION[sectionEntry.id];
+    if(!commands || commands.length === 0){
+      return; // Nothing to show
+    }
+    const container = document.createElement('div');
+    container.className = 'git-command-display';
+    container.setAttribute('aria-label','Git commands used to generate this section');
+    // Optional label (kept visually subtle via CSS)
+    const label = document.createElement('div');
+    label.className = 'git-command-label';
+    label.textContent = 'Git commands';
+    container.appendChild(label);
+    // Add wrap opportunities after pipe and logical AND for long commands
+    const insertWrapHints = (text) => text
+      .replace(/\|/g, '|\u200b')
+      .replace(/&&/g, '&&\u200b');
+    commands.forEach(commandString => {
+      const codeElement = document.createElement('code');
+      codeElement.textContent = insertWrapHints(commandString);
+      container.appendChild(codeElement);
+    });
+    sectionEntry.explanationEl.appendChild(container);
+  });
+}
+
 function buildAnchorBar(){
   const bar = document.createElement('div');
   bar.className='anchor-links';
   // Output indicator
-  outputIndicatorEl = document.createElement('span');
-  outputIndicatorEl.className = 'output-indicator';
-  outputIndicatorEl.textContent = currentOutputFile();
-  bar.appendChild(outputIndicatorEl);
   sections.forEach((s,i)=>{
     const a=document.createElement('a');
     a.href='#anchor-'+s.id; a.textContent=(i+1)+'. '+s.def.title.split(' ')[0];
@@ -201,4 +280,49 @@ loadOutputFile().then(()=>{
   // Single persistent listener (previous duplicate with once:true caused removal after first key press)
   window.addEventListener('keydown', onKey);
   outputPane.addEventListener('scroll', onManualScroll);
+  initNavHintBehavior();
 }).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
+
+// --- Navigation Hint Show/Hide Logic ---------------------------------------------------------
+const NAV_HINT_INITIAL_VISIBLE_MS = 4000; // how long to keep it visible on first load
+const NAV_HINT_INACTIVITY_MS = 2500; // hide after this long without mouse movement
+let navHintEl = document.querySelector('.nav-hint');
+let navHintHideTimeout = null;
+let navHintRecentlyShown = false;
+
+function initNavHintBehavior(){
+  if(!navHintEl) return;
+  // Ensure visible at start
+  showNavHint(false);
+  // Schedule initial hide
+  navHintHideTimeout = setTimeout(()=>hideNavHint(), NAV_HINT_INITIAL_VISIBLE_MS);
+  // Listen for mouse movement to re-show
+  window.addEventListener('mousemove', onUserActivityForNavHint, { passive:true });
+  window.addEventListener('keydown', onUserActivityForNavHint, { passive:true }); // keyboard navigation also reveals
+}
+
+function onUserActivityForNavHint(){
+  if(!navHintEl) return;
+  // If already scheduled, reset timer
+  if(navHintHideTimeout){
+    clearTimeout(navHintHideTimeout);
+  }
+  // Only re-show if currently hidden OR not shown very recently (debounce flicker)
+  if(navHintEl.classList.contains('is-hidden') || !navHintRecentlyShown){
+    showNavHint(true);
+  }
+  navHintHideTimeout = setTimeout(()=>hideNavHint(), NAV_HINT_INACTIVITY_MS);
+}
+
+function showNavHint(animated){
+  if(!navHintEl) return;
+  navHintEl.classList.remove('is-hidden');
+  navHintRecentlyShown = true;
+  // Cooldown to prevent rapid toggling animations
+  setTimeout(()=>{ navHintRecentlyShown = false; }, 800);
+}
+
+function hideNavHint(){
+  if(!navHintEl) return;
+  navHintEl.classList.add('is-hidden');
+}
