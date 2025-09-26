@@ -189,7 +189,6 @@ function buildAnchorBar(){
   const bar = document.createElement('div');
   bar.className='anchor-links';
   // Output indicator
-  // Removed small inline output indicator (superseded by large title)
   sections.forEach((s,i)=>{
     const a=document.createElement('a');
     a.href='#anchor-'+s.id; a.textContent=(i+1)+'. '+s.def.title.split(' ')[0];
