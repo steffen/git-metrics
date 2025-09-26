@@ -281,4 +281,49 @@ loadOutputFile().then(()=>{
   // Single persistent listener (previous duplicate with once:true caused removal after first key press)
   window.addEventListener('keydown', onKey);
   outputPane.addEventListener('scroll', onManualScroll);
+  initNavHintBehavior();
 }).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
+
+// --- Navigation Hint Show/Hide Logic ---------------------------------------------------------
+const NAV_HINT_INITIAL_VISIBLE_MS = 4000; // how long to keep it visible on first load
+const NAV_HINT_INACTIVITY_MS = 2500; // hide after this long without mouse movement
+let navHintEl = document.querySelector('.nav-hint');
+let navHintHideTimeout = null;
+let navHintRecentlyShown = false;
+
+function initNavHintBehavior(){
+  if(!navHintEl) return;
+  // Ensure visible at start
+  showNavHint(false);
+  // Schedule initial hide
+  navHintHideTimeout = setTimeout(()=>hideNavHint(), NAV_HINT_INITIAL_VISIBLE_MS);
+  // Listen for mouse movement to re-show
+  window.addEventListener('mousemove', onUserActivityForNavHint, { passive:true });
+  window.addEventListener('keydown', onUserActivityForNavHint, { passive:true }); // keyboard navigation also reveals
+}
+
+function onUserActivityForNavHint(){
+  if(!navHintEl) return;
+  // If already scheduled, reset timer
+  if(navHintHideTimeout){
+    clearTimeout(navHintHideTimeout);
+  }
+  // Only re-show if currently hidden OR not shown very recently (debounce flicker)
+  if(navHintEl.classList.contains('is-hidden') || !navHintRecentlyShown){
+    showNavHint(true);
+  }
+  navHintHideTimeout = setTimeout(()=>hideNavHint(), NAV_HINT_INACTIVITY_MS);
+}
+
+function showNavHint(animated){
+  if(!navHintEl) return;
+  navHintEl.classList.remove('is-hidden');
+  navHintRecentlyShown = true;
+  // Cooldown to prevent rapid toggling animations
+  setTimeout(()=>{ navHintRecentlyShown = false; }, 800);
+}
+
+function hideNavHint(){
+  if(!navHintEl) return;
+  navHintEl.classList.add('is-hidden');
+}

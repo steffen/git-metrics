@@ -43,6 +43,8 @@ body{
 /* Ensure no gap above sticky badge */
 .output-pane > :first-child{margin-top:0}
 .nav-hint{position:fixed;bottom:.5rem;left:50%;transform:translateX(-50%);font-size:.75rem;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);background:#111a23bb;padding:.4rem .75rem;border:1px solid var(--border);backdrop-filter:blur(6px);border-radius:8px;pointer-events:none;}
+.nav-hint{opacity:1;transition:opacity .6s var(--transition), transform .6s var(--transition);}/* reuse timing curve */
+.nav-hint.is-hidden{opacity:0;transform:translate(-50%,10px);}
 .highlight-mask{position:absolute;left:0;right:0;pointer-events:none;top:0;bottom:0;mix-blend-mode:normal;}
 .masked-line{transition:opacity var(--transition), filter var(--transition);}
 .dimmed .masked-line{opacity:.15;filter:blur(1px);}
