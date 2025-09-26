@@ -166,8 +166,14 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 		}
 		CountedObjects[objectIdentifier] = true
 
-		uncompressedSize, _ := strconv.ParseInt(fields[2], 10, 64)
-		compressedSize, _ := strconv.ParseInt(fields[3], 10, 64)
+		uncompressedSize, err := strconv.ParseInt(fields[2], 10, 64)
+		if err != nil {
+			continue // Skip invalid size entries
+		}
+		compressedSize, err := strconv.ParseInt(fields[3], 10, 64)
+		if err != nil {
+			continue // Skip invalid size entries
+		}
 		compressedDelta += compressedSize
 
 		switch objectType {
