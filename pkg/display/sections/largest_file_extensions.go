@@ -81,21 +81,21 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 	for _, statistic := range statistics {
 		percentageFiles := float64(statistic.filesCount) / float64(totalExtFilesCount) * 100
 		percentageBlobs := float64(statistic.blobsCount) / float64(totalBlobs) * 100
-		
+
 		// Calculate compression ratio (uncompressed / compressed)
 		var compressionRatio float64
 		if statistic.compressedSize > 0 {
 			compressionRatio = float64(statistic.uncompressedSize) / float64(statistic.compressedSize)
 		}
-		
+
 		// Calculate percentages relative to totals
 		percentageUncompressed := float64(statistic.uncompressedSize) / float64(totalExtUncompressedSize) * 100
 		percentageCompressed := float64(statistic.compressedSize) / float64(totalExtCompressedSize) * 100
-		
-		fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%      %7.2fx\n",
-			statistic.extension, 
-			utils.FormatNumber(statistic.filesCount), percentageFiles, 
-			utils.FormatNumber(statistic.blobsCount), percentageBlobs, 
+
+		fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%      %7.0fx\n",
+			statistic.extension,
+			utils.FormatNumber(statistic.filesCount), percentageFiles,
+			utils.FormatNumber(statistic.blobsCount), percentageBlobs,
 			utils.FormatSize(statistic.uncompressedSize), percentageUncompressed,
 			utils.FormatSize(statistic.compressedSize), percentageCompressed,
 			compressionRatio)
@@ -108,14 +108,14 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 
 	// Print separator and top 10 totals row
 	fmt.Println("---------------------------------------------------------------------------------------------------------------------------")
-	
+
 	// Calculate compression ratio for selected extensions
 	var selectedCompressionRatio float64
 	if selectedCompressedSize > 0 {
 		selectedCompressionRatio = float64(selectedUncompressedSize) / float64(selectedCompressedSize)
 	}
-	
-	fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%      %7.2fx\n",
+
+	fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%      %7.0fx\n",
 		fmt.Sprintf("├─ Top %s", utils.FormatNumber(len(statistics))),
 		utils.FormatNumber(selectedFilesCount),
 		float64(selectedFilesCount)/float64(totalExtFilesCount)*100,
@@ -132,8 +132,8 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 	if totalExtCompressedSize > 0 {
 		totalCompressionRatio = float64(totalExtUncompressedSize) / float64(totalExtCompressedSize)
 	}
-	
-	fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%      %7.2fx\n",
+
+	fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%      %7.0fx\n",
 		fmt.Sprintf("└─ Out of %s", utils.FormatNumber(len(extensionStatistics))),
 		utils.FormatNumber(totalExtFilesCount),
 		100.0, // Always 100% for totals
