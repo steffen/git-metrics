@@ -89,3 +89,5 @@ type RateStatistics struct {
 	WeekendCommits       int     // Commits during weekends
 	WorkdayWeekendRatio  float64 // Ratio of workday to weekend commits
 }
+
+

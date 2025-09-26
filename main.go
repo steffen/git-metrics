@@ -315,6 +315,11 @@ func main() {
 		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
 	}
 
+	// Print top 3 authors by on-disk size contributions per year
+	if authorsSizeByYear, totalSizeByYear, allTimeAuthorSizes, err := git.GetAuthorSizeContributions(3, totalStatistics.LargestFiles); err == nil && len(authorsSizeByYear) > 0 {
+		sections.DisplayAuthorsWithLargestSize(authorsSizeByYear, totalSizeByYear, allTimeAuthorSizes)
+	}
+
 	// Rate of changes analysis
 	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
 		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
