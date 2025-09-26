@@ -21,6 +21,48 @@ const SECTION_DEFINITIONS = [
   { id: 'footer', title: 'Footer / Summary', match: /^Finished in /i, explain: () => `Runtime performance of the metrics tool itself (execution time, memory footprint).`}
 ];
 
+// Mapping of section identifiers to one or more Git commands (or derivations) used to produce the data.
+// Placeholders:
+//   <default_branch>  – resolved default branch (e.g. main / master)
+//   <year>            – iterated year during growth calculation loop
+//   <file>            – each candidate file when determining largest files
+const GIT_COMMANDS_BY_SECTION = {
+  'run': [
+    'git version'
+  ],
+  'repository': [
+    'git remote get-url origin',
+    'git rev-parse --short HEAD',
+    'git show -s --format=%cD <hash>',
+    'git rev-list --max-parents=0 HEAD --format=%cD'
+  ],
+  'growth': [
+    // For every <year> in the range first_commit_year..current_year
+    `git rev-list --objects --all --before <year>-01-01 --after <year>-12-31 | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize:disk) %(rest)'`
+  ],
+  'top-authors': [
+    'git log --all --format=%an|%cn|%cd --date=format:%Y'
+  ],
+  'top-committers': [
+    'git log --all --format=%an|%cn|%cd --date=format:%Y'
+  ],
+  'rate': [
+    'git remote show origin   # read default branch (HEAD branch line)',
+    'git log <default_branch> --format=%ct|%P --reverse'
+  ],
+  'largest-dirs': [
+    'git ls-tree -r --name-only <default_branch>'
+  ],
+  'largest-files': [
+    'git log -1 --format=%cD -- <file>   # per listed file'
+  ],
+  'largest-ext': [
+    // Extension statistics are derived from the blob listing produced by growth commands
+    '(derived from growth blob inventory)'
+  ],
+  'footer': []
+};
+
 const outputPane = document.getElementById('outputPane');
 const explanationPane = document.getElementById('explanationPane');
 const repoBadgeEl = document.getElementById('repoBadge');
@@ -91,6 +133,9 @@ async function loadOutputFile(preserveSectionId){
   });
   explanationPane.appendChild(expFrag);
 
+  // Attach Git command displays after section elements exist
+  attachGitCommands();
+
   buildAnchorBar();
 
   // Determine active index to restore
@@ -100,6 +145,34 @@ async function loadOutputFile(preserveSectionId){
     if(idx !== -1) restoreIndex = idx;
   }
   updateActiveSection(restoreIndex, false);
+}
+
+// Add a bottom-left list of Git commands used for each section (if any)
+function attachGitCommands(){
+  sections.forEach(sectionEntry => {
+    const commands = GIT_COMMANDS_BY_SECTION[sectionEntry.id];
+    if(!commands || commands.length === 0){
+      return; // Nothing to show
+    }
+    const container = document.createElement('div');
+    container.className = 'git-command-display';
+    container.setAttribute('aria-label','Git commands used to generate this section');
+    // Optional label (kept visually subtle via CSS)
+    const label = document.createElement('div');
+    label.className = 'git-command-label';
+    label.textContent = 'Git commands';
+    container.appendChild(label);
+    // Add wrap opportunities after pipe and logical AND for long commands
+    const insertWrapHints = (text) => text
+      .replace(/\|/g, '|\u200b')
+      .replace(/&&/g, '&&\u200b');
+    commands.forEach(commandString => {
+      const codeElement = document.createElement('code');
+      codeElement.textContent = insertWrapHints(commandString);
+      container.appendChild(codeElement);
+    });
+    sectionEntry.explanationEl.appendChild(container);
+  });
 }
 
 function buildAnchorBar(){
