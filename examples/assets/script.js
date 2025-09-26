@@ -65,8 +65,9 @@ const GIT_COMMANDS_BY_SECTION = {
 
 const outputPane = document.getElementById('outputPane');
 const explanationPane = document.getElementById('explanationPane');
-const repoBadgeEl = document.getElementById('repoBadge');
+const repoBadgeEl = document.getElementById('repoBadge'); // deprecated visual usage (hidden)
 const outputContentEl = document.getElementById('outputContent');
+let outputTitleEl = null; // large title on right side
 
 let sections = []; // [{id, startLine, endLine, explanationEl}]
 let activeIndex = 0;
@@ -88,7 +89,7 @@ async function loadOutputFile(preserveSectionId){
   explanationPane.innerHTML = '';
   sections = [];
 
-  // Update repository badge
+  // Update (hidden) repository badge for accessibility only
   if(repoBadgeEl){
     repoBadgeEl.textContent = deriveRepoName(file);
   }
@@ -138,6 +139,15 @@ async function loadOutputFile(preserveSectionId){
 
   buildAnchorBar();
 
+  // Ensure output title exists (large heading on right side)
+  if(!outputTitleEl){
+    outputTitleEl = document.createElement('h1');
+    outputTitleEl.className = 'output-title';
+  }
+  outputTitleEl.textContent = deriveRepoName(file);
+  // Prepend so it appears above anchor bar
+  explanationPane.prepend(outputTitleEl);
+
   // Determine active index to restore
   let restoreIndex = 0;
   if(preserveSectionId){
@@ -179,10 +189,7 @@ function buildAnchorBar(){
   const bar = document.createElement('div');
   bar.className='anchor-links';
   // Output indicator
-  outputIndicatorEl = document.createElement('span');
-  outputIndicatorEl.className = 'output-indicator';
-  outputIndicatorEl.textContent = currentOutputFile();
-  bar.appendChild(outputIndicatorEl);
+  // Removed small inline output indicator (superseded by large title)
   sections.forEach((s,i)=>{
     const a=document.createElement('a');
     a.href='#anchor-'+s.id; a.textContent=(i+1)+'. '+s.def.title.split(' ')[0];
