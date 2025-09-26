@@ -200,7 +200,7 @@ func main() {
 	fmt.Println()
 
 	// Print table headers before data collection (Year widened to 6 for ^* marker)
-	fmt.Println("Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%")
+	fmt.Println("Year     Commits          Δ    T%      Δ%       Authors        Δ    T%      Δ%   On-disk size            Δ    T%      Δ%")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Calculate growth stats and totals
@@ -221,12 +221,12 @@ func main() {
 	}
 	progress.StopProgress() // Stop and clear progress line
 
-	// Compute cumulative unique authors per year for historic growth
-	cumulativeAuthorsByYear, totalAuthors, authorsErr := git.GetCumulativeUniqueAuthorsByYear()
+	// Compute active authors per year for historic growth
+	activeAuthorsByYear, totalAuthors, authorsErr := git.GetActiveAuthorsByYear()
 	if authorsErr == nil {
 		// Inject authors into yearly statistics
 		for year, stats := range yearlyStatistics {
-			if authorsCount, ok := cumulativeAuthorsByYear[year]; ok {
+			if authorsCount, ok := activeAuthorsByYear[year]; ok {
 				stats.Authors = authorsCount
 				yearlyStatistics[year] = stats
 			}
