@@ -83,12 +83,6 @@ func main() {
 
 	fmt.Printf("Git directory              %s\n", gitDir)
 
-	// Get fetch time before deciding whether to show last modified time
-	recentFetch := git.GetLastFetchTime(gitDir)
-	if recentFetch == "" {
-		fmt.Printf("Last modified              %s\n", lastModified)
-	}
-
 	// Remote URL - only show if there is one
 	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
 	remote := ""
@@ -104,6 +98,11 @@ func main() {
 		}
 	}
 
+	// Show last modified time after remote (just like we show fetch time)
+	fmt.Printf("Last modified              %s\n", lastModified)
+
+	// Get fetch time and show if available
+	recentFetch := git.GetLastFetchTime(gitDir)
 	if recentFetch != "" {
 		fmt.Printf("Most recent fetch          %s\n", recentFetch)
 	}
