@@ -101,7 +101,7 @@ jobs:
           
           if [ ! -d "$REPO_PATH/.git" ]; then
             echo "==> Cloning $REPO_NAME (this may take a while)…"
-            git clone --depth 1 "$REPO_URL" "$REPO_PATH"
+            git clone "$REPO_URL" "$REPO_PATH"
           else
             echo "==> Fetching updates for $REPO_NAME…"
             cd "$REPO_PATH"
