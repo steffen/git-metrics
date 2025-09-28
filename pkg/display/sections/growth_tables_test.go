@@ -125,12 +125,12 @@ func TestPrintTopFileExtensions(t *testing.T) {
 		PrintTopFileExtensions(files, totalBlobs, totalSize)
 	})
 
-	for _, expected := range []string{"LARGEST FILE EXTENSIONS", ".txt", ".go", "No Extension", "Uncompressed size", "On-disk size", "Compression ratio"} {
+	for _, expected := range []string{"LARGEST FILE EXTENSIONS", ".txt", ".go", "No Extension", "Object size", "On-disk size", "Compression ratio"} {
 		if !strings.Contains(output, expected) {
 			t.Errorf("expected output to contain %q.\nOutput: %s", expected, output)
 		}
 	}
-	
+
 	// Check that compression ratios are displayed (should see format like "1.20x")
 	if !strings.Contains(output, "x") {
 		t.Errorf("expected output to contain compression ratios with 'x' suffix.\nOutput: %s", output)
@@ -165,11 +165,11 @@ func TestPrintFileExtensionGrowth(t *testing.T) {
 		2023: {
 			Year: 2023,
 			LargestFiles: []models.FileInformation{
-				{Path: "app.go", CompressedSize: 200 * 1000, UncompressedSize: 240 * 1000},        // +100KB .go growth
-				{Path: "main.go", CompressedSize: 150 * 1000, UncompressedSize: 180 * 1000},       // +150KB .go growth (new file)
-				{Path: "README.md", CompressedSize: 75 * 1000, UncompressedSize: 90 * 1000},      // +25KB .md growth
-				{Path: "config.json", CompressedSize: 30 * 1000, UncompressedSize: 36 * 1000},    // +5KB .json growth
-				{Path: "test.py", CompressedSize: 80 * 1000, UncompressedSize: 100 * 1000},        // +80KB .py growth (new extension)
+				{Path: "app.go", CompressedSize: 200 * 1000, UncompressedSize: 240 * 1000},    // +100KB .go growth
+				{Path: "main.go", CompressedSize: 150 * 1000, UncompressedSize: 180 * 1000},   // +150KB .go growth (new file)
+				{Path: "README.md", CompressedSize: 75 * 1000, UncompressedSize: 90 * 1000},   // +25KB .md growth
+				{Path: "config.json", CompressedSize: 30 * 1000, UncompressedSize: 36 * 1000}, // +5KB .json growth
+				{Path: "test.py", CompressedSize: 80 * 1000, UncompressedSize: 100 * 1000},    // +80KB .py growth (new extension)
 			},
 		},
 	}
