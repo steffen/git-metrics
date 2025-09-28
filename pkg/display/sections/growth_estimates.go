@@ -67,52 +67,11 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 
 	estimates = append(estimates, predictedCurrentYear)
 
-	// Calculate delta percentage growth rates from current year to apply to future years
+	// Calculate deltas for the predicted current year
 	currentYearAuthorsDelta := predictedCurrentYear.Authors - previousStats.Authors
 	currentYearCommitsDelta := predictedCurrentYear.Commits - previousStats.Commits
 	currentYearCompressedSizeDelta := predictedCurrentYear.Compressed - previousStats.Compressed
 	currentYearUncompressedSizeDelta := predictedCurrentYear.Uncompressed - previousStats.Uncompressed
-
-	// Calculate previous year deltas to determine delta percentage growth rate
-	twoYearsAgo, twoYearsExists := yearlyStats[currentYear-2]
-	if !twoYearsExists {
-		return estimates
-	}
-
-	previousYearAuthorsDelta := previousStats.Authors - twoYearsAgo.Authors
-	previousYearCommitsDelta := previousStats.Commits - twoYearsAgo.Commits
-	previousYearCompressedSizeDelta := previousStats.Compressed - twoYearsAgo.Compressed
-	previousYearUncompressedSizeDelta := previousStats.Uncompressed - twoYearsAgo.Uncompressed
-
-	// Calculate delta percentage change (Δ% growth rate)
-	var authorsDeltaGrowthPercent, commitsDeltaGrowthPercent, compressedSizeDeltaGrowthPercent, uncompressedSizeDeltaGrowthPercent float64
-	if previousYearAuthorsDelta > 0 {
-		authorsDeltaGrowthPercent = float64(currentYearAuthorsDelta-previousYearAuthorsDelta) / float64(previousYearAuthorsDelta)
-	}
-	if previousYearCommitsDelta > 0 {
-		commitsDeltaGrowthPercent = float64(currentYearCommitsDelta-previousYearCommitsDelta) / float64(previousYearCommitsDelta)
-	}
-	if previousYearCompressedSizeDelta > 0 {
-		compressedSizeDeltaGrowthPercent = float64(currentYearCompressedSizeDelta-previousYearCompressedSizeDelta) / float64(previousYearCompressedSizeDelta)
-	}
-	if previousYearUncompressedSizeDelta > 0 {
-		uncompressedSizeDeltaGrowthPercent = float64(currentYearUncompressedSizeDelta-previousYearUncompressedSizeDelta) / float64(previousYearUncompressedSizeDelta)
-	}
-
-	// Store delta percentage values for the predicted current year
-	// Calculate delta percentage for current year based on previous year's delta
-	if previousYearAuthorsDelta > 0 {
-		predictedCurrentYear.AuthorsDeltaPercent = float64(currentYearAuthorsDelta-previousYearAuthorsDelta) / float64(previousYearAuthorsDelta) * 100
-	}
-	if previousYearCommitsDelta > 0 {
-		predictedCurrentYear.CommitsDeltaPercent = float64(currentYearCommitsDelta-previousYearCommitsDelta) / float64(previousYearCommitsDelta) * 100
-	}
-	if previousYearCompressedSizeDelta > 0 {
-		predictedCurrentYear.CompressedDeltaPercent = float64(currentYearCompressedSizeDelta-previousYearCompressedSizeDelta) / float64(previousYearCompressedSizeDelta) * 100
-	}
-	if previousYearUncompressedSizeDelta > 0 {
-		predictedCurrentYear.UncompressedDeltaPercent = float64(currentYearUncompressedSizeDelta-previousYearUncompressedSizeDelta) / float64(previousYearUncompressedSizeDelta) * 100
-	}
 
 	// Store delta values for the predicted current year
 	predictedCurrentYear.AuthorsDelta = currentYearAuthorsDelta
@@ -120,37 +79,18 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 	predictedCurrentYear.CompressedDelta = currentYearCompressedSizeDelta
 	predictedCurrentYear.UncompressedDelta = currentYearUncompressedSizeDelta
 
-	// Update the first estimate in the slice with calculated delta percentages
+	// Update the first estimate in the slice with calculated deltas
 	estimates[0] = predictedCurrentYear
 
-	// Project future years using delta percentage growth rates
+	// Project future years using linear growth (same delta each year)
 	previousEstimate := predictedCurrentYear
-	previousAuthorsDelta := currentYearAuthorsDelta
-	previousCommitsDelta := currentYearCommitsDelta
-	previousCompressedSizeDelta := currentYearCompressedSizeDelta
-	previousUncompressedSizeDelta := currentYearUncompressedSizeDelta
 
 	for futureYear := currentYear + 1; futureYear <= currentYear+5; futureYear++ {
-		// Apply delta growth percentages to previous deltas to get new deltas
-		nextAuthorsDelta := previousAuthorsDelta + int(float64(previousAuthorsDelta)*authorsDeltaGrowthPercent)
-		nextCommitsDelta := previousCommitsDelta + int(float64(previousCommitsDelta)*commitsDeltaGrowthPercent)
-		nextCompressedSizeDelta := previousCompressedSizeDelta + int64(float64(previousCompressedSizeDelta)*compressedSizeDeltaGrowthPercent)
-		nextUncompressedSizeDelta := previousUncompressedSizeDelta + int64(float64(previousUncompressedSizeDelta)*uncompressedSizeDeltaGrowthPercent)
-
-		// Calculate delta percentages for future years (consistent with current year calculation)
-		var nextAuthorsDeltaPercent, nextCommitsDeltaPercent, nextCompressedSizeDeltaPercent, nextUncompressedSizeDeltaPercent float64
-		if previousAuthorsDelta > 0 {
-			nextAuthorsDeltaPercent = float64(nextAuthorsDelta-previousAuthorsDelta) / float64(previousAuthorsDelta) * 100
-		}
-		if previousCommitsDelta > 0 {
-			nextCommitsDeltaPercent = float64(nextCommitsDelta-previousCommitsDelta) / float64(previousCommitsDelta) * 100
-		}
-		if previousCompressedSizeDelta > 0 {
-			nextCompressedSizeDeltaPercent = float64(nextCompressedSizeDelta-previousCompressedSizeDelta) / float64(previousCompressedSizeDelta) * 100
-		}
-		if previousUncompressedSizeDelta > 0 {
-			nextUncompressedSizeDeltaPercent = float64(nextUncompressedSizeDelta-previousUncompressedSizeDelta) / float64(previousUncompressedSizeDelta) * 100
-		}
+		// Use the same deltas from the current year prediction for all future years (linear growth)
+		nextAuthorsDelta := currentYearAuthorsDelta
+		nextCommitsDelta := currentYearCommitsDelta
+		nextCompressedSizeDelta := currentYearCompressedSizeDelta
+		nextUncompressedSizeDelta := currentYearUncompressedSizeDelta
 
 		nextEstimate := models.GrowthStatistics{
 			Year:         futureYear,
@@ -163,20 +103,16 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 			CommitsDelta:      nextCommitsDelta,
 			CompressedDelta:   nextCompressedSizeDelta,
 			UncompressedDelta: nextUncompressedSizeDelta,
-			// Store delta percentage values
-			AuthorsDeltaPercent:      nextAuthorsDeltaPercent,
-			CommitsDeltaPercent:      nextCommitsDeltaPercent,
-			CompressedDeltaPercent:   nextCompressedSizeDeltaPercent,
-			UncompressedDeltaPercent: nextUncompressedSizeDeltaPercent,
+			// Delta percentage values are not needed for linear growth
+			AuthorsDeltaPercent:      0,
+			CommitsDeltaPercent:      0,
+			CompressedDeltaPercent:   0,
+			UncompressedDeltaPercent: 0,
 		}
 		estimates = append(estimates, nextEstimate)
 
 		// Update for next iteration
 		previousEstimate = nextEstimate
-		previousAuthorsDelta = nextAuthorsDelta
-		previousCommitsDelta = nextCommitsDelta
-		previousCompressedSizeDelta = nextCompressedSizeDelta
-		previousUncompressedSizeDelta = nextUncompressedSizeDelta
 	}
 
 	return estimates
