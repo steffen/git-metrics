@@ -154,7 +154,7 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 
 	yearDisplay := strconv.Itoa(statistics.Year) + "*"
 	if statistics.Year == currentYear {
-		// Current year's estimate references both current totals (^) and estimated (*): show ~
+		// Current year estimate uses ~ to distinguish from future year estimates (*)
 		yearDisplay = strconv.Itoa(statistics.Year) + "~"
 	}
 
