@@ -1,0 +1,229 @@
+name: Update Examples
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to create PR against'
+        required: false
+        default: 'main'
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+env:
+  BINARY_NAME: git-metrics
+  # Disable cgo for portable binaries (avoid host glibc dependency)
+  CGO_ENABLED: 0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5
+        with:
+          go-version-file: './go.mod'
+
+      - name: Get version for build
+        id: version
+        run: |
+          # Use deterministic version for examples to avoid unnecessary churn
+          VERSION="0.0.0-examples"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building with version: $VERSION"
+
+      - name: Build git-metrics
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          echo "==> Building git-metrics version ${VERSION}…"
+          go build -ldflags "-X git-metrics/pkg/utils.GitMetricsVersion=${VERSION}" -o "${BINARY_NAME}"
+
+      - name: Upload git-metrics binary
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: git-metrics-binary
+          path: ${{ env.BINARY_NAME }}
+          retention-days: 1
+
+  update-examples:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repository: 
+          - name: git
+            url: https://github.com/git/git.git
+            cache-key: git-repo
+          - name: linux
+            url: https://github.com/torvalds/linux.git
+            cache-key: linux-repo
+          - name: chromium
+            url: https://github.com/chromium/chromium.git
+            cache-key: chromium-repo
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+
+      - name: Download git-metrics binary
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          name: git-metrics-binary
+
+      - name: Make git-metrics executable
+        run: chmod +x git-metrics
+
+      - name: Setup repository cache
+        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
+        with:
+          path: repos/${{ matrix.repository.name }}
+          key: ${{ matrix.repository.cache-key }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ matrix.repository.cache-key }}-
+
+      - name: Clone or update repository
+        run: |
+          REPO_NAME="${{ matrix.repository.name }}"
+          REPO_URL="${{ matrix.repository.url }}"
+          REPO_PATH="repos/$REPO_NAME"
+          
+          mkdir -p repos
+          
+          if [ ! -d "$REPO_PATH/.git" ]; then
+            echo "==> Cloning $REPO_NAME (this may take a while)…"
+            git clone --depth 1 "$REPO_URL" "$REPO_PATH"
+          else
+            echo "==> Fetching updates for $REPO_NAME…"
+            cd "$REPO_PATH"
+            git fetch --depth 1 --tags --prune origin
+            git reset --hard origin/HEAD
+          fi
+
+      - name: Generate metrics
+        run: |
+          REPO_NAME="${{ matrix.repository.name }}"
+          REPO_PATH="repos/$REPO_NAME"
+          OUTPUT_DIR="examples/outputs"
+          
+          mkdir -p "$OUTPUT_DIR"
+          
+          echo "==> Generating metrics for $REPO_NAME…"
+          ./git-metrics --no-progress --repository "$REPO_PATH" > "$OUTPUT_DIR/$REPO_NAME.txt"
+          echo "==> Generated $OUTPUT_DIR/$REPO_NAME.txt"
+
+      - name: Upload output artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: output-${{ matrix.repository.name }}
+          path: examples/outputs/${{ matrix.repository.name }}.txt
+          retention-days: 1
+
+  create-pr:
+    needs: [build, update-examples]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          fetch-depth: 0
+
+      - name: Download all output artifacts
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0
+        with:
+          pattern: output-*
+          merge-multiple: true
+          path: examples/outputs
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create branch and commit changes
+        id: commit
+        run: |
+          # Create a unique branch name
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BRANCH_NAME="update-examples-$TIMESTAMP"
+          
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          # Create and switch to new branch
+          git checkout -b "$BRANCH_NAME"
+          
+          # Check if there are any changes
+          if git diff --quiet examples/outputs/; then
+            echo "No changes detected in example outputs"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in example outputs"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            
+            # Add and commit changes
+            git add examples/outputs/
+            git commit -m "Update example outputs
+            
+            - Updated git.txt with latest metrics
+            - Updated linux.txt with latest metrics  
+            - Updated chromium.txt with latest metrics
+            
+            Generated by update-examples workflow"
+            
+            # Push the branch
+            git push origin "$BRANCH_NAME"
+          fi
+
+      - name: Create Pull Request
+        if: steps.commit.outputs.has_changes == 'true'
+        uses: actions/github-script@d7906e4ad0b1822421a7e6a35d5ca353c962f410
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const branchName = '${{ steps.commit.outputs.branch_name }}';
+            const baseBranch = '${{ github.event.inputs.branch || 'main' }}';
+            
+            const pr = await github.rest.pulls.create({
+              owner,
+              repo,
+              title: 'Update example outputs',
+              head: branchName,
+              base: baseBranch,
+              body: `## Summary
+            
+            This PR updates the example outputs in \`examples/outputs/\` with the latest metrics from the git, linux, and chromium repositories.
+            
+            ## Changes
+            
+            - 📊 Updated \`git.txt\` with latest Git repository metrics
+            - 📊 Updated \`linux.txt\` with latest Linux kernel metrics  
+            - 📊 Updated \`chromium.txt\` with latest Chromium repository metrics
+            
+            ## Generated By
+            
+            This PR was automatically generated by the \`update-examples\` GitHub Actions workflow.
+            
+            ---
+            
+            *This PR was created automatically. Please review the changes before merging.*`
+            });
+            
+            console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
+
+      - name: Output summary
+        run: |
+          if [ "${{ steps.commit.outputs.has_changes }}" == "true" ]; then
+            echo "✅ Successfully created PR with updated example outputs"
+            echo "Branch: ${{ steps.commit.outputs.branch_name }}"
+          else
+            echo "ℹ️  No changes detected - example outputs are already up to date"
+          fi
