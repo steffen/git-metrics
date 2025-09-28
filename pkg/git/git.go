@@ -240,6 +240,32 @@ func ShellToUse() string {
 	return "sh"
 }
 
+// GetYearEndCommit returns the commit hash at (just before) the start of the next year
+// for the repository's default branch. This represents the snapshot of the default
+// branch as of the end of the requested year. If there is no commit prior to the
+// boundary (e.g. repository did not exist yet), an empty string is returned.
+func GetYearEndCommit(year int, debug bool) (string, error) {
+	if year < 1900 || year > 3000 {
+		return "", fmt.Errorf("invalid year %d: must be between 1900 and 3000", year)
+	}
+
+	defaultBranch, err := GetDefaultBranch()
+	if err != nil {
+		return "", fmt.Errorf("could not determine default branch: %v", err)
+	}
+
+	boundary := fmt.Sprintf("%d-01-01", year+1)
+	cmd := exec.Command("git", "rev-list", "-1", "--before", boundary, defaultBranch)
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	hash := strings.TrimSpace(string(out))
+	utils.DebugPrint(debug, "Year %d end commit on %s: %s", year, defaultBranch, hash)
+	return hash, nil
+}
+
 // GetContributors returns all commit authors and committers with dates from git history
 func GetContributors() ([]string, error) {
 	// Execute the git command to get all contributors with their commit dates
@@ -436,81 +462,83 @@ func GetRateOfChanges() (map[int]models.RateStatistics, error) {
 
 // GetCheckoutGrowthStats calculates checkout growth statistics for a given year
 func GetCheckoutGrowthStats(year int, debug bool) (models.CheckoutGrowthStatistics, error) {
-	utils.DebugPrint(debug, "Calculating checkout growth stats for year %d", year)
+	utils.DebugPrint(debug, "Calculating checkout growth stats (default branch snapshot) for year %d", year)
 	statistics := models.CheckoutGrowthStatistics{Year: year}
 
-	// Build shell command to get file tree at end of year
-	// Validate year parameter to prevent command injection
-	if year < 1900 || year > 3000 {
-		return statistics, fmt.Errorf("invalid year %d: must be between 1900 and 3000", year)
+	commitHash, err := GetYearEndCommit(year, debug)
+	if err != nil {
+		return statistics, err
 	}
-	commandString := fmt.Sprintf("git rev-list --objects --all --before %d-01-01 | git cat-file --batch-check='%%(objecttype) %%(objectname) %%(objectsize:disk) %%(rest)'", year+1)
-	command := exec.Command(ShellToUse(), "-c", commandString)
-	output, err := command.Output()
+	if commitHash == "" { // No commit exists before boundary
+		utils.DebugPrint(debug, "No year-end commit found for %d; returning empty stats", year)
+		return statistics, nil
+	}
+
+	// Resolve repository root to ensure consistent path context even when called from subdirectories
+	repoRootCmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	repoRootOut, err := repoRootCmd.Output()
+	if err != nil {
+		return statistics, fmt.Errorf("failed to determine repository root: %v", err)
+	}
+	repoRoot := strings.TrimSpace(string(repoRootOut))
+
+	// git ls-tree -r --long <commit>
+	cmd := exec.Command("git", "ls-tree", "-r", "--long", commitHash)
+	cmd.Dir = repoRoot
+	output, err := cmd.Output()
 	if err != nil {
 		return statistics, err
 	}
 
-	// Track unique directories and file statistics
-	directories := make(map[string]bool)
+	directories := make(map[string]struct{})
+	var fileCount int
+	var totalSize int64
 	maxPathDepth := 0
 	maxPathLength := 0
-	fileCount := 0
-	totalSize := int64(0)
 
-	lines := strings.Split(string(output), "\n")
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
 		fields := strings.Fields(line)
-		if len(fields) < 4 {
+		// Expected at least: mode type objectHash size path...
+		if len(fields) < 5 {
 			continue
 		}
-		
-		objectType := fields[0]
+		objectType := fields[1]
 		if objectType != "blob" {
 			continue
 		}
-
-		// Extract file path (4th field onward)
-		filePath := strings.Join(fields[3:], " ")
+		sizeStr := fields[3]
+		filePath := strings.Join(fields[4:], " ")
 		filePath = strings.TrimSpace(filePath)
 		if filePath == "" {
 			continue
 		}
-
-		fileCount++
-		
-		// Parse size for total
-		if size, err := strconv.ParseInt(fields[2], 10, 64); err == nil {
+		if size, err := strconv.ParseInt(sizeStr, 10, 64); err == nil {
 			totalSize += size
 		} else {
 			utils.DebugPrint(debug, "Warning: could not parse size for file %s: %v", filePath, err)
 		}
 
-		// Calculate path length
-		if len(filePath) > maxPathLength {
-			maxPathLength = len(filePath)
+		fileCount++
+		if l := len(filePath); l > maxPathLength {
+			maxPathLength = l
 		}
-
-		// Calculate path depth and collect directories
-		// Git always uses forward slashes in object paths regardless of OS
 		pathParts := strings.Split(filePath, "/")
-		depth := len(pathParts) - 1 // Subtract 1 because file itself doesn't count
+		depth := len(pathParts) - 1
 		if depth > maxPathDepth {
 			maxPathDepth = depth
 		}
-
-		// Collect all parent directories
-		currentPath := ""
+		current := ""
 		for i := 0; i < len(pathParts)-1; i++ {
-			if currentPath == "" {
-				currentPath = pathParts[i]
+			if current == "" {
+				current = pathParts[i]
 			} else {
-				currentPath = currentPath + "/" + pathParts[i]
+				current = current + "/" + pathParts[i]
 			}
-			directories[currentPath] = true
+			directories[current] = struct{}{}
 		}
 	}
 
@@ -520,7 +548,7 @@ func GetCheckoutGrowthStats(year int, debug bool) (models.CheckoutGrowthStatisti
 	statistics.NumberFiles = fileCount
 	statistics.TotalSizeFiles = totalSize
 
-	utils.DebugPrint(debug, "Finished calculating checkout growth stats for year %d", year)
+	utils.DebugPrint(debug, "Finished calculating checkout growth stats for year %d (commit %s)", year, commitHash)
 	return statistics, nil
 }
 
