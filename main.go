@@ -98,11 +98,12 @@ func main() {
 		}
 	}
 
-	// Show last modified time after remote (just like we show fetch time)
-	fmt.Printf("Last modified              %s\n", lastModified)
-
-	// Get fetch time and show if available
+	// Get fetch time and show last modified only if there's no recent fetch
 	recentFetch := git.GetLastFetchTime(gitDir)
+	if recentFetch == "" {
+		fmt.Printf("Last modified              %s\n", lastModified)
+	}
+
 	if recentFetch != "" {
 		fmt.Printf("Most recent fetch          %s\n", recentFetch)
 	}
