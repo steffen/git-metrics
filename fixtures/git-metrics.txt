@@ -22,30 +22,19 @@ Year          Commits          Δ     %   ○     Object size            Δ     
 ^ Current totals as of Git directory's last modified: Sun, 28 Sep 2025
 Growth estimation unavailable: Requires at least 2 years of commit history
 
-AUTHORS WITH MOST COMMITS ##############################################################################################
+LARGEST FILE EXTENSIONS ################################################################################################
 
-Year     Author (#1)            Commits        Author (#2)            Commits        Author (#3)            Commits
+Extension                          Files                  Blobs           Object size          On-disk size            ↓
 ------------------------------------------------------------------------------------------------------------------------
-2025   │ Test user                   12 100%
+.txt                                  16  88.9 %             16  88.9 %        0.7 KB  90.5 %        0.9 KB  89.9 %   1x
+.jpeg                                  1   5.6 %              1   5.6 %        0.1 KB   7.0 %        0.1 KB   6.6 %   1x
+.md                                    1   5.6 %              1   5.6 %        0.0 KB   2.5 %        0.0 KB   3.5 %   1x
 ------------------------------------------------------------------------------------------------------------------------
-Total  │ Test user                   12 100%
+├─ Top 3                              18 100.0 %             18 100.0 %        0.7 KB 100.0 %        1.0 KB 100.0 %   1x
+└─ Out of 3                           18 100.0 %             18 100.0 %        0.7 KB 100.0 %        1.0 KB 100.0 %   1x
 
-COMMITTERS WITH MOST COMMITS ###########################################################################################
+↓ Compression ratio (higher is better)
 
-Year     Committer (#1)         Commits        Committer (#2)         Commits        Committer (#3)         Commits
-------------------------------------------------------------------------------------------------------------------------
-2025   │ Test user                   12 100%
-------------------------------------------------------------------------------------------------------------------------
-Total  │ Test user                   12 100%
-
-RATE OF CHANGES ################################################################################
-
-Commits to default branch (main)
-
-              Commits             Peak per day            Peak per hour          Peak per minute
-Year         per year        P95    P99   P100        P95    P99   P100        P95    P99   P100
-------------------------------------------------------------------------------------------------
-2025               12   │     12     12     12   │     12     12     12   │     12     12     12
 
 LARGEST DIRECTORIES ############################################################################
 
@@ -108,17 +97,28 @@ a/very/long/path/t...g-file-name-6.txt [10]   2025              1   5.6 %       
 [9] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-5.txt
 [10] a/very/long/path/that/exceeds/the/limit/for/display/in/the/table/and/should/be/truncated/by/the/tool/very-long-file-name-6.txt
 
-LARGEST FILE EXTENSIONS ################################################################################################
+RATE OF CHANGES ################################################################################
 
-Extension                          Files                  Blobs           Object size          On-disk size            ↓
+Commits to default branch (main)
+
+              Commits             Peak per day            Peak per hour          Peak per minute
+Year         per year        P95    P99   P100        P95    P99   P100        P95    P99   P100
+------------------------------------------------------------------------------------------------
+2025               12   │     12     12     12   │     12     12     12   │     12     12     12
+
+AUTHORS WITH MOST COMMITS ##############################################################################################
+
+Year     Author (#1)            Commits        Author (#2)            Commits        Author (#3)            Commits
 ------------------------------------------------------------------------------------------------------------------------
-.txt                                  16  88.9 %             16  88.9 %        0.7 KB  90.5 %        0.9 KB  89.9 %   1x
-.jpeg                                  1   5.6 %              1   5.6 %        0.1 KB   7.0 %        0.1 KB   6.6 %   1x
-.md                                    1   5.6 %              1   5.6 %        0.0 KB   2.5 %        0.0 KB   3.5 %   1x
+2025   │ Test user                   12 100%
 ------------------------------------------------------------------------------------------------------------------------
-├─ Top 3                              18 100.0 %             18 100.0 %        0.7 KB 100.0 %        1.0 KB 100.0 %   1x
-└─ Out of 3                           18 100.0 %             18 100.0 %        0.7 KB 100.0 %        1.0 KB 100.0 %   1x
+Total  │ Test user                   12 100%
 
-↓ Compression ratio (higher is better)
+COMMITTERS WITH MOST COMMITS ###########################################################################################
 
+Year     Committer (#1)         Commits        Committer (#2)         Commits        Committer (#3)         Commits
+------------------------------------------------------------------------------------------------------------------------
+2025   │ Test user                   12 100%
+------------------------------------------------------------------------------------------------------------------------
+Total  │ Test user                   12 100%
 

@@ -315,21 +315,14 @@ func main() {
 	// Display unified historic and estimated growth using the new function
 	sections.DisplayUnifiedGrowth(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch, lastModified)
 
-	// Print top 3 commit authors and committers per year
-	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
-		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
-	}
+	// 1. Largest file extensions
+	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
-	// Rate of changes analysis
-	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
-		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
-			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
-		}
-	}
+	// 2. Largest file extensions on-disk size growth
+	sections.PrintFileExtensionGrowth(yearlyStatistics)
 
-	// Use the final statistics for largest files
+	// Prepare largest files data once for sections 3 & 4
 	largestFiles := totalStatistics.LargestFiles
-	// Sort by compressed size descending, then by path ascending, and take top 10.
 	sort.Slice(largestFiles, func(i, j int) bool {
 		if largestFiles[i].CompressedSize != largestFiles[j].CompressedSize {
 			return largestFiles[i].CompressedSize > largestFiles[j].CompressedSize
@@ -337,7 +330,6 @@ func main() {
 		return largestFiles[i].Path < largestFiles[j].Path
 	})
 
-	// Calculate total compressed size from all files
 	var totalFilesCompressedSize int64
 	for _, file := range largestFiles {
 		totalFilesCompressedSize += file.CompressedSize
@@ -347,16 +339,23 @@ func main() {
 		largestFiles = largestFiles[:10]
 	}
 
-	// Print largest directories section before largest files
+	// 3. Largest directories
 	sections.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
+	// 4. Largest files
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
-	// New call to display top 10 largest file extensions using accumulated blob data.
-	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
+	// 5. Rate of changes analysis
+	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
+			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
+		}
+	}
 
-	// Display file extension growth statistics
-	sections.PrintFileExtensionGrowth(yearlyStatistics)
+	// 6 & 7. Authors with most commits, then Committers with most commits
+	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
+		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
+	}
 
 	// Get memory statistics for final output
 	var memoryStatistics runtime.MemStats
