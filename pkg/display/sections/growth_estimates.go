@@ -338,6 +338,6 @@ func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repo
 	fmt.Println("Level of Concern (LoC):")
 	fmt.Println("○ Unconcerning  ◑ On-road to concerning  ● Concerning")
 	fmt.Println("Commits: < 1.5M = ○, >= 1.5M && < 22.5M = ◑, >= 22.5M = ●")
-	fmt.Println("Object size: < 10GB = ○, >= 10GB && < 160GB = ◑, >= 160GB = ●") 
-	fmt.Println("On-disk size: < 1GB = ○, >= 1GB && < 10GB = ◑, >= 10GB = ●")
+	fmt.Println("Object size: < 10 GB = ○, >= 10 GB && < 160 GB = ◑, >= 160 GB = ●") 
+	fmt.Println("On-disk size: < 1 GB = ○, >= 1 GB && < 10 GB = ◑, >= 10 GB = ●")
 }

@@ -25,9 +25,9 @@ func GetConcernLevel(metricType string, value int64) string {
 		}
 	case "disk-size":
 		// On-disk size concern levels (in bytes)
-		oneMB := int64(1000 * 1000 * 1000) // 1 GB
-		tenGB := oneMB * 10                // 10 GB
-		if value < oneMB {
+		oneGB := int64(1000 * 1000 * 1000) // 1 GB
+		tenGB := oneGB * 10                // 10 GB
+		if value < oneGB {
 			return "○"
 		} else if value < tenGB {
 			return "◑"
