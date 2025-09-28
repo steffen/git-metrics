@@ -20,7 +20,7 @@ const (
 	CompressedSizePercentageThreshold = 0.01
 
 	// PathColumnWidth is the fixed width for the path column in the output table
-	PathColumnWidth = 80
+	PathColumnWidth = 76
 
 	// MaxTreeLevels is the maximum number of tree levels to process (MaxDirectoryDepth + 1 for root)
 	MaxTreeLevels = MaxDirectoryDepth + 1
@@ -415,6 +415,21 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 		// Create the full path display with prefix
 		fullPathDisplay := prefix + finalDisplayName
+		
+		// Ensure the full path display doesn't exceed the column width in bytes
+		// This handles cases where UTF-8 characters in the prefix make the byte count
+		// exceed the expected character count
+		for len(fullPathDisplay) > PathColumnWidth {
+			// Remove one character at a time from the end of finalDisplayName
+			if len(finalDisplayName) > 0 {
+				finalDisplayName = finalDisplayName[:len(finalDisplayName)-1]
+				fullPathDisplay = prefix + finalDisplayName
+			} else {
+				// If we can't truncate further, just use prefix
+				fullPathDisplay = prefix
+				break
+			}
+		}
 
 		// Print entry with fixed column widths
 		fmt.Printf(TableRowFormat,
