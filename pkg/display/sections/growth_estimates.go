@@ -24,7 +24,8 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 	// Calculate current year deltas
 	currentAuthorsDelta := currentStats.Authors - previousStats.Authors
 	currentCommitsDelta := currentStats.Commits - previousStats.Commits
-	currentSizeDelta := currentStats.Compressed - previousStats.Compressed
+	currentCompressedSizeDelta := currentStats.Compressed - previousStats.Compressed
+	currentUncompressedSizeDelta := currentStats.Uncompressed - previousStats.Uncompressed
 
 	// Determine if we need to predict current year or use existing
 	var now time.Time
@@ -52,13 +53,15 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 		// If 2+ months into the year, predict full year by extrapolating current progress
 		commitsPerDay := float64(currentCommitsDelta) / float64(daysPassed)
 		authorsPerDay := float64(currentAuthorsDelta) / float64(daysPassed)
-		sizePerDay := float64(currentSizeDelta) / float64(daysPassed)
+		compressedSizePerDay := float64(currentCompressedSizeDelta) / float64(daysPassed)
+		uncompressedSizePerDay := float64(currentUncompressedSizeDelta) / float64(daysPassed)
 
 		predictedCurrentYear = models.GrowthStatistics{
-			Year:       currentYear,
-			Authors:    previousStats.Authors + int(authorsPerDay*365),
-			Commits:    previousStats.Commits + int(commitsPerDay*365),
-			Compressed: previousStats.Compressed + int64(sizePerDay*365),
+			Year:         currentYear,
+			Authors:      previousStats.Authors + int(authorsPerDay*365),
+			Commits:      previousStats.Commits + int(commitsPerDay*365),
+			Compressed:   previousStats.Compressed + int64(compressedSizePerDay*365),
+			Uncompressed: previousStats.Uncompressed + int64(uncompressedSizePerDay*365),
 		}
 	}
 
@@ -67,7 +70,8 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 	// Calculate delta percentage growth rates from current year to apply to future years
 	currentYearAuthorsDelta := predictedCurrentYear.Authors - previousStats.Authors
 	currentYearCommitsDelta := predictedCurrentYear.Commits - previousStats.Commits
-	currentYearSizeDelta := predictedCurrentYear.Compressed - previousStats.Compressed
+	currentYearCompressedSizeDelta := predictedCurrentYear.Compressed - previousStats.Compressed
+	currentYearUncompressedSizeDelta := predictedCurrentYear.Uncompressed - previousStats.Uncompressed
 
 	// Calculate previous year deltas to determine delta percentage growth rate
 	twoYearsAgo, twoYearsExists := yearlyStats[currentYear-2]
@@ -77,18 +81,22 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 
 	previousYearAuthorsDelta := previousStats.Authors - twoYearsAgo.Authors
 	previousYearCommitsDelta := previousStats.Commits - twoYearsAgo.Commits
-	previousYearSizeDelta := previousStats.Compressed - twoYearsAgo.Compressed
+	previousYearCompressedSizeDelta := previousStats.Compressed - twoYearsAgo.Compressed
+	previousYearUncompressedSizeDelta := previousStats.Uncompressed - twoYearsAgo.Uncompressed
 
 	// Calculate delta percentage change (Δ% growth rate)
-	var authorsDeltaGrowthPercent, commitsDeltaGrowthPercent, sizeDeltaGrowthPercent float64
+	var authorsDeltaGrowthPercent, commitsDeltaGrowthPercent, compressedSizeDeltaGrowthPercent, uncompressedSizeDeltaGrowthPercent float64
 	if previousYearAuthorsDelta > 0 {
 		authorsDeltaGrowthPercent = float64(currentYearAuthorsDelta-previousYearAuthorsDelta) / float64(previousYearAuthorsDelta)
 	}
 	if previousYearCommitsDelta > 0 {
 		commitsDeltaGrowthPercent = float64(currentYearCommitsDelta-previousYearCommitsDelta) / float64(previousYearCommitsDelta)
 	}
-	if previousYearSizeDelta > 0 {
-		sizeDeltaGrowthPercent = float64(currentYearSizeDelta-previousYearSizeDelta) / float64(previousYearSizeDelta)
+	if previousYearCompressedSizeDelta > 0 {
+		compressedSizeDeltaGrowthPercent = float64(currentYearCompressedSizeDelta-previousYearCompressedSizeDelta) / float64(previousYearCompressedSizeDelta)
+	}
+	if previousYearUncompressedSizeDelta > 0 {
+		uncompressedSizeDeltaGrowthPercent = float64(currentYearUncompressedSizeDelta-previousYearUncompressedSizeDelta) / float64(previousYearUncompressedSizeDelta)
 	}
 
 	// Store delta percentage values for the predicted current year
@@ -99,14 +107,18 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 	if previousYearCommitsDelta > 0 {
 		predictedCurrentYear.CommitsDeltaPercent = float64(currentYearCommitsDelta-previousYearCommitsDelta) / float64(previousYearCommitsDelta) * 100
 	}
-	if previousYearSizeDelta > 0 {
-		predictedCurrentYear.CompressedDeltaPercent = float64(currentYearSizeDelta-previousYearSizeDelta) / float64(previousYearSizeDelta) * 100
+	if previousYearCompressedSizeDelta > 0 {
+		predictedCurrentYear.CompressedDeltaPercent = float64(currentYearCompressedSizeDelta-previousYearCompressedSizeDelta) / float64(previousYearCompressedSizeDelta) * 100
+	}
+	if previousYearUncompressedSizeDelta > 0 {
+		predictedCurrentYear.UncompressedDeltaPercent = float64(currentYearUncompressedSizeDelta-previousYearUncompressedSizeDelta) / float64(previousYearUncompressedSizeDelta) * 100
 	}
 
 	// Store delta values for the predicted current year
 	predictedCurrentYear.AuthorsDelta = currentYearAuthorsDelta
 	predictedCurrentYear.CommitsDelta = currentYearCommitsDelta
-	predictedCurrentYear.CompressedDelta = currentYearSizeDelta
+	predictedCurrentYear.CompressedDelta = currentYearCompressedSizeDelta
+	predictedCurrentYear.UncompressedDelta = currentYearUncompressedSizeDelta
 
 	// Update the first estimate in the slice with calculated delta percentages
 	estimates[0] = predictedCurrentYear
@@ -115,39 +127,47 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 	previousEstimate := predictedCurrentYear
 	previousAuthorsDelta := currentYearAuthorsDelta
 	previousCommitsDelta := currentYearCommitsDelta
-	previousSizeDelta := currentYearSizeDelta
+	previousCompressedSizeDelta := currentYearCompressedSizeDelta
+	previousUncompressedSizeDelta := currentYearUncompressedSizeDelta
 
 	for futureYear := currentYear + 1; futureYear <= currentYear+5; futureYear++ {
 		// Apply delta growth percentages to previous deltas to get new deltas
 		nextAuthorsDelta := previousAuthorsDelta + int(float64(previousAuthorsDelta)*authorsDeltaGrowthPercent)
 		nextCommitsDelta := previousCommitsDelta + int(float64(previousCommitsDelta)*commitsDeltaGrowthPercent)
-		nextSizeDelta := previousSizeDelta + int64(float64(previousSizeDelta)*sizeDeltaGrowthPercent)
+		nextCompressedSizeDelta := previousCompressedSizeDelta + int64(float64(previousCompressedSizeDelta)*compressedSizeDeltaGrowthPercent)
+		nextUncompressedSizeDelta := previousUncompressedSizeDelta + int64(float64(previousUncompressedSizeDelta)*uncompressedSizeDeltaGrowthPercent)
 
 		// Calculate delta percentages for future years (consistent with current year calculation)
-		var nextAuthorsDeltaPercent, nextCommitsDeltaPercent, nextSizeDeltaPercent float64
+		var nextAuthorsDeltaPercent, nextCommitsDeltaPercent, nextCompressedSizeDeltaPercent, nextUncompressedSizeDeltaPercent float64
 		if previousAuthorsDelta > 0 {
 			nextAuthorsDeltaPercent = float64(nextAuthorsDelta-previousAuthorsDelta) / float64(previousAuthorsDelta) * 100
 		}
 		if previousCommitsDelta > 0 {
 			nextCommitsDeltaPercent = float64(nextCommitsDelta-previousCommitsDelta) / float64(previousCommitsDelta) * 100
 		}
-		if previousSizeDelta > 0 {
-			nextSizeDeltaPercent = float64(nextSizeDelta-previousSizeDelta) / float64(previousSizeDelta) * 100
+		if previousCompressedSizeDelta > 0 {
+			nextCompressedSizeDeltaPercent = float64(nextCompressedSizeDelta-previousCompressedSizeDelta) / float64(previousCompressedSizeDelta) * 100
+		}
+		if previousUncompressedSizeDelta > 0 {
+			nextUncompressedSizeDeltaPercent = float64(nextUncompressedSizeDelta-previousUncompressedSizeDelta) / float64(previousUncompressedSizeDelta) * 100
 		}
 
 		nextEstimate := models.GrowthStatistics{
-			Year:       futureYear,
-			Authors:    previousEstimate.Authors + nextAuthorsDelta,
-			Commits:    previousEstimate.Commits + nextCommitsDelta,
-			Compressed: previousEstimate.Compressed + nextSizeDelta,
+			Year:         futureYear,
+			Authors:      previousEstimate.Authors + nextAuthorsDelta,
+			Commits:      previousEstimate.Commits + nextCommitsDelta,
+			Compressed:   previousEstimate.Compressed + nextCompressedSizeDelta,
+			Uncompressed: previousEstimate.Uncompressed + nextUncompressedSizeDelta,
 			// Store delta values
-			AuthorsDelta:    nextAuthorsDelta,
-			CommitsDelta:    nextCommitsDelta,
-			CompressedDelta: nextSizeDelta,
+			AuthorsDelta:      nextAuthorsDelta,
+			CommitsDelta:      nextCommitsDelta,
+			CompressedDelta:   nextCompressedSizeDelta,
+			UncompressedDelta: nextUncompressedSizeDelta,
 			// Store delta percentage values
-			AuthorsDeltaPercent:    nextAuthorsDeltaPercent,
-			CommitsDeltaPercent:    nextCommitsDeltaPercent,
-			CompressedDeltaPercent: nextSizeDeltaPercent,
+			AuthorsDeltaPercent:      nextAuthorsDeltaPercent,
+			CommitsDeltaPercent:      nextCommitsDeltaPercent,
+			CompressedDeltaPercent:   nextCompressedSizeDeltaPercent,
+			UncompressedDeltaPercent: nextUncompressedSizeDeltaPercent,
 		}
 		estimates = append(estimates, nextEstimate)
 
@@ -155,7 +175,8 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 		previousEstimate = nextEstimate
 		previousAuthorsDelta = nextAuthorsDelta
 		previousCommitsDelta = nextCommitsDelta
-		previousSizeDelta = nextSizeDelta
+		previousCompressedSizeDelta = nextCompressedSizeDelta
+		previousUncompressedSizeDelta = nextUncompressedSizeDelta
 	}
 
 	return estimates
@@ -179,26 +200,21 @@ func PrintEstimatedGrowthTableHeader() {
 // PrintGrowthEstimateRow prints a row in the estimated growth table
 func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, information models.RepositoryInformation, currentYear int) {
 	// Calculate delta values for this estimate row
-	currentAuthorsDelta := statistics.Authors - previous.Authors
 	currentCommitsDelta := statistics.Commits - previous.Commits
-	currentSizeDelta := statistics.Compressed - previous.Compressed
+	currentCompressedSizeDelta := statistics.Compressed - previous.Compressed
+	currentUncompressedSizeDelta := statistics.Uncompressed - previous.Uncompressed
 
 	// Calculate percentages for this estimate
-	var authorsPercentage, commitsPercentage, compressedPercentage float64
-	if information.TotalAuthors > 0 {
-		authorsPercentage = float64(currentAuthorsDelta) / float64(information.TotalAuthors) * 100
-	}
+	var commitsPercentage, compressedPercentage, uncompressedPercentage float64
 	if information.TotalCommits > 0 {
 		commitsPercentage = float64(currentCommitsDelta) / float64(information.TotalCommits) * 100
 	}
 	if information.CompressedSize > 0 {
-		compressedPercentage = float64(currentSizeDelta) / float64(information.CompressedSize) * 100
+		compressedPercentage = float64(currentCompressedSizeDelta) / float64(information.CompressedSize) * 100
 	}
-
-	// Use pre-calculated delta percentage values from the statistics struct
-	authorsDeltaPercentChange := statistics.AuthorsDeltaPercent
-	commitsDeltaPercentChange := statistics.CommitsDeltaPercent
-	compressedDeltaPercentChange := statistics.CompressedDeltaPercent
+	if information.UncompressedSize > 0 {
+		uncompressedPercentage = float64(currentUncompressedSizeDelta) / float64(information.UncompressedSize) * 100
+	}
 
 	yearDisplay := strconv.Itoa(statistics.Year) + "*"
 	if statistics.Year == currentYear {
@@ -214,9 +230,9 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 		return "-" + utils.FormatNumber(-v)
 	}
 
-	authorsDeltaDisplay := formatSigned(statistics.Authors - previous.Authors)
 	commitsDeltaDisplay := formatSigned(statistics.Commits - previous.Commits)
-	// Size delta with explicit sign when positive
+	
+	// On-disk size delta with explicit sign when positive
 	var sizeDeltaDisplay string
 	sizeDelta := statistics.Compressed - previous.Compressed
 	if sizeDelta >= 0 {
@@ -227,36 +243,35 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 		sizeDeltaDisplay = "-" + strings.TrimLeft(formatted, " ")
 	}
 
+	// Object size (uncompressed) delta with explicit sign when positive
+	var objectSizeDeltaDisplay string
+	objectSizeDelta := statistics.Uncompressed - previous.Uncompressed
+	if objectSizeDelta >= 0 {
+		formatted := utils.FormatSize(objectSizeDelta)
+		objectSizeDeltaDisplay = "+" + strings.TrimLeft(formatted, " ")
+	} else {
+		formatted := utils.FormatSize(-objectSizeDelta)
+		objectSizeDeltaDisplay = "-" + strings.TrimLeft(formatted, " ")
+	}
+
 	// Helper to format integer percentage with trailing %
 	formatPercent := func(v float64) string { return fmt.Sprintf("%d %%", int(v+0.5)) }
 
-	authorsPercentDisplay := formatPercent(authorsPercentage)
 	commitsPercentDisplay := formatPercent(commitsPercentage)
 	compressedPercentDisplay := formatPercent(compressedPercentage)
+	uncompressedPercentDisplay := formatPercent(uncompressedPercentage)
 
-	// Format Δ% values using the same logic as historic growth
-	authorsDeltaPercentDisplay := "" // blank for first estimate
-	commitsDeltaPercentDisplay := ""
-	compressedDeltaPercentDisplay := ""
-	if previous.Year != 0 { // Use previous year check instead of previousPrevious
-		formatSignedPercent := func(v float64) string {
-			iv := int(v + 0.5)
-			if iv > 0 {
-				return fmt.Sprintf("+%d %%", iv)
-			}
-			return fmt.Sprintf("%d %%", iv)
-		}
-		authorsDeltaPercentDisplay = formatSignedPercent(authorsDeltaPercentChange)
-		commitsDeltaPercentDisplay = formatSignedPercent(commitsDeltaPercentChange)
-		compressedDeltaPercentDisplay = formatSignedPercent(compressedDeltaPercentChange)
-	}
+	// Get Level of Concern (LoC) symbols
+	commitsLoC := utils.GetConcernLevel("commits", int64(statistics.Commits))
+	objectSizeLoC := utils.GetConcernLevel("object-size", statistics.Uncompressed)
+	diskSizeLoC := utils.GetConcernLevel("disk-size", statistics.Compressed)
 
-	// Print with same formatting as historic growth: % column narrower, Δ% wider (extra left padding)
-	fmt.Printf("%-6s%10s %8s %5s %7s │%12s %10s %5s %7s │%13s %12s %5s %7s\n",
+	// Print with new formatting: Commits | Object size | On-disk size with LoC columns
+	fmt.Printf("%-6s %12s %10s %5s %3s │%13s %12s %5s %3s │%13s %12s %5s %3s\n",
 		yearDisplay,
-		utils.FormatNumber(statistics.Authors), authorsDeltaDisplay, authorsPercentDisplay, authorsDeltaPercentDisplay,
-		utils.FormatNumber(statistics.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsDeltaPercentDisplay,
-		utils.FormatSize(statistics.Compressed), sizeDeltaDisplay, compressedPercentDisplay, compressedDeltaPercentDisplay)
+		utils.FormatNumber(statistics.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsLoC,
+		utils.FormatSize(statistics.Uncompressed), objectSizeDeltaDisplay, uncompressedPercentDisplay, objectSizeLoC,
+		utils.FormatSize(statistics.Compressed), sizeDeltaDisplay, compressedPercentDisplay, diskSizeLoC)
 }
 
 // DisplayUnifiedGrowth handles the complete unified historic and estimated growth section
@@ -319,4 +334,10 @@ func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repo
 	} else {
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
+	fmt.Println()
+	fmt.Println("Level of Concern (LoC):")
+	fmt.Println("○ Unconcerning  ◑ On-road to concerning  ● Concerning")
+	fmt.Println("Commits: < 1.5M = ○, >= 1.5M && < 22.5M = ◑, >= 22.5M = ●")
+	fmt.Println("Object size: < 10GB = ○, >= 10GB && < 160GB = ◑, >= 160GB = ●") 
+	fmt.Println("On-disk size: < 1GB = ○, >= 1GB && < 10GB = ◑, >= 10GB = ●")
 }
