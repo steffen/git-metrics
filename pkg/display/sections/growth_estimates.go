@@ -129,7 +129,7 @@ func PrintEstimatedGrowthSectionHeader() {
 
 // PrintEstimatedGrowthTableHeader prints only the table column headers + divider (no banner)
 func PrintEstimatedGrowthTableHeader() {
-	fmt.Println("Year       Commits          Δ    T%   LoC    Object size            Δ    T%   LoC   On-disk size            Δ    T%   LoC")
+	fmt.Println("Year       Commits          Δ     %    ○    Object size            Δ     %    ○   On-disk size            Δ     %    ○")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 }
 
@@ -271,9 +271,6 @@ func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repo
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
 	fmt.Println()
-	fmt.Println("Level of Concern (LoC):")
-	fmt.Println("○ Unconcerning  ◑ On-road to concerning  ● Concerning")
-	fmt.Println("Commits: < 1.5M = ○, >= 1.5M && < 22.5M = ◑, >= 22.5M = ●")
-	fmt.Println("Object size: < 10 GB = ○, >= 10 GB && < 160 GB = ◑, >= 160 GB = ●") 
-	fmt.Println("On-disk size: < 1 GB = ○, >= 1 GB && < 10 GB = ◑, >= 10 GB = ●")
+	fmt.Println("% columns: each year's delta as share of current totals (^)")
+	fmt.Println("○ columns: ○ = Unconcerning, ◑ = On-road to concerning, ● = Concerning")
 }

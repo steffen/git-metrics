@@ -13,8 +13,8 @@ func PrintGrowthHistoryHeader() {
 	fmt.Println()
 	fmt.Println("HISTORIC GROWTH ################################################################################")
 	fmt.Println()
-	// Updated header without Authors columns, with Object size instead, and LoC instead of Δ%
-	fmt.Println("Year       Commits          Δ    T%   LoC    Object size            Δ    T%   LoC   On-disk size            Δ    T%   LoC")
+	// Updated header without Authors columns, with Object size instead, and ○ instead of LoC
+	fmt.Println("Year       Commits          Δ     %    ○    Object size            Δ     %    ○   On-disk size            Δ     %    ○")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 }
 

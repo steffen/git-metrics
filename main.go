@@ -194,13 +194,10 @@ func main() {
 	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##########################################################################################")
 	fmt.Println()
 
-	// Print footnotes above table headers
-	fmt.Println("T% columns: each year's delta as share of current totals (^)")
-	fmt.Println("LoC columns: Level of Concern symbols (○ = Unconcerning, ◑ = On-road to concerning, ● = Concerning)")
 	fmt.Println()
 
 	// Print table headers before data collection (Year widened to 6 for ^* marker)
-	fmt.Println("Year       Commits          Δ    T%   LoC    Object size            Δ    T%   LoC   On-disk size            Δ    T%   LoC")
+	fmt.Println("Year       Commits          Δ     %    ○    Object size            Δ     %    ○   On-disk size            Δ     %    ○")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Calculate growth stats and totals

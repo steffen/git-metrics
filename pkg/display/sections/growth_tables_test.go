@@ -33,7 +33,7 @@ func TestPrintGrowthHistoryHeader(t *testing.T) {
 		PrintGrowthHistoryHeader()
 	})
 
-	for _, expected := range []string{"HISTORIC GROWTH", "Year", "Commits", "Object size", "On-disk size", "LoC"} {
+	for _, expected := range []string{"HISTORIC GROWTH", "Year", "Commits", "Object size", "On-disk size", "○"} {
 		if !strings.Contains(output, expected) {
 			t.Errorf("expected header to contain %q.\nOutput: %s", expected, output)
 		}
