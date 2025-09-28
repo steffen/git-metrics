@@ -110,3 +110,36 @@ func TestGetGitDirectory(t *testing.T) {
 func mockRunGitCommand(_ bool, _ ...string) ([]byte, error) {
 	return []byte("git version 2.35.1"), nil
 }
+
+func TestGetCheckoutGrowthStats(t *testing.T) {
+	// Test with current year - should have some data
+	stats, err := GetCheckoutGrowthStats(2025, false)
+	if err != nil {
+		t.Fatalf("GetCheckoutGrowthStats() returned error: %v", err)
+	}
+
+	if stats.Year != 2025 {
+		t.Errorf("expected Year to be 2025, got %d", stats.Year)
+	}
+
+	// In a working git repo, we should have at least some files and directories
+	if stats.NumberFiles == 0 {
+		t.Errorf("expected NumberFiles to be greater than 0, got %d", stats.NumberFiles)
+	}
+
+	if stats.NumberDirectories == 0 {
+		t.Errorf("expected NumberDirectories to be greater than 0, got %d", stats.NumberDirectories)
+	}
+
+	if stats.MaxPathDepth < 0 {
+		t.Errorf("expected MaxPathDepth to be non-negative, got %d", stats.MaxPathDepth)
+	}
+
+	if stats.MaxPathLength <= 0 {
+		t.Errorf("expected MaxPathLength to be positive, got %d", stats.MaxPathLength)
+	}
+
+	if stats.TotalSizeFiles <= 0 {
+		t.Errorf("expected TotalSizeFiles to be positive, got %d", stats.TotalSizeFiles)
+	}
+}

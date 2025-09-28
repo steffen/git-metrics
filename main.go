@@ -353,6 +353,15 @@ func main() {
 	// Display file extension growth statistics
 	sections.PrintFileExtensionGrowth(yearlyStatistics)
 
+	// Calculate and display checkout growth statistics
+	checkoutStatistics := make(map[int]models.CheckoutGrowthStatistics)
+	for year := firstCommitTime.Year(); year <= time.Now().Year(); year++ {
+		if checkoutStats, err := git.GetCheckoutGrowthStats(year, debug); err == nil {
+			checkoutStatistics[year] = checkoutStats
+		}
+	}
+	sections.DisplayCheckoutGrowth(checkoutStatistics)
+
 	// Get memory statistics for final output
 	var memoryStatistics runtime.MemStats
 	runtime.ReadMemStats(&memoryStatistics)
