@@ -20,13 +20,13 @@ const (
 	CompressedSizePercentageThreshold = 0.01
 
 	// PathColumnWidth is the fixed width for the path column in the output table
-	PathColumnWidth = 51
+	PathColumnWidth = 80
 
 	// MaxTreeLevels is the maximum number of tree levels to process (MaxDirectoryDepth + 1 for root)
 	MaxTreeLevels = MaxDirectoryDepth + 1
 
 	// TableRowFormat is the format string for printing table rows
-	TableRowFormat = "%-51s   %11s%6.1f %%  %13s%6.1f %%\n"
+	TableRowFormat = "%11s%6.1f %%   %11s%6.1f %%   %s\n"
 )
 
 // Footnote contains the formatted display path and footnote information
@@ -361,8 +361,8 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	}
 
 	fmt.Println()
-	fmt.Println("Path                                                        Blobs           On-disk size")
-	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println("       Blobs           On-disk size           Path")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Track totals for displayed entries
 	var totalSelectedBlobs int
@@ -418,11 +418,11 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 		// Print entry with fixed column widths
 		fmt.Printf(TableRowFormat,
-			fullPathDisplay,
 			utils.FormatNumber(entry.Blobs),
 			percentBlobs,
 			utils.FormatSize(entry.CompressedSize),
 			percentSize,
+			fullPathDisplay,
 		)
 
 		totalSelectedBlobs += entry.Blobs
