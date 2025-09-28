@@ -167,7 +167,7 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 	}
 
 	commitsDeltaDisplay := formatSigned(statistics.Commits - previous.Commits)
-	
+
 	// On-disk size delta with explicit sign when positive
 	var sizeDeltaDisplay string
 	sizeDelta := statistics.Compressed - previous.Compressed
@@ -203,7 +203,7 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 	diskSizeLoC := utils.GetConcernLevel("disk-size", statistics.Compressed)
 
 	// Print with new formatting: Commits | Object size | On-disk size with LoC columns
-	fmt.Printf("%-6s %12s %10s %5s %3s │%13s %12s %5s %3s │%13s %12s %5s %3s\n",
+	fmt.Printf("%-6s %14s %10s %5s %3s │%14s %12s %5s %3s │%14s %12s %5s %3s\n",
 		yearDisplay,
 		utils.FormatNumber(statistics.Commits), commitsDeltaDisplay, commitsPercentDisplay, commitsLoC,
 		utils.FormatSize(statistics.Uncompressed), objectSizeDeltaDisplay, uncompressedPercentDisplay, objectSizeLoC,

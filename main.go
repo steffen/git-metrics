@@ -197,7 +197,7 @@ func main() {
 	fmt.Println()
 
 	// Print table headers before data collection (Year widened to 6 for ^* marker)
-	fmt.Println("Year       Commits          Δ     %    ○    Object size            Δ     %    ○   On-disk size            Δ     %    ○")
+	fmt.Println("Year          Commits          Δ     %   ○     Object size            Δ     %   ○    On-disk size            Δ     %   ○")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Calculate growth stats and totals
