@@ -46,7 +46,7 @@ done
 
 cd "$(dirname "$0")/.."
 
-echo "=> Updating example outputs…" >&2
+echo "=> Updating example outputs..." >&2
 
 # Build a binary with a deterministic example version string so the
 # example outputs do not churn unnecessarily when the real version changes.
@@ -72,7 +72,7 @@ update_repository() {
 
   if [ "$FETCH_UPDATES" = true ]; then
     if [ -d "$path/.git" ]; then
-      echo "==> Fetching updates for $name…" >&2
+      echo "==> Fetching updates for $name..." >&2
       git -C "$path" fetch --tags --prune --quiet || git -C "$path" fetch --tags --prune || echo "==> Fetch failed for $name (continuing)" >&2
     else
       echo "==> Skipping fetch for $name; no git repository found at $path" >&2
@@ -87,7 +87,7 @@ update_repository() {
   #   git -C "$path" fetch --tags --prune --quiet || git -C "$path" fetch --tags --prune
   # fi
 
-  echo "==> Generating metrics for $name…" >&2
+  echo "==> Generating metrics for $name..." >&2
   ./git-metrics --no-progress --repository "$path" > "$OUTPUT_DIR/$name.txt"
   echo "==> Wrote $OUTPUT_DIR/$name.txt" >&2
 }
