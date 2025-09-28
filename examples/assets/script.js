@@ -8,18 +8,100 @@ function currentOutputFile(){ return OUTPUT_FILES[currentOutputIndex]; }
 // Added: alignment factor for vertical positioning of focused section (0 = top, 0.5 = center)
 const FOCUS_VERTICAL_ALIGN = 0.35; // 35% from top gives a balanced look
 
-const SECTION_DEFINITIONS = [
-  { id: 'run', title: 'Run Metadata', match: /^RUN /i, explain: () => `General metadata about when and where the report was generated (start time, host machine, versions). Useful to contextualize measurements and reproduce runs.`},
-  { id: 'repository', title: 'Repository Info', match: /^REPOSITORY /i, explain: () => `Origin information: repository path, remote URL, most recent commit and age. Helps anchor the report to a specific revision set.`},
-  { id: 'growth', title: 'Historic & Estimated Growth', match: /^HISTORIC AND ESTIMATED GROWTH /i, explain: () => `Shows yearly totals of core Git objects (commits, trees, blobs) along with on-disk size. Past years are actual; rows with ^ are current totals; rows with * are projections extrapolated from recent growth.`},
-  { id: 'rate', title: 'Rate of Changes', match: /^RATE OF CHANGES /i, explain: () => `Focuses on commit cadence to the default branch. P95/P99/P100 peaks per day/hour/minute reveal burstiness and scaling of integration workflow.`},
-  { id: 'largest-dirs', title: 'Largest Directories', match: /^LARGEST DIRECTORIES /i, explain: () => `Identifies directories contributing ≥1% of repository storage. Highlights translation files, tests, docs, and core source areas for optimization or pruning.`},
-  { id: 'largest-files', title: 'Largest Files', match: /^LARGEST FILES /i, explain: () => `Top individual files by cumulative blob storage, signaling hotspots for size bloat and potential candidates for history rewriting or splitting.`},
-  { id: 'largest-ext', title: 'Largest File Extensions', match: /^LARGEST FILE EXTENSIONS /i, explain: () => `Distribution of blob count and size by file extension. Useful to see language / artifact composition and track shifts over time.`},
-  { id: 'top-authors', title: 'Authors With Most Commits', match: /^AUTHORS WITH MOST COMMITS /i, explain: () => `Per-year top authors by authored commits plus totals. Shows contributor concentration and evolution of community participation.`},
-  { id: 'top-committers', title: 'Committers With Most Commits', match: /^COMMITTERS WITH MOST COMMITS /i, explain: () => `Committer stats (who integrated patches). High centralization can indicate a gatekeeping pattern or strong maintainer oversight.`},
-  { id: 'footer', title: 'Footer / Summary', match: /^Finished in /i, explain: () => `Runtime performance of the metrics tool itself (execution time, memory footprint).`}
-];
+// SECTION DEFINITIONS ARE NOW EXTERNALIZED IN ../sections.md
+// Parsed at runtime so that documentation and UI stay in sync.
+let SECTION_DEFINITIONS = [];
+
+async function loadSectionDefinitions(){
+  const res = await fetch('../sections.md'); // relative to assets/ directory (index.html in examples/)
+  if(!res.ok){
+    throw new Error('Failed to load sections.md: '+res.status);
+  }
+  const md = await res.text();
+  SECTION_DEFINITIONS = parseSectionsMarkdown(md);
+}
+
+function parseSectionsMarkdown(md){
+  const lines = md.split(/\r?\n/);
+  const sections = [];
+  let current = null;
+  let descriptionLines = [];
+
+  const commit = () => {
+    if(current){
+      const description = descriptionLines.join(' ').trim();
+      sections.push(buildSectionDefinition(current, description));
+    }
+    current = null;
+    descriptionLines = [];
+  };
+
+  for(const rawLine of lines){
+    const line = rawLine.trimEnd();
+    if(/^# /.test(line)){ // New top-level section
+      commit();
+      current = { header: line.replace(/^#\s+/,'').trim(), title: null };
+      continue;
+    }
+    if(/^## /.test(line)){ // Title line
+      if(!current){
+        // If a secondary heading appears before a primary, start an implicit section
+        current = { header: line.replace(/^##\s+/,'').trim(), title: null };
+      }
+      current.title = line.replace(/^##\s+/,'').trim();
+      continue;
+    }
+    if(line.startsWith('#')){ // Any other heading depth ends previous section
+      commit();
+      continue;
+    }
+    if(line.trim().length === 0){
+      // blank line just separates paragraphs; retain paragraph spacing subtly by adding space later
+      continue;
+    }
+    descriptionLines.push(line.trim());
+  }
+  commit();
+  return sections;
+}
+
+function buildSectionDefinition(parsed, description){
+  const header = parsed.header || parsed.title || '';
+  const title = parsed.title || header; // fallback
+  const id = deriveSectionId(header);
+  const match = deriveMatchRegex(id, header);
+  return {
+    id,
+    title,
+    match,
+    explain: () => description
+  };
+}
+
+function deriveSectionId(header){
+  const norm = header.toLowerCase();
+  const map = {
+    'run': 'run',
+    'repository': 'repository',
+    'historic and estimated growth': 'growth',
+    'historic & estimated growth': 'growth',
+    'rate of changes': 'rate',
+    'largest directories': 'largest-dirs',
+    'largest files': 'largest-files',
+    'largest file extensions': 'largest-ext',
+    'authors with most commits': 'top-authors',
+    'committers with most commits': 'top-committers',
+    'footer': 'footer'
+  };
+  return map[norm] || norm.replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+
+function deriveMatchRegex(id, header){
+  if(id === 'footer') return /^Finished in /i; // footer remains matched by runtime summary line
+  // Escape regex special chars in header text and expect a trailing space in output line (as current format)
+  const escaped = header.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return new RegExp('^' + escaped + ' ', 'i');
+}
 
 // Mapping of section identifiers to one or more Git commands (or derivations) used to produce the data.
 // Placeholders:
@@ -275,13 +357,20 @@ function refreshAnchors(){
   links.forEach((a,i)=>a.classList.toggle('active', i===activeIndex));
 }
 
-// Initial load + listeners
-loadOutputFile().then(()=>{
-  // Single persistent listener (previous duplicate with once:true caused removal after first key press)
-  window.addEventListener('keydown', onKey);
-  outputPane.addEventListener('scroll', onManualScroll);
-  initNavHintBehavior();
-}).catch(err=>{ outputPane.textContent = 'Failed to load output: '+err; });
+// Initialization sequence: load section definitions first, then load the current output.
+init();
+async function init(){
+  try {
+    await loadSectionDefinitions();
+    await loadOutputFile();
+    window.addEventListener('keydown', onKey);
+    outputPane.addEventListener('scroll', onManualScroll);
+    initNavHintBehavior();
+  } catch(err){
+    outputPane.textContent = 'Failed to initialize: ' + err;
+    console.error(err);
+  }
+}
 
 // --- Navigation Hint Show/Hide Logic ---------------------------------------------------------
 const NAV_HINT_INITIAL_VISIBLE_MS = 4000; // how long to keep it visible on first load
