@@ -2,9 +2,51 @@
 
 set -e
 
+FETCH_UPDATES=false
+
+usage() {
+  cat <<EOF >&2
+Usage: $(basename "$0") [-f|--fetch] [-h|--help]
+
+Options:
+  -f, --fetch   Fetch latest commits and tags for each existing local repository before generating metrics.
+  -h, --help    Show this help and exit.
+
+Notes:
+  Clone steps are intentionally disabled by default. The fetch option only updates repositories that already exist locally.
+  See end-of-run notes for more environment variable overrides.
+EOF
+}
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -f|--fetch)
+      FETCH_UPDATES=true
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --)
+      shift
+      break
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage
+      exit 1
+      ;;
+    *)
+      # (Positional arguments not expected; break to avoid infinite loop.)
+      break
+      ;;
+  esac
+  shift
+done
+
 cd "$(dirname "$0")/.."
 
-echo "=> Updating example outputs…" >&2
+echo "=> Updating example outputs..." >&2
 
 # Build a binary with a deterministic example version string so the
 # example outputs do not churn unnecessarily when the real version changes.
@@ -28,6 +70,15 @@ update_repository() {
   path="$3"
   echo "==> Processing $name repository at $path" >&2
 
+  if [ "$FETCH_UPDATES" = true ]; then
+    if [ -d "$path/.git" ]; then
+      echo "==> Fetching updates for $name..." >&2
+      git -C "$path" fetch --tags --prune --quiet || git -C "$path" fetch --tags --prune || echo "==> Fetch failed for $name (continuing)" >&2
+    else
+      echo "==> Skipping fetch for $name; no git repository found at $path" >&2
+    fi
+  fi
+
   # if [ ! -d "$path/.git" ]; then
   #   echo "==> Cloning $name (this may take a while)…" >&2
   #   git clone "$url" "$path"
@@ -36,7 +87,7 @@ update_repository() {
   #   git -C "$path" fetch --tags --prune --quiet || git -C "$path" fetch --tags --prune
   # fi
 
-  echo "==> Generating metrics for $name…" >&2
+  echo "==> Generating metrics for $name..." >&2
   ./git-metrics --no-progress --repository "$path" > "$OUTPUT_DIR/$name.txt"
   echo "==> Wrote $OUTPUT_DIR/$name.txt" >&2
 }
@@ -53,6 +104,7 @@ echo "=> Done updating example outputs." >&2
 cat <<EOF >&2
 
 Notes:
+- Use -f / --fetch to update existing local repositories before generating outputs.
 - Override base directory via EXAMPLE_REPOSITORIES_BASE or per repository via GIT_REPOSITORY_PATH / LINUX_REPOSITORY_PATH.
 - The Linux repository is very large; the initial clone can take several minutes and multiple gigabytes of disk space.
 - The Chromium repository is extremely large (tens of gigabytes) and requires `gclient` for full dependency checkout; this script only runs if you have an existing git clone at CHROMIUM_REPOSITORY_PATH.
