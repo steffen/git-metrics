@@ -83,12 +83,6 @@ func main() {
 
 	fmt.Printf("Git directory              %s\n", gitDir)
 
-	// Get fetch time before deciding whether to show last modified time
-	recentFetch := git.GetLastFetchTime(gitDir)
-	if recentFetch == "" {
-		fmt.Printf("Last modified              %s\n", lastModified)
-	}
-
 	// Remote URL - only show if there is one
 	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
 	remote := ""
@@ -102,6 +96,12 @@ func main() {
 		} else {
 			fmt.Printf("Remote                     %s\n", remote)
 		}
+	}
+
+	// Get fetch time and show last modified only if there's no recent fetch
+	recentFetch := git.GetLastFetchTime(gitDir)
+	if recentFetch == "" {
+		fmt.Printf("Last modified              %s\n", lastModified)
 	}
 
 	if recentFetch != "" {
@@ -194,13 +194,10 @@ func main() {
 	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##########################################################################################")
 	fmt.Println()
 
-	// Print footnotes above table headers
-	fmt.Println("T% columns: each year's delta as share of current totals (^)")
-	fmt.Println("Δ% columns: change of this year's delta vs previous year's delta")
 	fmt.Println()
 
 	// Print table headers before data collection (Year widened to 6 for ^* marker)
-	fmt.Println("Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%")
+	fmt.Println("Year          Commits          Δ     %   ○     Object size            Δ     %   ○    On-disk size            Δ     %   ○")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Calculate growth stats and totals
@@ -235,16 +232,17 @@ func main() {
 
 	// Save repository information with totals (including authors)
 	repositoryInformation := models.RepositoryInformation{
-		Remote:         remote,
-		LastCommit:     lastCommit,
-		FirstCommit:    firstCommit,
-		Age:            ageString,
-		FirstDate:      firstCommitTime,
-		TotalCommits:   totalStatistics.Commits,
-		TotalAuthors:   totalAuthors,
-		TotalTrees:     totalStatistics.Trees,
-		TotalBlobs:     totalStatistics.Blobs,
-		CompressedSize: totalStatistics.Compressed,
+		Remote:           remote,
+		LastCommit:       lastCommit,
+		FirstCommit:      firstCommit,
+		Age:              ageString,
+		FirstDate:        firstCommitTime,
+		TotalCommits:     totalStatistics.Commits,
+		TotalAuthors:     totalAuthors,
+		TotalTrees:       totalStatistics.Trees,
+		TotalBlobs:       totalStatistics.Blobs,
+		CompressedSize:   totalStatistics.Compressed,
+		UncompressedSize: totalStatistics.Uncompressed,
 	}
 
 	// Calculate and store delta, percentage, and delta percentage values
@@ -261,6 +259,7 @@ func main() {
 			cumulative.TreesDelta = cumulative.Trees - previousCumulative.Trees
 			cumulative.BlobsDelta = cumulative.Blobs - previousCumulative.Blobs
 			cumulative.CompressedDelta = cumulative.Compressed - previousCumulative.Compressed
+			cumulative.UncompressedDelta = cumulative.Uncompressed - previousCumulative.Uncompressed
 
 			// Calculate percentage of total
 			if repositoryInformation.TotalAuthors > 0 {
@@ -277,6 +276,9 @@ func main() {
 			}
 			if repositoryInformation.CompressedSize > 0 {
 				cumulative.CompressedPercent = float64(cumulative.CompressedDelta) / float64(repositoryInformation.CompressedSize) * 100
+			}
+			if repositoryInformation.UncompressedSize > 0 {
+				cumulative.UncompressedPercent = float64(cumulative.UncompressedDelta) / float64(repositoryInformation.UncompressedSize) * 100
 			}
 
 			// Calculate delta percentage changes (Δ%)
@@ -296,6 +298,9 @@ func main() {
 				if previousDelta.CompressedDelta > 0 {
 					cumulative.CompressedDeltaPercent = float64(cumulative.CompressedDelta-previousDelta.CompressedDelta) / float64(previousDelta.CompressedDelta) * 100
 				}
+				if previousDelta.UncompressedDelta > 0 {
+					cumulative.UncompressedDeltaPercent = float64(cumulative.UncompressedDelta-previousDelta.UncompressedDelta) / float64(previousDelta.UncompressedDelta) * 100
+				}
 			}
 
 			// Store the updated statistics back in the map
@@ -310,21 +315,14 @@ func main() {
 	// Display unified historic and estimated growth using the new function
 	sections.DisplayUnifiedGrowth(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch, lastModified)
 
-	// Print top 3 commit authors and committers per year
-	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
-		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
-	}
+	// 1. Largest file extensions
+	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
-	// Rate of changes analysis
-	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
-		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
-			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
-		}
-	}
+	// 2. Largest file extensions on-disk size growth
+	sections.PrintFileExtensionGrowth(yearlyStatistics)
 
-	// Use the final statistics for largest files
+	// Prepare largest files data once for sections 3 & 4
 	largestFiles := totalStatistics.LargestFiles
-	// Sort by compressed size descending, then by path ascending, and take top 10.
 	sort.Slice(largestFiles, func(i, j int) bool {
 		if largestFiles[i].CompressedSize != largestFiles[j].CompressedSize {
 			return largestFiles[i].CompressedSize > largestFiles[j].CompressedSize
@@ -332,7 +330,6 @@ func main() {
 		return largestFiles[i].Path < largestFiles[j].Path
 	})
 
-	// Calculate total compressed size from all files
 	var totalFilesCompressedSize int64
 	for _, file := range largestFiles {
 		totalFilesCompressedSize += file.CompressedSize
@@ -342,16 +339,23 @@ func main() {
 		largestFiles = largestFiles[:10]
 	}
 
-	// Print largest directories section before largest files
+	// 3. Largest directories
 	sections.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 
+	// 4. Largest files
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
-	// New call to display top 10 largest file extensions using accumulated blob data.
-	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
+	// 5. Rate of changes analysis
+	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
+			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
+		}
+	}
 
-	// Display file extension growth statistics
-	sections.PrintFileExtensionGrowth(yearlyStatistics)
+	// 6 & 7. Authors with most commits, then Committers with most commits
+	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
+		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
+	}
 
 	// Calculate and display checkout growth statistics
 	checkoutStatistics := make(map[int]models.CheckoutGrowthStatistics)
