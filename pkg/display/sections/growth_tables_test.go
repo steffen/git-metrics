@@ -89,6 +89,22 @@ func TestPrintGrowthEstimateRow(t *testing.T) {
 	}
 }
 
+func TestPrintGrowthEstimateRowCurrentYear(t *testing.T) {
+	stats := models.GrowthStatistics{
+		Year: 2024, Commits: 1100, Trees: 2200, Blobs: 3300, Compressed: 6 * 1000 * 1000, Uncompressed: 12 * 1000 * 1000,
+	}
+	prev := models.GrowthStatistics{Year: 2023, Commits: 1000, Trees: 2000, Blobs: 3000, Compressed: 5 * 1000 * 1000, Uncompressed: 10 * 1000 * 1000}
+	info := models.RepositoryInformation{TotalCommits: 1000, TotalTrees: 2000, TotalBlobs: 3000, CompressedSize: 5 * 1000 * 1000, UncompressedSize: 10 * 1000 * 1000}
+
+	output := captureOutput(func() {
+		PrintGrowthEstimateRow(stats, prev, info, 2024) // currentYear is 2024, same as stats.Year
+	})
+
+	if !strings.Contains(output, "2024~") {
+		t.Errorf("expected current year estimate row to contain year with ~ marker. Output: %s", output)
+	}
+}
+
 func TestPrintLargestFiles(t *testing.T) {
 	files := []models.FileInformation{
 		{Path: "file1.txt", Blobs: 10, CompressedSize: 1000 * 1000, UncompressedSize: 1200 * 1000, LastChange: time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)},
