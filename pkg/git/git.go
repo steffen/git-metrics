@@ -148,7 +148,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	// Prepare a map to collect blob files (keyed by file path).
 	blobsMap := make(map[string]models.FileInformation)
 	var commitsDelta, treesDelta, blobsDelta int
-	var compressedDelta int64
+	var compressedDelta, uncompressedDelta int64
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
@@ -175,6 +175,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 			continue // Skip invalid size entries
 		}
 		compressedDelta += compressedSize
+		uncompressedDelta += uncompressedSize
 
 		switch objectType {
 		case "commit":
@@ -211,6 +212,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	currentStatistics.Trees = previousGrowthStatistics.Trees + treesDelta
 	currentStatistics.Blobs = previousGrowthStatistics.Blobs + blobsDelta
 	currentStatistics.Compressed = previousGrowthStatistics.Compressed + compressedDelta
+	currentStatistics.Uncompressed = previousGrowthStatistics.Uncompressed + uncompressedDelta
 	currentStatistics.RunTime = time.Since(startTime)
 
 	// Convert blobsMap to slice.
@@ -227,6 +229,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 		if existing, ok := mergedBlobsMap[blob.Path]; ok {
 			existing.Blobs += blob.Blobs
 			existing.CompressedSize += blob.CompressedSize
+			existing.UncompressedSize += blob.UncompressedSize
 			mergedBlobsMap[blob.Path] = existing
 		} else {
 			mergedBlobsMap[blob.Path] = blob
