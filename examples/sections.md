@@ -1,10 +1,6 @@
-# RUN
-## Run Metadata
-General metadata about when and where the report was generated (start time, host machine, versions). Useful to contextualize measurements and reproduce runs.
-
-# REPOSITORY
-## Repository Info
-Origin information: repository path, remote URL, most recent commit and age. Helps anchor the report to a specific revision set.
+# RUN AND REPOSITORY
+## Run & Repository
+Origin and execution context: when and where the metrics were generated (start time, host machine, tool versions) together with repository identity (local path, remote URL, most recent commit hash, commit date, repository age). This anchors the entire report to a reproducible environment and revision so later comparisons or audits know exactly which code and tooling produced subsequent sections.
 
 # HISTORIC AND ESTIMATED GROWTH
 ## Historic and Estimated Growth

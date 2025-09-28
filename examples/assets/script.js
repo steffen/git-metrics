@@ -82,6 +82,7 @@ function deriveSectionId(header){
   const norm = header.toLowerCase();
   const map = {
     'run': 'run',
+    'run and repository': 'run-and-repository',
     'repository': 'repository',
     'historic and estimated growth': 'growth',
     'historic & estimated growth': 'growth',
@@ -98,6 +99,7 @@ function deriveSectionId(header){
 
 function deriveMatchRegex(id, header){
   if(id === 'footer') return /^Finished in /i; // footer remains matched by runtime summary line
+  if(id === 'run-and-repository') return /^RUN /i; // anchor combined section to first RUN header in output
   // Escape regex special chars in header text and expect a trailing space in output line (as current format)
   const escaped = header.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
   return new RegExp('^' + escaped + ' ', 'i');
@@ -113,6 +115,14 @@ const GIT_COMMANDS_BY_SECTION = {
     'git version'
   ],
   'repository': [
+    'git remote get-url origin',
+    'git rev-parse --short HEAD',
+    'git show -s --format=%cD <hash>',
+    'git rev-list --max-parents=0 HEAD --format=%cD'
+  ],
+  // Combined (Alternative 1) section covering both run + repository metadata
+  'run-and-repository': [
+    'git version',
     'git remote get-url origin',
     'git rev-parse --short HEAD',
     'git show -s --format=%cD <hash>',
