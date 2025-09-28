@@ -157,9 +157,9 @@ const (
 	formatExtensionGrowthTableHeader = "Year     Extension (#1)         Growth     %   Extension (#2)         Growth     %   Extension (#3)         Growth     %   "
 
 	// Row formats for 3-column layout with percentages
-	formatThreeColumnRowExt = "%-6s │ %-19s%10s%6.0f │ %-19s%10s%6.0f │ %-19s%10s%6.0f\n"
-	formatTwoColumnRowExt   = "%-6s │ %-19s%10s%6.0f │ %-19s%10s%6.0f\n"
-	formatOneColumnRowExt   = "%-6s │ %-19s%10s%6.0f\n"
+	formatThreeColumnRowExt = "%-6s │ %-19s%10s%4.0f %% │ %-19s%10s%4.0f %% │ %-19s%10s%4.0f %%\n"
+	formatTwoColumnRowExt   = "%-6s │ %-19s%10s%4.0f %% │ %-19s%10s%4.0f %%\n"
+	formatOneColumnRowExt   = "%-6s │ %-19s%10s%4.0f %%\n"
 
 	// Maximum extension name length
 	maxExtensionNameLength = 18
