@@ -440,6 +440,10 @@ func GetCheckoutGrowthStats(year int, debug bool) (models.CheckoutGrowthStatisti
 	statistics := models.CheckoutGrowthStatistics{Year: year}
 
 	// Build shell command to get file tree at end of year
+	// Validate year parameter to prevent command injection
+	if year < 1900 || year > 3000 {
+		return statistics, fmt.Errorf("invalid year %d: must be between 1900 and 3000", year)
+	}
 	commandString := fmt.Sprintf("git rev-list --objects --all --before %d-01-01 | git cat-file --batch-check='%%(objecttype) %%(objectname) %%(objectsize:disk) %%(rest)'", year+1)
 	command := exec.Command(ShellToUse(), "-c", commandString)
 	output, err := command.Output()
@@ -481,6 +485,8 @@ func GetCheckoutGrowthStats(year int, debug bool) (models.CheckoutGrowthStatisti
 		// Parse size for total
 		if size, err := strconv.ParseInt(fields[2], 10, 64); err == nil {
 			totalSize += size
+		} else {
+			utils.DebugPrint(debug, "Warning: could not parse size for file %s: %v", filePath, err)
 		}
 
 		// Calculate path length
@@ -489,6 +495,7 @@ func GetCheckoutGrowthStats(year int, debug bool) (models.CheckoutGrowthStatisti
 		}
 
 		// Calculate path depth and collect directories
+		// Git always uses forward slashes in object paths regardless of OS
 		pathParts := strings.Split(filePath, "/")
 		depth := len(pathParts) - 1 // Subtract 1 because file itself doesn't count
 		if depth > maxPathDepth {
