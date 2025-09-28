@@ -259,6 +259,8 @@ func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repo
 	// Separator and footnotes
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 	fmt.Println()
+	fmt.Println("% columns: each year's delta as share of current totals (^)")
+	fmt.Println("○ columns: ○ = Unconcerning, ◑ = On-road to concerning, ● = Concerning")
 	if recentFetch != "" {
 		fmt.Printf("^  Current totals as of the most recent fetch on %s\n", recentFetch[:16])
 	} else {
@@ -270,7 +272,4 @@ func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repo
 	} else {
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
-	fmt.Println()
-	fmt.Println("% columns: each year's delta as share of current totals (^)")
-	fmt.Println("○ columns: ○ = Unconcerning, ◑ = On-road to concerning, ● = Concerning")
 }

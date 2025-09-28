@@ -9,16 +9,16 @@ First commit               Sat, 01 Feb 2025 (55e9a8)
 
 HISTORIC AND ESTIMATED GROWTH ##########################################################################################
 
-T% columns: each year's delta as share of current totals (^)
-Δ% columns: change of this year's delta vs previous year's delta
 
-Year     Authors        Δ    T%      Δ%       Commits          Δ    T%      Δ%   On-disk size            Δ    T%      Δ%
+Year          Commits          Δ     %   ○     Object size            Δ     %   ○    On-disk size            Δ     %   ○
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
-2025^          1       +1 100 %         │          12        +12 100 %         │       7.3 KB      +7.3 KB 100 %        
+2025^              12        +12 100 %   ○ │        7.8 KB      +7.8 KB 100 %   ○ │        7.3 KB      +7.3 KB 100 %   ○
 ------------------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------------
 
+% columns: each year's delta as share of current totals (^)
+○ columns: ○ = Unconcerning, ◑ = On-road to concerning, ● = Concerning
 Growth estimation unavailable: Requires at least 2 years of commit history
 
 AUTHORS WITH MOST COMMITS ##############################################################################################

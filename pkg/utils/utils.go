@@ -12,41 +12,38 @@ import (
 
 // GetConcernLevel returns the Level of Concern symbol based on the metric type and value
 // ○ for "Unconcerning", ◑ for "On-road to concerning", ● for "Concerning"
+// Uses level-based thresholds: no concern (< level 1), mid-concern (< level threshold), concern (≥ level threshold)
 func GetConcernLevel(metricType string, value int64) string {
+	var levelStep int64
+	var concernThreshold float64
+
 	switch metricType {
 	case "commits":
-		// Commits concern levels
-		if value < 1500000 { // < 1.5 million
-			return "○"
-		} else if value < 22500000 { // >= 1.5 million && < 22.5 million
-			return "◑"
-		} else { // >= 22.5 million
-			return "●"
-		}
+		// Level step: 1.5 million commits per level
+		levelStep = 1500000
+		concernThreshold = 30.0
 	case "disk-size":
-		// On-disk size concern levels (in bytes)
-		oneGB := int64(1000 * 1000 * 1000) // 1 GB
-		tenGB := oneGB * 10                // 10 GB
-		if value < oneGB {
-			return "○"
-		} else if value < tenGB {
-			return "◑"
-		} else {
-			return "●"
-		}
+		// Level step: 1 GB per level (based on original 1GB/10GB thresholds)
+		levelStep = 1000 * 1000 * 1000 // 1 GB
+		concernThreshold = 20.0
 	case "object-size":
-		// Object size concern levels (in bytes) 
-		tenGB := int64(10 * 1000 * 1000 * 1000)   // 10 GB
-		oneHundredSixtyGB := tenGB * 16            // 160 GB
-		if value < tenGB {
-			return "○"
-		} else if value < oneHundredSixtyGB {
-			return "◑"
-		} else {
-			return "●"
-		}
+		// Level step: 10 GB per level (based on original 10GB/160GB thresholds)
+		levelStep = 10 * 1000 * 1000 * 1000 // 10 GB
+		concernThreshold = 30.0
 	default:
 		return "○" // default to unconcerning
+	}
+
+	// Calculate level based on value and step
+	level := float64(value) / float64(levelStep)
+
+	// Apply concern thresholds
+	if level < 1.0 {
+		return "○" // No concern: below level 1
+	} else if level < concernThreshold {
+		return "◑" // Mid-concern: level 1 to below concern threshold
+	} else {
+		return "●" // Concern: at concern threshold and above
 	}
 }
 
