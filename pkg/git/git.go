@@ -138,7 +138,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	startTime := time.Now()
 
 	// Build shell command with before and after dates.
-	commandString := fmt.Sprintf("git rev-list --objects --all --before %d-01-01 --after %d-12-31 | git cat-file --batch-check='%%(objecttype) %%(objectname) %%(objectsize:disk) %%(rest)'", year+1, year-1)
+	commandString := fmt.Sprintf("git rev-list --objects --all --before %d-01-01 --after %d-12-31 | git cat-file --batch-check='%%(objecttype) %%(objectname) %%(objectsize) %%(objectsize:disk) %%(rest)'", year+1, year-1)
 	command := exec.Command(ShellToUse(), "-c", commandString)
 	output, err := command.Output()
 	if err != nil {
@@ -155,7 +155,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 			continue
 		}
 		fields := strings.Fields(line)
-		if len(fields) < 3 {
+		if len(fields) < 4 {
 			continue
 		}
 		objectType := fields[0]
@@ -166,8 +166,15 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 		}
 		CountedObjects[objectIdentifier] = true
 
-		size, _ := strconv.ParseInt(fields[2], 10, 64)
-		compressedDelta += size
+		uncompressedSize, err := strconv.ParseInt(fields[2], 10, 64)
+		if err != nil {
+			continue // Skip invalid size entries
+		}
+		compressedSize, err := strconv.ParseInt(fields[3], 10, 64)
+		if err != nil {
+			continue // Skip invalid size entries
+		}
+		compressedDelta += compressedSize
 
 		switch objectType {
 		case "commit":
@@ -176,20 +183,22 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 			treesDelta++
 		case "blob":
 			blobsDelta++
-			// Collect blob if file path available (4th field onward)
-			if len(fields) >= 4 {
-				filePath := strings.Join(fields[3:], " ")
+			// Collect blob if file path available (5th field onward)
+			if len(fields) >= 5 {
+				filePath := strings.Join(fields[4:], " ")
 				filePath = strings.TrimSpace(filePath)
 				if filePath != "" {
 					if existing, ok := blobsMap[filePath]; ok {
 						existing.Blobs++
-						existing.CompressedSize += size
+						existing.CompressedSize += compressedSize
+						existing.UncompressedSize += uncompressedSize
 						blobsMap[filePath] = existing
 					} else {
 						blobsMap[filePath] = models.FileInformation{
-							Path:           filePath,
-							Blobs:          1,
-							CompressedSize: size,
+							Path:             filePath,
+							Blobs:            1,
+							CompressedSize:   compressedSize,
+							UncompressedSize: uncompressedSize,
 							// LastChange remains zero as we do not parse it here
 						}
 					}

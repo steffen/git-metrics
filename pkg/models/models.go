@@ -51,10 +51,11 @@ type GrowthStatistics struct {
 
 // FileInformation holds information about a file in the repository
 type FileInformation struct {
-	Path           string
-	Blobs          int
-	CompressedSize int64
-	LastChange     time.Time
+	Path             string
+	Blobs            int
+	CompressedSize   int64
+	UncompressedSize int64
+	LastChange       time.Time
 }
 
 // GitObject represents a git object with its details

@@ -13,9 +13,10 @@ import (
 // PrintTopFileExtensions prints the top file extensions by size
 func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, totalSize int64) {
 	extensionStatistics := make(map[string]struct {
-		size       int64
-		filesCount int
-		blobsCount int
+		compressedSize   int64
+		uncompressedSize int64
+		filesCount       int
+		blobsCount       int
 	})
 	for _, blob := range blobs {
 		extension := filepath.Ext(blob.Path)
@@ -23,7 +24,8 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 			extension = "No Extension"
 		}
 		statistics := extensionStatistics[extension]
-		statistics.size += blob.CompressedSize
+		statistics.compressedSize += blob.CompressedSize
+		statistics.uncompressedSize += blob.UncompressedSize
 		statistics.filesCount++
 		statistics.blobsCount += blob.Blobs
 		extensionStatistics[extension] = statistics
@@ -31,31 +33,34 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 
 	// Create a slice for sorting.
 	type extensionStatistic struct {
-		extension  string
-		size       int64
-		filesCount int
-		blobsCount int
+		extension        string
+		compressedSize   int64
+		uncompressedSize int64
+		filesCount       int
+		blobsCount       int
 	}
 	var statistics []extensionStatistic
 	for extension, statistic := range extensionStatistics {
 		statistics = append(statistics, extensionStatistic{
-			extension:  extension,
-			size:       statistic.size,
-			filesCount: statistic.filesCount,
-			blobsCount: statistic.blobsCount,
+			extension:        extension,
+			compressedSize:   statistic.compressedSize,
+			uncompressedSize: statistic.uncompressedSize,
+			filesCount:       statistic.filesCount,
+			blobsCount:       statistic.blobsCount,
 		})
 	}
 	sort.Slice(statistics, func(i, j int) bool {
-		return statistics[i].size > statistics[j].size
+		return statistics[i].compressedSize > statistics[j].compressedSize
 	})
 
 	// Calculate totals from all extensions first
 	var totalExtFilesCount, totalExtBlobsCount int
-	var totalExtSize int64
+	var totalExtCompressedSize, totalExtUncompressedSize int64
 	for _, statistic := range extensionStatistics {
 		totalExtFilesCount += statistic.filesCount
 		totalExtBlobsCount += statistic.blobsCount
-		totalExtSize += statistic.size
+		totalExtCompressedSize += statistic.compressedSize
+		totalExtUncompressedSize += statistic.uncompressedSize
 	}
 
 	// Limit to top 10
@@ -66,45 +71,83 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 	// Track totals for displayed extensions (top 10)
 	var selectedFilesCount int
 	var selectedBlobsCount int
-	var selectedSize int64
+	var selectedCompressedSize, selectedUncompressedSize int64
 
 	// Display results.
-	fmt.Println("\nLARGEST FILE EXTENSIONS ########################################################################")
+	fmt.Println("\nLARGEST FILE EXTENSIONS ################################################################################################")
 	fmt.Println()
-	fmt.Println("Extension                            Files                  Blobs           On-disk size")
-	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println("Extension                          Files                  Blobs           Object size          On-disk size            ↓")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 	for _, statistic := range statistics {
 		percentageFiles := float64(statistic.filesCount) / float64(totalExtFilesCount) * 100
 		percentageBlobs := float64(statistic.blobsCount) / float64(totalBlobs) * 100
-		percentageSize := float64(statistic.size) / float64(totalSize) * 100
-		fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%\n",
-			statistic.extension, utils.FormatNumber(statistic.filesCount), percentageFiles, utils.FormatNumber(statistic.blobsCount), percentageBlobs, utils.FormatSize(statistic.size), percentageSize)
+
+		// Calculate compression ratio (uncompressed / compressed)
+		var compressionRatio float64
+		if statistic.compressedSize > 0 {
+			compressionRatio = float64(statistic.uncompressedSize) / float64(statistic.compressedSize)
+		}
+
+		// Calculate percentages relative to totals
+		percentageUncompressed := float64(statistic.uncompressedSize) / float64(totalExtUncompressedSize) * 100
+		percentageCompressed := float64(statistic.compressedSize) / float64(totalExtCompressedSize) * 100
+
+		fmt.Printf("%-26s %13s %5.1f %%  %13s %5.1f %%  %12s %5.1f %%  %12s %5.1f %% %3.0fx\n",
+			statistic.extension,
+			utils.FormatNumber(statistic.filesCount), percentageFiles,
+			utils.FormatNumber(statistic.blobsCount), percentageBlobs,
+			utils.FormatSize(statistic.uncompressedSize), percentageUncompressed,
+			utils.FormatSize(statistic.compressedSize), percentageCompressed,
+			compressionRatio)
 
 		selectedFilesCount += statistic.filesCount
 		selectedBlobsCount += statistic.blobsCount
-		selectedSize += statistic.size
+		selectedCompressedSize += statistic.compressedSize
+		selectedUncompressedSize += statistic.uncompressedSize
 	}
 
 	// Print separator and top 10 totals row
-	fmt.Println("------------------------------------------------------------------------------------------------")
-	fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%\n",
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
+
+	// Calculate compression ratio for selected extensions
+	var selectedCompressionRatio float64
+	if selectedCompressedSize > 0 {
+		selectedCompressionRatio = float64(selectedUncompressedSize) / float64(selectedCompressedSize)
+	}
+
+	fmt.Printf("%-26s %13s %5.1f %%  %13s %5.1f %%  %12s %5.1f %%  %12s %5.1f %% %3.0fx\n",
 		fmt.Sprintf("├─ Top %s", utils.FormatNumber(len(statistics))),
 		utils.FormatNumber(selectedFilesCount),
 		float64(selectedFilesCount)/float64(totalExtFilesCount)*100,
 		utils.FormatNumber(selectedBlobsCount),
 		float64(selectedBlobsCount)/float64(totalExtBlobsCount)*100,
-		utils.FormatSize(selectedSize),
-		float64(selectedSize)/float64(totalExtSize)*100)
+		utils.FormatSize(selectedUncompressedSize),
+		float64(selectedUncompressedSize)/float64(totalExtUncompressedSize)*100,
+		utils.FormatSize(selectedCompressedSize),
+		float64(selectedCompressedSize)/float64(totalExtCompressedSize)*100,
+		selectedCompressionRatio)
 
 	// Print grand totals row using full totals
-	fmt.Printf("%-28s %13s %5.1f %%  %13s %5.1f %%  %13s %5.1f %%\n",
+	var totalCompressionRatio float64
+	if totalExtCompressedSize > 0 {
+		totalCompressionRatio = float64(totalExtUncompressedSize) / float64(totalExtCompressedSize)
+	}
+
+	fmt.Printf("%-26s %13s %5.1f %%  %13s %5.1f %%  %12s %5.1f %%  %12s %5.1f %% %3.0fx\n",
 		fmt.Sprintf("└─ Out of %s", utils.FormatNumber(len(extensionStatistics))),
 		utils.FormatNumber(totalExtFilesCount),
 		100.0, // Always 100% for totals
 		utils.FormatNumber(totalExtBlobsCount),
 		100.0,
-		utils.FormatSize(totalExtSize),
-		100.0)
+		utils.FormatSize(totalExtUncompressedSize),
+		100.0,
+		utils.FormatSize(totalExtCompressedSize),
+		100.0,
+		totalCompressionRatio)
+
+	fmt.Println()
+	fmt.Println("↓ Compression ratio (higher is better)")
+	fmt.Println()
 }
 
 // Format strings for extension growth table
