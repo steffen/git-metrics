@@ -235,16 +235,17 @@ func main() {
 
 	// Save repository information with totals (including authors)
 	repositoryInformation := models.RepositoryInformation{
-		Remote:         remote,
-		LastCommit:     lastCommit,
-		FirstCommit:    firstCommit,
-		Age:            ageString,
-		FirstDate:      firstCommitTime,
-		TotalCommits:   totalStatistics.Commits,
-		TotalAuthors:   totalAuthors,
-		TotalTrees:     totalStatistics.Trees,
-		TotalBlobs:     totalStatistics.Blobs,
-		CompressedSize: totalStatistics.Compressed,
+		Remote:           remote,
+		LastCommit:       lastCommit,
+		FirstCommit:      firstCommit,
+		Age:              ageString,
+		FirstDate:        firstCommitTime,
+		TotalCommits:     totalStatistics.Commits,
+		TotalAuthors:     totalAuthors,
+		TotalTrees:       totalStatistics.Trees,
+		TotalBlobs:       totalStatistics.Blobs,
+		CompressedSize:   totalStatistics.Compressed,
+		UncompressedSize: totalStatistics.Uncompressed,
 	}
 
 	// Calculate and store delta, percentage, and delta percentage values
@@ -261,6 +262,7 @@ func main() {
 			cumulative.TreesDelta = cumulative.Trees - previousCumulative.Trees
 			cumulative.BlobsDelta = cumulative.Blobs - previousCumulative.Blobs
 			cumulative.CompressedDelta = cumulative.Compressed - previousCumulative.Compressed
+			cumulative.UncompressedDelta = cumulative.Uncompressed - previousCumulative.Uncompressed
 
 			// Calculate percentage of total
 			if repositoryInformation.TotalAuthors > 0 {
@@ -277,6 +279,9 @@ func main() {
 			}
 			if repositoryInformation.CompressedSize > 0 {
 				cumulative.CompressedPercent = float64(cumulative.CompressedDelta) / float64(repositoryInformation.CompressedSize) * 100
+			}
+			if repositoryInformation.UncompressedSize > 0 {
+				cumulative.UncompressedPercent = float64(cumulative.UncompressedDelta) / float64(repositoryInformation.UncompressedSize) * 100
 			}
 
 			// Calculate delta percentage changes (Δ%)
@@ -295,6 +300,9 @@ func main() {
 				}
 				if previousDelta.CompressedDelta > 0 {
 					cumulative.CompressedDeltaPercent = float64(cumulative.CompressedDelta-previousDelta.CompressedDelta) / float64(previousDelta.CompressedDelta) * 100
+				}
+				if previousDelta.UncompressedDelta > 0 {
+					cumulative.UncompressedDeltaPercent = float64(cumulative.UncompressedDelta-previousDelta.UncompressedDelta) / float64(previousDelta.UncompressedDelta) * 100
 				}
 			}
 

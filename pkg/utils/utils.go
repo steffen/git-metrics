@@ -10,6 +10,46 @@ import (
 	"time"
 )
 
+// GetConcernLevel returns the Level of Concern symbol based on the metric type and value
+// ○ for "Unconcerning", ◑ for "On-road to concerning", ● for "Concerning"
+func GetConcernLevel(metricType string, value int64) string {
+	switch metricType {
+	case "commits":
+		// Commits concern levels
+		if value < 1500000 { // < 1.5 million
+			return "○"
+		} else if value < 22500000 { // >= 1.5 million && < 22.5 million
+			return "◑"
+		} else { // >= 22.5 million
+			return "●"
+		}
+	case "disk-size":
+		// On-disk size concern levels (in bytes)
+		oneMB := int64(1000 * 1000 * 1000) // 1 GB
+		tenGB := oneMB * 10                // 10 GB
+		if value < oneMB {
+			return "○"
+		} else if value < tenGB {
+			return "◑"
+		} else {
+			return "●"
+		}
+	case "object-size":
+		// Object size concern levels (in bytes) 
+		tenGB := int64(10 * 1000 * 1000 * 1000)   // 10 GB
+		oneHundredSixtyGB := tenGB * 16            // 160 GB
+		if value < tenGB {
+			return "○"
+		} else if value < oneHundredSixtyGB {
+			return "◑"
+		} else {
+			return "●"
+		}
+	default:
+		return "○" // default to unconcerning
+	}
+}
+
 // DebugPrint prints debug information if debug mode is enabled
 func DebugPrint(debug bool, format string, args ...interface{}) {
 	if debug {
