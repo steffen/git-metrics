@@ -11,9 +11,9 @@ import (
 
 // PrintLargestFiles prints information about the largest files
 func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, totalBlobs int, totalFiles int) {
-	fmt.Println("\nLARGEST FILES #########################################################################################################")
+	fmt.Println("\nLARGEST FILES ##########################################################################################################")
 	fmt.Println()
-	fmt.Println("Last commit          Blobs           On-disk size           File path")
+	fmt.Println("Last commit         Blobs           On-disk size          File path")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Track totals for the selected files
