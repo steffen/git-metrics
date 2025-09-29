@@ -345,8 +345,9 @@ func main() {
 	// 4. Largest files
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
-	// 5. Rate of changes analysis
-	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+	// 5. Rate of changes analysis (also used for checkout growth commit selection)
+	ratesByYear, ratesErr := git.GetRateOfChanges()
+	if ratesErr == nil && len(ratesByYear) > 0 {
 		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
 			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
 		}
@@ -358,9 +359,16 @@ func main() {
 	}
 
 	// Calculate and display checkout growth statistics
+	// Checkout growth now reuses the commit list gathered for rate statistics.
+	// For each year we take the YearEndCommitHash (last commit chronologically in that year)
+	// and run a single git ls-tree against it instead of invoking an additional git rev-list.
 	checkoutStatistics := make(map[int]models.CheckoutGrowthStatistics)
 	for year := firstCommitTime.Year(); year <= time.Now().Year(); year++ {
-		if checkoutStats, err := git.GetCheckoutGrowthStats(year, debug); err == nil {
+		commitHash := ""
+		if stats, ok := ratesByYear[year]; ok {
+			commitHash = stats.YearEndCommitHash
+		}
+		if checkoutStats, err := git.GetCheckoutGrowthStats(year, commitHash, debug); err == nil {
 			checkoutStatistics[year] = checkoutStats
 		}
 	}

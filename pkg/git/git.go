@@ -298,6 +298,7 @@ type contributorEntry struct {
 
 // commitInfo stores information about a commit for rate calculations
 type commitInfo struct {
+	hash      string
 	timestamp time.Time
 	isMerge   bool
 	isWorkday bool
@@ -462,8 +463,8 @@ func GetRateOfChanges() (map[int]models.RateStatistics, error) {
 		return nil, fmt.Errorf("could not determine default branch: %v", err)
 	}
 
-	// Get all commits from default branch with timestamps and merge info
-	command := exec.Command("git", "log", defaultBranch, "--format=%ct|%P", "--reverse")
+	// Get all commits from default branch with hash, timestamps and merge info (reverse for chronological order)
+	command := exec.Command("git", "log", defaultBranch, "--format=%H|%ct|%P", "--reverse")
 	output, err := command.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get commit log: %v", err)
@@ -473,16 +474,12 @@ func GetRateOfChanges() (map[int]models.RateStatistics, error) {
 }
 
 // GetCheckoutGrowthStats calculates checkout growth statistics for a given year
-func GetCheckoutGrowthStats(year int, debug bool) (models.CheckoutGrowthStatistics, error) {
+func GetCheckoutGrowthStats(year int, commitHash string, debug bool) (models.CheckoutGrowthStatistics, error) {
 	utils.DebugPrint(debug, "Calculating checkout growth stats (default branch snapshot) for year %d", year)
 	statistics := models.CheckoutGrowthStatistics{Year: year}
 
-	commitHash, err := GetYearEndCommit(year, debug)
-	if err != nil {
-		return statistics, err
-	}
-	if commitHash == "" { // No commit exists before boundary
-		utils.DebugPrint(debug, "No year-end commit found for %d; returning empty stats", year)
+	if strings.TrimSpace(commitHash) == "" {
+		utils.DebugPrint(debug, "No year-end commit hash provided for %d; returning empty stats", year)
 		return statistics, nil
 	}
 
@@ -581,20 +578,27 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		}
 
 		parts := strings.Split(line, "|")
-		if len(parts) != 2 {
+		if len(parts) < 2 { // legacy safety check
 			continue
 		}
 
-		// Parse timestamp
-		timestampStr := parts[0]
+		// Expected format: hash|timestamp|parents...
+		hash := parts[0]
+		if len(parts) < 2 {
+			continue
+		}
+		timestampStr := parts[1]
 		timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
 		if err != nil {
 			continue
 		}
 		commitTime := time.Unix(timestamp, 0)
 
-		// Check if it's a merge commit (has multiple parents)
-		parents := strings.TrimSpace(parts[1])
+		// Parents (may be empty). If there were parents they start at index 2 joined by spaces from original formatting.
+		parents := ""
+		if len(parts) >= 3 {
+			parents = strings.TrimSpace(strings.Join(parts[2:], "|")) // original parents separated by spaces, not pipes, but safe
+		}
 		isMerge := strings.Contains(parents, " ")
 
 		// Check if it's a workday (Monday-Friday)
@@ -603,6 +607,7 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 
 		year := commitTime.Year()
 		commitsByYear[year] = append(commitsByYear[year], commitInfo{
+			hash:      hash,
 			timestamp: commitTime,
 			isMerge:   isMerge,
 			isWorkday: isWorkday,
@@ -618,6 +623,11 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 			Year:              year,
 			TotalCommits:      len(commits),
 			PercentageOfTotal: float64(len(commits)) / float64(totalCommits) * 100,
+		}
+
+		if len(commits) > 0 {
+			// commits are in chronological order (oldest->newest) due to --reverse
+			stats.YearEndCommitHash = commits[len(commits)-1].hash
 		}
 
 		// Calculate merge statistics
