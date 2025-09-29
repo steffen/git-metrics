@@ -8,12 +8,12 @@ function currentOutputFile(){ return OUTPUT_FILES[currentOutputIndex]; }
 // Added: alignment factor for vertical positioning of focused section (0 = top, 0.5 = center)
 const FOCUS_VERTICAL_ALIGN = 0.35; // 35% from top gives a balanced look
 
-// SECTION DEFINITIONS ARE NOW EXTERNALIZED IN ../sections.md
+// SECTION DEFINITIONS ARE NOW EXTERNALIZED IN sections.md
 // Parsed at runtime so that documentation and UI stay in sync.
 let SECTION_DEFINITIONS = [];
 
 async function loadSectionDefinitions(){
-  const res = await fetch('../sections.md'); // relative to assets/ directory (index.html in examples/)
+  const res = await fetch('sections.md'); // relative to assets/ directory (index.html in examples/)
   if(!res.ok){
     throw new Error('Failed to load sections.md: '+res.status);
   }
