@@ -275,6 +275,7 @@ type commitInfo struct {
 	timestamp time.Time
 	isMerge   bool
 	isWorkday bool
+	author    string
 }
 
 // processContributors takes a map of contributor names to counts,
@@ -429,21 +430,28 @@ func GetCumulativeUniqueAuthorsByYear() (map[int]int, int, error) {
 	return cumulativeCounts, len(cumulativeSet), nil
 }
 
-// GetRateOfChanges calculates commit rate statistics for the default branch by year
-func GetRateOfChanges() (map[int]models.RateStatistics, error) {
-	defaultBranch, err := GetDefaultBranch()
+// GetRateOfChanges calculates commit rate statistics for the current branch by year
+func GetRateOfChanges() (map[int]models.RateStatistics, string, error) {
+	// Get current branch name instead of remote default branch
+	cmd := exec.Command("git", "branch", "--show-current")
+	branchOutput, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("could not determine default branch: %v", err)
+		return nil, "", fmt.Errorf("could not determine current branch: %v", err)
+	}
+	currentBranch := strings.TrimSpace(string(branchOutput))
+	if currentBranch == "" {
+		return nil, "", fmt.Errorf("no current branch found")
 	}
 
-	// Get all commits from default branch with timestamps and merge info
-	command := exec.Command("git", "log", defaultBranch, "--format=%ct|%P", "--reverse")
+	// Get all commits from current branch with timestamps, merge info, and authors
+	command := exec.Command("git", "log", currentBranch, "--format=%ct|%P|%an", "--reverse")
 	output, err := command.Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get commit log: %v", err)
+		return nil, "", fmt.Errorf("failed to get commit log: %v", err)
 	}
 
-	return calculateRateStatistics(string(output))
+	rateStats, err := calculateRateStatistics(string(output))
+	return rateStats, currentBranch, err
 }
 
 // calculateRateStatistics processes git log output and calculates rate statistics
@@ -463,7 +471,7 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		}
 
 		parts := strings.Split(line, "|")
-		if len(parts) != 2 {
+		if len(parts) != 3 {
 			continue
 		}
 
@@ -479,6 +487,9 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		parents := strings.TrimSpace(parts[1])
 		isMerge := strings.Contains(parents, " ")
 
+		// Get author name
+		author := strings.TrimSpace(parts[2])
+
 		// Check if it's a workday (Monday-Friday)
 		weekday := commitTime.Weekday()
 		isWorkday := weekday >= time.Monday && weekday <= time.Friday
@@ -488,6 +499,7 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 			timestamp: commitTime,
 			isMerge:   isMerge,
 			isWorkday: isWorkday,
+			author:    author,
 		})
 		totalCommits++
 	}
@@ -502,8 +514,12 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 			PercentageOfTotal: float64(len(commits)) / float64(totalCommits) * 100,
 		}
 
-		// Calculate merge statistics
+		// Calculate merge statistics and count unique authors
+		uniqueAuthors := make(map[string]bool)
 		for _, commit := range commits {
+			// Count unique authors
+			uniqueAuthors[commit.author] = true
+			
 			if commit.isMerge {
 				stats.MergeCommits++
 			} else {
@@ -516,6 +532,9 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 				stats.WeekendCommits++
 			}
 		}
+
+		// Set the number of active authors
+		stats.ActiveAuthors = len(uniqueAuthors)
 
 		if stats.TotalCommits > 0 {
 			stats.MergeRatio = float64(stats.MergeCommits) / float64(stats.TotalCommits) * 100

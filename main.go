@@ -191,9 +191,7 @@ func main() {
 
 	// Display the section header before data collection
 	fmt.Println()
-	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##########################################################################################")
-	fmt.Println()
-
+	fmt.Println("HISTORIC & ESTIMATED GROWTH ############################################################################################")
 	fmt.Println()
 
 	// Print table headers before data collection (Year widened to 6 for ^* marker)
@@ -346,10 +344,8 @@ func main() {
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
 	// 5. Rate of changes analysis
-	if ratesByYear, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
-		if defaultBranch, branchErr := git.GetDefaultBranch(); branchErr == nil {
-			sections.DisplayRateOfChanges(ratesByYear, defaultBranch)
-		}
+	if ratesByYear, branchName, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+		sections.DisplayRateOfChanges(ratesByYear, branchName)
 	}
 
 	// 6 & 7. Authors with most commits, then Committers with most commits
