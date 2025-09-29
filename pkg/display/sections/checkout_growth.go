@@ -10,8 +10,8 @@ import (
 )
 
 // DisplayCheckoutGrowth displays the checkout growth statistics section
-func DisplayCheckoutGrowth(checkoutStatistics map[int]models.CheckoutGrowthStatistics) {
-	if len(checkoutStatistics) == 0 {
+func DisplayCheckoutGrowth(growthStatistics map[int]models.GrowthStatistics) {
+	if len(growthStatistics) == 0 {
 		return
 	}
 
@@ -23,20 +23,20 @@ func DisplayCheckoutGrowth(checkoutStatistics map[int]models.CheckoutGrowthStati
 
 	// Get years and sort them
 	var years []int
-	for year := range checkoutStatistics {
+	for year := range growthStatistics {
 		years = append(years, year)
 	}
 	sort.Ints(years)
 
 	// Display each year's statistics
 	for _, year := range years {
-		stats := checkoutStatistics[year]
+		stats := growthStatistics[year]
 		DisplayCheckoutGrowthRow(stats)
 	}
 }
 
 // DisplayCheckoutGrowthRow displays a single row of checkout growth statistics
-func DisplayCheckoutGrowthRow(stats models.CheckoutGrowthStatistics) {
+func DisplayCheckoutGrowthRow(stats models.GrowthStatistics) {
 	yearDisplay := strconv.Itoa(stats.Year)
 	
 	fmt.Printf("%-9s%11s%12d%18d%14s%16s\n",

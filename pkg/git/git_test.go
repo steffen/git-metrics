@@ -1,6 +1,7 @@
 package git
 
 import (
+	"git-metrics/pkg/models"
 	"os"
 	"os/exec"
 	"strings"
@@ -111,18 +112,18 @@ func mockRunGitCommand(_ bool, _ ...string) ([]byte, error) {
 	return []byte("git version 2.35.1"), nil
 }
 
-func TestGetCheckoutGrowthStats(t *testing.T) {
-	// Test with current year - should have some data
-	stats, err := GetCheckoutGrowthStats(2025, false)
+func TestGetGrowthStatsCheckoutData(t *testing.T) {
+	// Test that GetGrowthStats now includes checkout growth data
+	stats, err := GetGrowthStats(2025, models.GrowthStatistics{}, false)
 	if err != nil {
-		t.Fatalf("GetCheckoutGrowthStats() returned error: %v", err)
+		t.Fatalf("GetGrowthStats() returned error: %v", err)
 	}
 
 	if stats.Year != 2025 {
 		t.Errorf("expected Year to be 2025, got %d", stats.Year)
 	}
 
-	// In a working git repo, we should have at least some files and directories
+	// In a working git repo, we should have checkout growth data
 	if stats.NumberFiles == 0 {
 		t.Errorf("expected NumberFiles to be greater than 0, got %d", stats.NumberFiles)
 	}

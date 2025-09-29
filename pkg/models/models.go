@@ -52,6 +52,13 @@ type GrowthStatistics struct {
 	BlobsDeltaPercent        float64
 	CompressedDeltaPercent   float64
 	UncompressedDeltaPercent float64
+
+	// Checkout growth statistics
+	NumberDirectories int
+	MaxPathDepth      int
+	MaxPathLength     int
+	NumberFiles       int
+	TotalSizeFiles    int64
 }
 
 // FileInformation holds information about a file in the repository
@@ -96,12 +103,4 @@ type RateStatistics struct {
 	WorkdayWeekendRatio  float64 // Ratio of workday to weekend commits
 }
 
-// CheckoutGrowthStatistics holds checkout growth statistics for a specific year
-type CheckoutGrowthStatistics struct {
-	Year              int
-	NumberDirectories int
-	MaxPathDepth      int
-	MaxPathLength     int
-	NumberFiles       int
-	TotalSizeFiles    int64
-}
+
