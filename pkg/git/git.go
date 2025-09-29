@@ -430,7 +430,7 @@ func GetCumulativeUniqueAuthorsByYear() (map[int]int, int, error) {
 	return cumulativeCounts, len(cumulativeSet), nil
 }
 
-// GetRateOfChanges calculates commit rate statistics for the default branch by year
+// GetRateOfChanges calculates commit rate statistics for the current branch by year
 func GetRateOfChanges() (map[int]models.RateStatistics, string, error) {
 	// Get current branch name instead of remote default branch
 	cmd := exec.Command("git", "branch", "--show-current")

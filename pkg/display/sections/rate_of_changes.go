@@ -8,14 +8,14 @@ import (
 	"git-metrics/pkg/utils"
 )
 
-// DisplayRateOfChanges displays commit rate statistics for the default branch
+// DisplayRateOfChanges displays commit rate statistics for the current branch
 func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBranch string) {
 	if len(ratesByYear) == 0 {
 		return
 	}
 
 	fmt.Println("\nRATE OF CHANGES #######################################################################################################")
-	fmt.Printf("\nCommits to default branch (%s)\n\n", defaultBranch)
+	fmt.Printf("\nCommits to current branch (%s)\n\n", defaultBranch)
 
 	// Table header with subcolumns
 	fmt.Println("              Commits     Active                   Peak per day            Peak per hour          Peak per minute      ")
