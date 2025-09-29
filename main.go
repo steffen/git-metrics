@@ -357,8 +357,14 @@ func main() {
 		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
 	}
 
-	// Display checkout growth statistics using data already collected
-	sections.DisplayCheckoutGrowth(yearlyStatistics)
+	// Calculate and display checkout growth statistics
+	checkoutStatistics := make(map[int]models.CheckoutGrowthStatistics)
+	for year := firstCommitTime.Year(); year <= time.Now().Year(); year++ {
+		if checkoutStats, err := git.GetCheckoutGrowthStats(year, debug); err == nil {
+			checkoutStatistics[year] = checkoutStats
+		}
+	}
+	sections.DisplayCheckoutGrowth(checkoutStatistics)
 
 	// Get memory statistics for final output
 	var memoryStatistics runtime.MemStats

@@ -149,13 +149,6 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	blobsMap := make(map[string]models.FileInformation)
 	var commitsDelta, treesDelta, blobsDelta int
 	var compressedDelta, uncompressedDelta int64
-	
-	// Checkout growth statistics tracking
-	directories := make(map[string]bool)
-	maxPathDepth := 0
-	maxPathLength := 0
-	fileCount := 0
-	totalFileSize := int64(0)
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
@@ -210,34 +203,6 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 							// LastChange remains zero as we do not parse it here
 						}
 					}
-					
-					// Calculate checkout growth statistics for this file
-					fileCount++
-					totalFileSize += compressedSize
-					
-					// Calculate path length
-					if len(filePath) > maxPathLength {
-						maxPathLength = len(filePath)
-					}
-					
-					// Calculate path depth and collect directories
-					// Git always uses forward slashes in object paths regardless of OS
-					pathParts := strings.Split(filePath, "/")
-					depth := len(pathParts) - 1 // Subtract 1 because file itself doesn't count
-					if depth > maxPathDepth {
-						maxPathDepth = depth
-					}
-					
-					// Collect all parent directories
-					currentPath := ""
-					for i := 0; i < len(pathParts)-1; i++ {
-						if currentPath == "" {
-							currentPath = pathParts[i]
-						} else {
-							currentPath = currentPath + "/" + pathParts[i]
-						}
-						directories[currentPath] = true
-					}
 				}
 			}
 		}
@@ -275,13 +240,6 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 		mergedBlobs = append(mergedBlobs, blob)
 	}
 	currentStatistics.LargestFiles = mergedBlobs
-	
-	// Set checkout growth statistics
-	currentStatistics.NumberDirectories = len(directories)
-	currentStatistics.MaxPathDepth = maxPathDepth
-	currentStatistics.MaxPathLength = maxPathLength
-	currentStatistics.NumberFiles = fileCount
-	currentStatistics.TotalSizeFiles = totalFileSize
 
 	utils.DebugPrint(debug, "Finished calculating stats for year %d in %v", year, currentStatistics.RunTime)
 	return currentStatistics, nil
@@ -515,6 +473,96 @@ func GetRateOfChanges() (map[int]models.RateStatistics, error) {
 }
 
 // GetCheckoutGrowthStats calculates checkout growth statistics for a given year
+func GetCheckoutGrowthStats(year int, debug bool) (models.CheckoutGrowthStatistics, error) {
+	utils.DebugPrint(debug, "Calculating checkout growth stats (default branch snapshot) for year %d", year)
+	statistics := models.CheckoutGrowthStatistics{Year: year}
+
+	commitHash, err := GetYearEndCommit(year, debug)
+	if err != nil {
+		return statistics, err
+	}
+	if commitHash == "" { // No commit exists before boundary
+		utils.DebugPrint(debug, "No year-end commit found for %d; returning empty stats", year)
+		return statistics, nil
+	}
+
+	// Resolve repository root to ensure consistent path context even when called from subdirectories
+	repoRootCmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	repoRootOut, err := repoRootCmd.Output()
+	if err != nil {
+		return statistics, fmt.Errorf("failed to determine repository root: %v", err)
+	}
+	repoRoot := strings.TrimSpace(string(repoRootOut))
+
+	// git ls-tree -r --long <commit>
+	cmd := exec.Command("git", "ls-tree", "-r", "--long", commitHash)
+	cmd.Dir = repoRoot
+	output, err := cmd.Output()
+	if err != nil {
+		return statistics, err
+	}
+
+	directories := make(map[string]struct{})
+	var fileCount int
+	var totalSize int64
+	maxPathDepth := 0
+	maxPathLength := 0
+
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		// Expected at least: mode type objectHash size path...
+		if len(fields) < 5 {
+			continue
+		}
+		objectType := fields[1]
+		if objectType != "blob" {
+			continue
+		}
+		sizeStr := fields[3]
+		filePath := strings.Join(fields[4:], " ")
+		filePath = strings.TrimSpace(filePath)
+		if filePath == "" {
+			continue
+		}
+		if size, err := strconv.ParseInt(sizeStr, 10, 64); err == nil {
+			totalSize += size
+		} else {
+			utils.DebugPrint(debug, "Warning: could not parse size for file %s: %v", filePath, err)
+		}
+
+		fileCount++
+		if l := len(filePath); l > maxPathLength {
+			maxPathLength = l
+		}
+		pathParts := strings.Split(filePath, "/")
+		depth := len(pathParts) - 1
+		if depth > maxPathDepth {
+			maxPathDepth = depth
+		}
+		current := ""
+		for i := 0; i < len(pathParts)-1; i++ {
+			if current == "" {
+				current = pathParts[i]
+			} else {
+				current = current + "/" + pathParts[i]
+			}
+			directories[current] = struct{}{}
+		}
+	}
+
+	statistics.NumberDirectories = len(directories)
+	statistics.MaxPathDepth = maxPathDepth
+	statistics.MaxPathLength = maxPathLength
+	statistics.NumberFiles = fileCount
+	statistics.TotalSizeFiles = totalSize
+
+	utils.DebugPrint(debug, "Finished calculating checkout growth stats for year %d (commit %s)", year, commitHash)
+	return statistics, nil
+}
 
 // calculateRateStatistics processes git log output and calculates rate statistics
 func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics, error) {

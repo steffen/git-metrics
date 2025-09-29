@@ -9,14 +9,14 @@ import (
 func TestDisplayCheckoutGrowth(t *testing.T) {
 	// Test with empty statistics
 	output := captureOutput(func() {
-		DisplayCheckoutGrowth(make(map[int]models.GrowthStatistics))
+		DisplayCheckoutGrowth(make(map[int]models.CheckoutGrowthStatistics))
 	})
 	if output != "" {
 		t.Errorf("expected empty output for empty statistics, got: %s", output)
 	}
 
 	// Test with sample statistics
-	checkoutStats := map[int]models.GrowthStatistics{
+	checkoutStats := map[int]models.CheckoutGrowthStatistics{
 		2023: {
 			Year:              2023,
 			NumberDirectories: 10,
@@ -63,7 +63,7 @@ func TestDisplayCheckoutGrowth(t *testing.T) {
 }
 
 func TestDisplayCheckoutGrowthRow(t *testing.T) {
-	stats := models.GrowthStatistics{
+	stats := models.CheckoutGrowthStatistics{
 		Year:              2023,
 		NumberDirectories: 10,
 		MaxPathDepth:      3,
