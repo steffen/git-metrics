@@ -36,11 +36,11 @@ Extension                          Files                  Blobs           Object
 ↓ Compression ratio (higher is better)
 
 
-LARGEST DIRECTORIES ############################################################################
+LARGEST DIRECTORIES ####################################################################################################
 
 Showing directories and files that contribute more than 1% of total on-disk size.
 
-       Blobs           On-disk size           Path
+      Blobs          On-disk size           Path
 ------------------------------------------------------------------------------------------------------------------------
          18 100.0 %        1.0 KB 100.0 %   ./
          11  61.1 %        0.6 KB  65.9 %   ├─ a/

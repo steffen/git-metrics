@@ -110,11 +110,11 @@ Year     Extension (#1)         Growth     %   Extension (#2)         Growth    
 2024   │ .xtb                  +6.4 GB  73 % │ .cc                 +842.1 MB  10 % │ .json               +318.7 MB   4 %
 2025   │ .xtb                  +4.4 GB  73 % │ .cc                 +470.7 MB   8 % │ .json               +268.2 MB   4 %
 
-LARGEST DIRECTORIES ############################################################################
+LARGEST DIRECTORIES ####################################################################################################
 
 Showing directories and files that contribute more than 1% of total on-disk size.
 
-       Blobs           On-disk size           Path
+      Blobs          On-disk size           Path
 ------------------------------------------------------------------------------------------------------------------------
  10,927,674 100.0 %       54.9 GB 100.0 %   ./
   2,998,929  27.4 %       23.8 GB  43.3 %   ├─ chrome/
