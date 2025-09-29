@@ -10,7 +10,7 @@ import (
 func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, totalBlobs int, totalFiles int) {
 	fmt.Println("\nLARGEST FILES ##########################################################################################################")
 	fmt.Println()
-	fmt.Println("       Blobs          On-disk size                                                                                  Path")
+	fmt.Println("      Blobs          On-disk size           Path")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Track totals for the selected files
