@@ -344,7 +344,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	buildTree(1, "", []bool{})
 
 	// Print header
-	fmt.Println("\nLARGEST DIRECTORIES ############################################################################")
+	fmt.Println("\nLARGEST DIRECTORIES ####################################################################################################")
 	fmt.Println()
 	fmt.Println("Showing directories and files that contribute more than 1% of total on-disk size.")
 
@@ -361,7 +361,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	}
 
 	fmt.Println()
-	fmt.Println("       Blobs           On-disk size           Path")
+	fmt.Println("      Blobs          On-disk size           Path")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Track totals for displayed entries
@@ -415,7 +415,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 
 		// Create the full path display with prefix
 		fullPathDisplay := prefix + finalDisplayName
-		
+
 		// Ensure the full path display doesn't exceed the column width in bytes
 		// This handles cases where UTF-8 characters in the prefix make the byte count
 		// exceed the expected character count

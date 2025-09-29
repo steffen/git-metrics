@@ -8,19 +8,19 @@ import (
 	"git-metrics/pkg/utils"
 )
 
-// DisplayRateOfChanges displays commit rate statistics for the default branch
+// DisplayRateOfChanges displays commit rate statistics for the current branch
 func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBranch string) {
 	if len(ratesByYear) == 0 {
 		return
 	}
 
-	fmt.Println("\nRATE OF CHANGES ################################################################################")
-	fmt.Printf("\nCommits to default branch (%s)\n\n", defaultBranch)
+	fmt.Println("\nRATE OF CHANGES ########################################################################################################")
+	fmt.Printf("\nCommits to current branch (%s)\n\n", defaultBranch)
 
 	// Table header with subcolumns
-	fmt.Println("              Commits             Peak per day            Peak per hour          Peak per minute")
-	fmt.Println("Year         per year        P95    P99   P100        P95    P99   P100        P95    P99   P100")
-	fmt.Println("------------------------------------------------------------------------------------------------")
+	fmt.Println("                Commits         Active                Peak per day              Peak per hour            Peak per minute")
+	fmt.Println("Year           per year        Authors           P95    P99   P100          P95    P99   P100          P95    P99   P100")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Sort years
 	var years []int
@@ -33,9 +33,10 @@ func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBran
 	for _, year := range years {
 		stats := ratesByYear[year]
 
-		fmt.Printf("%-4d      %11s   │ %6d %6d %6d   │ %6d %6d %6d   │ %6d %6d %6d\n",
+		fmt.Printf("%-4d        %11s        %7d      │ %6d %6d %6d     │ %6d %6d %6d     │ %6d %6d %6d\n",
 			stats.Year,
 			utils.FormatNumber(stats.TotalCommits),
+			stats.ActiveAuthors,
 			stats.DailyPeakP95, stats.DailyPeakP99, stats.DailyPeakP100,
 			stats.HourlyPeakP95, stats.HourlyPeakP99, stats.HourlyPeakP100,
 			stats.MinutelyPeakP95, stats.MinutelyPeakP99, stats.MinutelyPeakP100)

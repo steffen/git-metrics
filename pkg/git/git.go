@@ -302,6 +302,7 @@ type commitInfo struct {
 	timestamp time.Time
 	isMerge   bool
 	isWorkday bool
+	author    string
 }
 
 // processContributors takes a map of contributor names to counts,
@@ -456,21 +457,28 @@ func GetCumulativeUniqueAuthorsByYear() (map[int]int, int, error) {
 	return cumulativeCounts, len(cumulativeSet), nil
 }
 
-// GetRateOfChanges calculates commit rate statistics for the default branch by year
-func GetRateOfChanges() (map[int]models.RateStatistics, error) {
-	defaultBranch, err := GetDefaultBranch()
+// GetRateOfChanges calculates commit rate statistics for the current branch by year
+func GetRateOfChanges() (map[int]models.RateStatistics, string, error) {
+	// Determine current branch (we want stats for whatever is checked out)
+	cmd := exec.Command("git", "branch", "--show-current")
+	branchOutput, err := cmd.Output()
 	if err != nil {
-		return nil, fmt.Errorf("could not determine default branch: %v", err)
+		return nil, "", fmt.Errorf("could not determine current branch: %v", err)
+	}
+	currentBranch := strings.TrimSpace(string(branchOutput))
+	if currentBranch == "" {
+		return nil, "", fmt.Errorf("no current branch found")
 	}
 
-	// Get all commits from default branch with hash, timestamps and merge info (reverse for chronological order)
-	command := exec.Command("git", "log", defaultBranch, "--format=%H|%ct|%P", "--reverse")
+	// Get all commits (chronological) with hash, timestamp, parents, author
+	command := exec.Command("git", "log", currentBranch, "--format=%H|%ct|%P|%an", "--reverse")
 	output, err := command.Output()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get commit log: %v", err)
+		return nil, "", fmt.Errorf("failed to get commit log: %v", err)
 	}
 
-	return calculateRateStatistics(string(output))
+	rateStats, err := calculateRateStatistics(string(output))
+	return rateStats, currentBranch, err
 }
 
 // GetCheckoutGrowthStats calculates checkout growth statistics for a given year
@@ -578,15 +586,11 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		}
 
 		parts := strings.Split(line, "|")
-		if len(parts) < 2 { // legacy safety check
+		if len(parts) < 4 { // hash|timestamp|parents|author (parents may be empty string)
 			continue
 		}
 
-		// Expected format: hash|timestamp|parents...
 		hash := parts[0]
-		if len(parts) < 2 {
-			continue
-		}
 		timestampStr := parts[1]
 		timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
 		if err != nil {
@@ -594,12 +598,9 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		}
 		commitTime := time.Unix(timestamp, 0)
 
-		// Parents (may be empty). If there were parents they start at index 2 joined by spaces from original formatting.
-		parents := ""
-		if len(parts) >= 3 {
-			parents = strings.TrimSpace(strings.Join(parts[2:], "|")) // original parents separated by spaces, not pipes, but safe
-		}
+		parents := parts[2]
 		isMerge := strings.Contains(parents, " ")
+		author := strings.TrimSpace(parts[3])
 
 		// Check if it's a workday (Monday-Friday)
 		weekday := commitTime.Weekday()
@@ -611,6 +612,7 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 			timestamp: commitTime,
 			isMerge:   isMerge,
 			isWorkday: isWorkday,
+			author:    author,
 		})
 		totalCommits++
 	}
@@ -626,12 +628,13 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		}
 
 		if len(commits) > 0 {
-			// commits are in chronological order (oldest->newest) due to --reverse
-			stats.YearEndCommitHash = commits[len(commits)-1].hash
+			stats.YearEndCommitHash = commits[len(commits)-1].hash // chronological order from --reverse
 		}
 
-		// Calculate merge statistics
+		uniqueAuthors := make(map[string]bool)
 		for _, commit := range commits {
+			uniqueAuthors[commit.author] = true
+			// Merge vs direct
 			if commit.isMerge {
 				stats.MergeCommits++
 			} else {
@@ -644,6 +647,8 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 				stats.WeekendCommits++
 			}
 		}
+
+		stats.ActiveAuthors = len(uniqueAuthors)
 
 		if stats.TotalCommits > 0 {
 			stats.MergeRatio = float64(stats.MergeCommits) / float64(stats.TotalCommits) * 100
