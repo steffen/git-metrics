@@ -95,4 +95,15 @@ type RateStatistics struct {
 	WorkdayCommits       int     // Commits during weekdays
 	WeekendCommits       int     // Commits during weekends
 	WorkdayWeekendRatio  float64 // Ratio of workday to weekend commits
+	YearEndCommitHash    string  // Commit hash representing the final state of the year (last commit in that year)
+}
+
+// CheckoutGrowthStatistics holds checkout growth statistics for a specific year
+type CheckoutGrowthStatistics struct {
+	Year              int
+	NumberDirectories int
+	MaxPathDepth      int
+	MaxPathLength     int
+	NumberFiles       int
+	TotalSizeFiles    int64
 }
