@@ -14,7 +14,7 @@ Most recent commit         Thu, 11 Sep 2025 (a706b0a63b4fe)
 First commit               Fri, 24 Aug 2001 (a5068f)
 Age                        24 years 1 months 4 days
 
-HISTORIC AND ESTIMATED GROWTH ##########################################################################################
+HISTORIC & ESTIMATED GROWTH ############################################################################################
 
 
 Year          Commits          Δ     %   ○     Object size            Δ     %   ○    On-disk size            Δ     %   ○
