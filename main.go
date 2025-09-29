@@ -191,9 +191,7 @@ func main() {
 
 	// Display the section header before data collection
 	fmt.Println()
-	fmt.Println("HISTORIC AND ESTIMATED GROWTH ##########################################################################################")
-	fmt.Println()
-
+	fmt.Println("HISTORIC & ESTIMATED GROWTH ############################################################################################")
 	fmt.Println()
 
 	// Print table headers before data collection (Year widened to 6 for ^* marker)

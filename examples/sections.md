@@ -2,7 +2,7 @@
 ## Run & repository information
 Origin and execution context: when and where the metrics were generated (start time, host machine, tool versions) together with repository identity (local path, remote URL, most recent commit hash, commit date, repository age). This anchors the entire report to a reproducible environment and revision so later comparisons or audits know exactly which code and tooling produced subsequent sections.
 
-# HISTORIC AND ESTIMATED GROWTH
+# HISTORIC & ESTIMATED GROWTH
 ## Historic & estimated growth
 Shows yearly totals of core Git objects (commits, trees, blobs) along with on-disk size. Past years are actual; rows with ^ are current totals; rows with * are projections extrapolated from recent growth.
 

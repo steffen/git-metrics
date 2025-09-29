@@ -61,15 +61,15 @@ func UpdateProgress() {
 		utils.FormatNumber(CurrentProgress.Statistics.Authors),
 		"...",
 		"...",
-		"...",
+		".",
 		utils.FormatNumber(CurrentProgress.Statistics.Commits),
 		"...",
 		"...",
-		"...",
+		".",
 		utils.FormatSize(CurrentProgress.Statistics.Compressed),
 		"...",
 		"...",
-		"...")
+		".")
 }
 
 // StartProgress starts progress tracking
