@@ -75,6 +75,7 @@ type GitObject struct {
 type RateStatistics struct {
 	Year                 int
 	TotalCommits         int
+	ActiveAuthors        int     // Number of unique authors with commits this year
 	AverageCommitsPerDay float64
 	DailyPeakP95         int // 95th percentile of daily commits
 	DailyPeakP99         int // 99th percentile of daily commits
