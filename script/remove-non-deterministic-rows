@@ -32,7 +32,7 @@ cat > "$pattern_file" <<EOF
 ^Git directory
 ^Last modified
 ^Age
-^\^  Current totals
+^\^ Current totals
 ^Finished
 EOF
 grep -Ev -f "$pattern_file" "$input_file" > "$temp_file"

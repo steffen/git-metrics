@@ -19,7 +19,6 @@ Year          Commits          Δ     %   ○     Object size            Δ     
 
 % columns: each year's delta as share of current totals (^)
 ○ columns: ○ = Unconcerning, ◑ = On-road to concerning, ● = Concerning
-^ Current totals as of Git directory's last modified: Sun, 28 Sep 2025
 Growth estimation unavailable: Requires at least 2 years of commit history
 
 LARGEST FILE EXTENSIONS ################################################################################################
