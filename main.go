@@ -83,7 +83,9 @@ func main() {
 	if err == nil {
 		trimmed := strings.TrimSpace(string(remoteOutput))
 		if trimmed != "" {
-			if progress.ShowProgress { fmt.Printf("Remote                     ... fetching\n") }
+			if progress.ShowProgress {
+				fmt.Printf("Remote                     ... fetching\n")
+			}
 			remote = trimmed
 			if progress.ShowProgress {
 				fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
@@ -102,7 +104,9 @@ func main() {
 	}
 
 	// Most recent commit
-	if progress.ShowProgress { fmt.Printf("Most recent commit         ... fetching\n") }
+	if progress.ShowProgress {
+		fmt.Printf("Most recent commit         ... fetching\n")
+	}
 	lastCommit := UnknownValue
 	if out, err := git.RunGitCommand(debug, "rev-parse", "--short", "HEAD"); err == nil {
 		hash := strings.TrimSpace(string(out))
@@ -113,20 +117,31 @@ func main() {
 			}
 		}
 	}
-	if progress.ShowProgress { fmt.Printf("\033[1A\033[2KMost recent commit         %s\n", lastCommit) } else { fmt.Printf("Most recent commit         %s\n", lastCommit) }
+	if progress.ShowProgress {
+		fmt.Printf("\033[1A\033[2KMost recent commit         %s\n", lastCommit)
+	} else {
+		fmt.Printf("Most recent commit         %s\n", lastCommit)
+	}
 
 	// First commit & age
-	if progress.ShowProgress { fmt.Printf("First commit               ... fetching\n") }
+	if progress.ShowProgress {
+		fmt.Printf("First commit               ... fetching\n")
+	}
 	firstCommit := UnknownValue
 	ageString := UnknownValue
 	var firstCommitTime time.Time
 	if out, err := git.RunGitCommand(debug, "rev-list", "--max-parents=0", "HEAD", "--format=%cD"); err == nil {
 		lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-		type cinfo struct { hash string; date time.Time }
+		type cinfo struct {
+			hash string
+			date time.Time
+		}
 		var commits []cinfo
 		for i := 0; i+1 < len(lines); i += 2 {
 			hash := strings.TrimPrefix(lines[i], "commit ")
-			if len(hash) >= 6 { hash = hash[:6] }
+			if len(hash) >= 6 {
+				hash = hash[:6]
+			}
 			if d, perr := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", strings.TrimSpace(lines[i+1])); perr == nil {
 				commits = append(commits, cinfo{hash: hash, date: d})
 			}
@@ -139,18 +154,31 @@ func main() {
 			now := time.Now()
 			years, months, days := utils.CalculateYearsMonthsDays(first.date, now)
 			var parts []string
-			if years > 0 { parts = append(parts, fmt.Sprintf("%d years", years)) }
-			if months > 0 { parts = append(parts, fmt.Sprintf("%d months", months)) }
-			if days > 0 { parts = append(parts, fmt.Sprintf("%d days", days)) }
+			if years > 0 {
+				parts = append(parts, fmt.Sprintf("%d years", years))
+			}
+			if months > 0 {
+				parts = append(parts, fmt.Sprintf("%d months", months))
+			}
+			if days > 0 {
+				parts = append(parts, fmt.Sprintf("%d days", days))
+			}
 			ageString = strings.Join(parts, " ")
 		}
 	}
-	if progress.ShowProgress { fmt.Printf("\033[1A\033[2KFirst commit               %s\n", firstCommit) } else { fmt.Printf("First commit               %s\n", firstCommit) }
-	if firstCommit == UnknownValue { fmt.Println("\n\nNo commits found in the repository."); os.Exit(2) }
+	if progress.ShowProgress {
+		fmt.Printf("\033[1A\033[2KFirst commit               %s\n", firstCommit)
+	} else {
+		fmt.Printf("First commit               %s\n", firstCommit)
+	}
+	if firstCommit == UnknownValue {
+		fmt.Println("\n\nNo commits found in the repository.")
+		os.Exit(2)
+	}
 	fmt.Printf("Age                        %s\n", ageString)
 
 	// Historic & estimated growth header
-	fmt.Println() 
+	fmt.Println()
 	fmt.Println("HISTORIC & ESTIMATED GROWTH ############################################################################################")
 	fmt.Println()
 	fmt.Println("Year          Commits          Δ     %   ○     Object size            Δ     %   ○    On-disk size            Δ     %   ○")
@@ -201,7 +229,11 @@ func main() {
 	// Determine total unique authors from last year with data
 	if len(yearlyStatistics) > 0 {
 		maxYear := 0
-		for y := range yearlyStatistics { if y > maxYear { maxYear = y } }
+		for y := range yearlyStatistics {
+			if y > maxYear {
+				maxYear = y
+			}
+		}
 		repositoryInformation.TotalAuthors = yearlyStatistics[maxYear].Authors
 	}
 
@@ -217,20 +249,44 @@ func main() {
 			cumulative.CompressedDelta = cumulative.Compressed - previousCumulative.Compressed
 			cumulative.UncompressedDelta = cumulative.Uncompressed - previousCumulative.Uncompressed
 
-			if repositoryInformation.TotalAuthors > 0 { cumulative.AuthorsPercent = float64(cumulative.AuthorsDelta) / float64(repositoryInformation.TotalAuthors) * 100 }
-			if repositoryInformation.TotalCommits > 0 { cumulative.CommitsPercent = float64(cumulative.CommitsDelta) / float64(repositoryInformation.TotalCommits) * 100 }
-			if repositoryInformation.TotalTrees > 0 { cumulative.TreesPercent = float64(cumulative.TreesDelta) / float64(repositoryInformation.TotalTrees) * 100 }
-			if repositoryInformation.TotalBlobs > 0 { cumulative.BlobsPercent = float64(cumulative.BlobsDelta) / float64(repositoryInformation.TotalBlobs) * 100 }
-			if repositoryInformation.CompressedSize > 0 { cumulative.CompressedPercent = float64(cumulative.CompressedDelta) / float64(repositoryInformation.CompressedSize) * 100 }
-			if repositoryInformation.UncompressedSize > 0 { cumulative.UncompressedPercent = float64(cumulative.UncompressedDelta) / float64(repositoryInformation.UncompressedSize) * 100 }
+			if repositoryInformation.TotalAuthors > 0 {
+				cumulative.AuthorsPercent = float64(cumulative.AuthorsDelta) / float64(repositoryInformation.TotalAuthors) * 100
+			}
+			if repositoryInformation.TotalCommits > 0 {
+				cumulative.CommitsPercent = float64(cumulative.CommitsDelta) / float64(repositoryInformation.TotalCommits) * 100
+			}
+			if repositoryInformation.TotalTrees > 0 {
+				cumulative.TreesPercent = float64(cumulative.TreesDelta) / float64(repositoryInformation.TotalTrees) * 100
+			}
+			if repositoryInformation.TotalBlobs > 0 {
+				cumulative.BlobsPercent = float64(cumulative.BlobsDelta) / float64(repositoryInformation.TotalBlobs) * 100
+			}
+			if repositoryInformation.CompressedSize > 0 {
+				cumulative.CompressedPercent = float64(cumulative.CompressedDelta) / float64(repositoryInformation.CompressedSize) * 100
+			}
+			if repositoryInformation.UncompressedSize > 0 {
+				cumulative.UncompressedPercent = float64(cumulative.UncompressedDelta) / float64(repositoryInformation.UncompressedSize) * 100
+			}
 
 			if previousDelta.Year != 0 {
-				if previousDelta.AuthorsDelta > 0 { cumulative.AuthorsDeltaPercent = diffPercent(cumulative.AuthorsDelta, previousDelta.AuthorsDelta) }
-				if previousDelta.CommitsDelta > 0 { cumulative.CommitsDeltaPercent = diffPercent(cumulative.CommitsDelta, previousDelta.CommitsDelta) }
-				if previousDelta.TreesDelta > 0 { cumulative.TreesDeltaPercent = diffPercent(cumulative.TreesDelta, previousDelta.TreesDelta) }
-				if previousDelta.BlobsDelta > 0 { cumulative.BlobsDeltaPercent = diffPercent(cumulative.BlobsDelta, previousDelta.BlobsDelta) }
-				if previousDelta.CompressedDelta > 0 { cumulative.CompressedDeltaPercent = diffPercent64(cumulative.CompressedDelta, previousDelta.CompressedDelta) }
-				if previousDelta.UncompressedDelta > 0 { cumulative.UncompressedDeltaPercent = diffPercent64(cumulative.UncompressedDelta, previousDelta.UncompressedDelta) }
+				if previousDelta.AuthorsDelta > 0 {
+					cumulative.AuthorsDeltaPercent = diffPercent(cumulative.AuthorsDelta, previousDelta.AuthorsDelta)
+				}
+				if previousDelta.CommitsDelta > 0 {
+					cumulative.CommitsDeltaPercent = diffPercent(cumulative.CommitsDelta, previousDelta.CommitsDelta)
+				}
+				if previousDelta.TreesDelta > 0 {
+					cumulative.TreesDeltaPercent = diffPercent(cumulative.TreesDelta, previousDelta.TreesDelta)
+				}
+				if previousDelta.BlobsDelta > 0 {
+					cumulative.BlobsDeltaPercent = diffPercent(cumulative.BlobsDelta, previousDelta.BlobsDelta)
+				}
+				if previousDelta.CompressedDelta > 0 {
+					cumulative.CompressedDeltaPercent = diffPercent64(cumulative.CompressedDelta, previousDelta.CompressedDelta)
+				}
+				if previousDelta.UncompressedDelta > 0 {
+					cumulative.UncompressedDeltaPercent = diffPercent64(cumulative.UncompressedDelta, previousDelta.UncompressedDelta)
+				}
 			}
 			yearlyStatistics[year] = cumulative
 			previousCumulative = cumulative
@@ -251,8 +307,12 @@ func main() {
 		return largestFiles[i].Path < largestFiles[j].Path
 	})
 	var totalFilesCompressedSize int64
-	for _, f := range largestFiles { totalFilesCompressedSize += f.CompressedSize }
-	if len(largestFiles) > 10 { largestFiles = largestFiles[:10] }
+	for _, f := range largestFiles {
+		totalFilesCompressedSize += f.CompressedSize
+	}
+	if len(largestFiles) > 10 {
+		largestFiles = largestFiles[:10]
+	}
 	sections.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
@@ -272,7 +332,9 @@ func main() {
 	if len(ratesByYear) > 0 { // only if we have rate data
 		for year := firstCommitTime.Year(); year <= time.Now().Year(); year++ {
 			commitHash := ""
-			if rs, ok := ratesByYear[year]; ok { commitHash = rs.YearEndCommitHash }
+			if rs, ok := ratesByYear[year]; ok {
+				commitHash = rs.YearEndCommitHash
+			}
 			if stats, err := git.GetCheckoutGrowthStats(year, commitHash, debug); err == nil {
 				checkoutStatistics[year] = stats
 			}
@@ -286,4 +348,6 @@ func main() {
 }
 
 func diffPercent(newVal, oldVal int) float64 { return float64(newVal-oldVal) / float64(oldVal) * 100 }
-func diffPercent64(newVal, oldVal int64) float64 { return float64(newVal-oldVal) / float64(oldVal) * 100 }
+func diffPercent64(newVal, oldVal int64) float64 {
+	return float64(newVal-oldVal) / float64(oldVal) * 100
+}

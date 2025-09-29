@@ -60,7 +60,7 @@ func TestGetGitDirectory(t *testing.T) {
 }
 
 func TestGetCheckoutGrowthStats(t *testing.T) {
-	rates, err := GetRateOfChanges()
+	rates, _, err := GetRateOfChanges()
 	if err != nil {
 		t.Fatalf("GetRateOfChanges() error: %v", err)
 	}
