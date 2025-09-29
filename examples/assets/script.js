@@ -120,7 +120,7 @@ const GIT_COMMANDS_BY_SECTION = {
     'git show -s --format=%cD <hash>',
     'git rev-list --max-parents=0 HEAD --format=%cD'
   ],
-  // Combined (Alternative 1) section covering both run + repository metadata
+  // Combined section covering both run and repository metadata
   'run-and-repository': [
     'git version',
     'git remote get-url origin',
@@ -129,8 +129,9 @@ const GIT_COMMANDS_BY_SECTION = {
     'git rev-list --max-parents=0 HEAD --format=%cD'
   ],
   'growth': [
-    // For every <year> in the range first_commit_year..current_year
-    `git rev-list --objects --all --before <year>-01-01 --after <year>-12-31 | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize:disk) %(rest)'`
+    // For each <year>: note the inclusive window is implemented as --before (year+1)-01-01 and --after (year-1)-12-31
+    // to capture objects introduced during <year>. Both uncompressed and compressed sizes are read.
+    `git rev-list --objects --all --before <year+1>-01-01 --after <year-1>-12-31 | git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(objectsize:disk) %(rest)'`
   ],
   'top-authors': [
     'git log --all --format=%an|%cn|%cd --date=format:%Y'
@@ -139,8 +140,8 @@ const GIT_COMMANDS_BY_SECTION = {
     'git log --all --format=%an|%cn|%cd --date=format:%Y'
   ],
   'rate': [
-    'git remote show origin   # read default branch (HEAD branch line)',
-    'git log <default_branch> --format=%ct|%P --reverse'
+    'git branch --show-current',
+    'git log <current_branch> --format=%ct|%P|%an --reverse'
   ],
   'largest-dirs': [
     'git ls-tree -r --name-only <default_branch>'
@@ -149,7 +150,6 @@ const GIT_COMMANDS_BY_SECTION = {
     'git log -1 --format=%cD -- <file>   # per listed file'
   ],
   'largest-ext': [
-    // Extension statistics are derived from the blob listing produced by growth commands
     '(derived from growth blob inventory)'
   ],
   'footer': []

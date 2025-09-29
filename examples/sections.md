@@ -1,35 +1,35 @@
 # RUN AND REPOSITORY
-## Run & repository information
-Origin and execution context: when and where the metrics were generated (start time, host machine, tool versions) together with repository identity (local path, remote URL, most recent commit hash, commit date, repository age). This anchors the entire report to a reproducible environment and revision so later comparisons or audits know exactly which code and tooling produced subsequent sections.
+## Run and repository information
+Execution context covering environment, repository identity, and recency details.
 
 # HISTORIC & ESTIMATED GROWTH
-## Historic & estimated growth
-Shows yearly totals of core Git objects (commits, trees, blobs) along with on-disk size. Past years are actual; rows with ^ are current totals; rows with * are projections extrapolated from recent growth.
+## Historic and estimated growth
+Yearly cumulative and projected growth for commits, uncompressed object size, and compressed on‑disk size.
 
 # LARGEST FILE EXTENSIONS
 ## Largest file extensions
-Distribution of blob count and size by file extension. Useful to see language / artifact composition and track shifts over time.
+Distribution of blob count and compressed size by file extension.
 
 # LARGEST DIRECTORIES
 ## Largest directories
-Identifies directories contributing ≥1% of repository storage. Highlights translation files, tests, docs, and core source areas for optimization or pruning.
+Tree of directories and significant files by compressed size share.
 
 # LARGEST FILES
 ## Largest files
-Top individual files by cumulative blob storage, signaling hotspots for size bloat and potential candidates for history rewriting or splitting.
+Top files by cumulative compressed size and last commit year.
 
 # RATE OF CHANGES
 ## Rate of changes
-Focuses on commit cadence to the default branch. P95/P99/P100 peaks per day/hour/minute reveal burstiness and scaling of integration workflow.
+Yearly commit volume and active authors with burst peaks for the current branch.
 
 # AUTHORS WITH MOST COMMITS
 ## Authors with most commits
-Per-year top authors by authored commits plus totals. Shows contributor concentration and evolution of community participation.
+Top authors per year and changing authorship concentration.
 
 # COMMITTERS WITH MOST COMMITS
 ## Committers with most commits
-Committer stats (who integrated patches). High centralization can indicate a gatekeeping pattern or strong maintainer oversight.
+Top commit integrators per year and overall concentration.
 
 # FOOTER
 ## Run summary
-Runtime performance of the metrics tool itself (execution time, memory footprint).
+Elapsed run time and peak memory usage.
