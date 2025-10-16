@@ -127,13 +127,20 @@ func TestGetBranchCount(t *testing.T) {
 				if err != nil {
 					t.Fatalf("Failed to create temp directory: %v", err)
 				}
-				cmd := exec.Command("git", "init", tempDir)
-				cmd.Run()
+				if err := exec.Command("git", "init", tempDir).Run(); err != nil {
+					t.Fatalf("Failed to initialize git repo: %v", err)
+				}
 				// Set a user name and email for the test repo
-				exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run()
-				exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run()
+				if err := exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run(); err != nil {
+					t.Fatalf("Failed to set git user.name: %v", err)
+				}
+				if err := exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run(); err != nil {
+					t.Fatalf("Failed to set git user.email: %v", err)
+				}
 				// Create an initial commit to ensure there's a branch
-				exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run()
+				if err := exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run(); err != nil {
+					t.Fatalf("Failed to create initial commit: %v", err)
+				}
 				return tempDir
 			},
 			cleanup: func(path string) {
@@ -192,13 +199,20 @@ func TestGetTagCount(t *testing.T) {
 				if err != nil {
 					t.Fatalf("Failed to create temp directory: %v", err)
 				}
-				cmd := exec.Command("git", "init", tempDir)
-				cmd.Run()
+				if err := exec.Command("git", "init", tempDir).Run(); err != nil {
+					t.Fatalf("Failed to initialize git repo: %v", err)
+				}
 				// Set a user name and email for the test repo
-				exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run()
-				exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run()
+				if err := exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run(); err != nil {
+					t.Fatalf("Failed to set git user.name: %v", err)
+				}
+				if err := exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run(); err != nil {
+					t.Fatalf("Failed to set git user.email: %v", err)
+				}
 				// Create an initial commit
-				exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run()
+				if err := exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run(); err != nil {
+					t.Fatalf("Failed to create initial commit: %v", err)
+				}
 				return tempDir
 			},
 			cleanup: func(path string) {
@@ -215,16 +229,27 @@ func TestGetTagCount(t *testing.T) {
 				if err != nil {
 					t.Fatalf("Failed to create temp directory: %v", err)
 				}
-				cmd := exec.Command("git", "init", tempDir)
-				cmd.Run()
+				if err := exec.Command("git", "init", tempDir).Run(); err != nil {
+					t.Fatalf("Failed to initialize git repo: %v", err)
+				}
 				// Set a user name and email for the test repo
-				exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run()
-				exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run()
+				if err := exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run(); err != nil {
+					t.Fatalf("Failed to set git user.name: %v", err)
+				}
+				if err := exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run(); err != nil {
+					t.Fatalf("Failed to set git user.email: %v", err)
+				}
 				// Create an initial commit
-				exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run()
-				// Create a tag
-				exec.Command("git", "-C", tempDir, "tag", "v1.0.0").Run()
-				exec.Command("git", "-C", tempDir, "tag", "v2.0.0").Run()
+				if err := exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run(); err != nil {
+					t.Fatalf("Failed to create initial commit: %v", err)
+				}
+				// Create tags
+				if err := exec.Command("git", "-C", tempDir, "tag", "v1.0.0").Run(); err != nil {
+					t.Fatalf("Failed to create tag v1.0.0: %v", err)
+				}
+				if err := exec.Command("git", "-C", tempDir, "tag", "v2.0.0").Run(); err != nil {
+					t.Fatalf("Failed to create tag v2.0.0: %v", err)
+				}
 				return tempDir
 			},
 			cleanup: func(path string) {

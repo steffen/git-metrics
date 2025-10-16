@@ -647,16 +647,11 @@ func isLeapYear(year int) bool {
 	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
 }
 
-// GetBranchCount returns the total number of branches in the repository
-func GetBranchCount() (int, error) {
-	output, err := RunGitCommand(false, "branch", "-a")
-	if err != nil {
-		return 0, err
-	}
-	
+// countNonEmptyLines counts the number of non-empty lines in the output
+func countNonEmptyLines(output []byte) int {
 	trimmed := strings.TrimSpace(string(output))
 	if trimmed == "" {
-		return 0, nil
+		return 0
 	}
 	
 	lines := strings.Split(trimmed, "\n")
@@ -667,7 +662,17 @@ func GetBranchCount() (int, error) {
 		}
 	}
 	
-	return count, nil
+	return count
+}
+
+// GetBranchCount returns the total number of branches in the repository
+func GetBranchCount() (int, error) {
+	output, err := RunGitCommand(false, "branch", "-a")
+	if err != nil {
+		return 0, err
+	}
+	
+	return countNonEmptyLines(output), nil
 }
 
 // GetTagCount returns the total number of tags in the repository
@@ -677,18 +682,5 @@ func GetTagCount() (int, error) {
 		return 0, err
 	}
 	
-	trimmed := strings.TrimSpace(string(output))
-	if trimmed == "" {
-		return 0, nil
-	}
-	
-	lines := strings.Split(trimmed, "\n")
-	count := 0
-	for _, line := range lines {
-		if strings.TrimSpace(line) != "" {
-			count++
-		}
-	}
-	
-	return count, nil
+	return countNonEmptyLines(output), nil
 }
