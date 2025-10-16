@@ -123,7 +123,10 @@ func TestGetBranchCount(t *testing.T) {
 			name: "Repository with at least one branch",
 			setupFunc: func() string {
 				// Create a temporary directory and initialize a git repo
-				tempDir, _ := os.MkdirTemp("", "git-branch-test")
+				tempDir, err := os.MkdirTemp("", "git-branch-test")
+				if err != nil {
+					t.Fatalf("Failed to create temp directory: %v", err)
+				}
 				cmd := exec.Command("git", "init", tempDir)
 				cmd.Run()
 				// Set a user name and email for the test repo
@@ -145,7 +148,11 @@ func TestGetBranchCount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var originalDir string
 			if tt.setupFunc != nil {
-				originalDir, _ = os.Getwd()
+				var err error
+				originalDir, err = os.Getwd()
+				if err != nil {
+					t.Fatalf("Failed to get current directory: %v", err)
+				}
 				path := tt.setupFunc()
 				os.Chdir(path)
 				if tt.cleanup != nil {
@@ -181,7 +188,10 @@ func TestGetTagCount(t *testing.T) {
 			name: "Repository with no tags",
 			setupFunc: func() string {
 				// Create a temporary directory and initialize a git repo
-				tempDir, _ := os.MkdirTemp("", "git-tag-test")
+				tempDir, err := os.MkdirTemp("", "git-tag-test")
+				if err != nil {
+					t.Fatalf("Failed to create temp directory: %v", err)
+				}
 				cmd := exec.Command("git", "init", tempDir)
 				cmd.Run()
 				// Set a user name and email for the test repo
@@ -201,7 +211,10 @@ func TestGetTagCount(t *testing.T) {
 			name: "Repository with tags",
 			setupFunc: func() string {
 				// Create a temporary directory and initialize a git repo
-				tempDir, _ := os.MkdirTemp("", "git-tag-test-2")
+				tempDir, err := os.MkdirTemp("", "git-tag-test-2")
+				if err != nil {
+					t.Fatalf("Failed to create temp directory: %v", err)
+				}
 				cmd := exec.Command("git", "init", tempDir)
 				cmd.Run()
 				// Set a user name and email for the test repo
@@ -226,7 +239,11 @@ func TestGetTagCount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var originalDir string
 			if tt.setupFunc != nil {
-				originalDir, _ = os.Getwd()
+				var err error
+				originalDir, err = os.Getwd()
+				if err != nil {
+					t.Fatalf("Failed to get current directory: %v", err)
+				}
 				path := tt.setupFunc()
 				os.Chdir(path)
 				if tt.cleanup != nil {

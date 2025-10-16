@@ -654,7 +654,12 @@ func GetBranchCount() (int, error) {
 		return 0, err
 	}
 	
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	trimmed := strings.TrimSpace(string(output))
+	if trimmed == "" {
+		return 0, nil
+	}
+	
+	lines := strings.Split(trimmed, "\n")
 	count := 0
 	for _, line := range lines {
 		if strings.TrimSpace(line) != "" {
@@ -672,7 +677,12 @@ func GetTagCount() (int, error) {
 		return 0, err
 	}
 	
-	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	trimmed := strings.TrimSpace(string(output))
+	if trimmed == "" {
+		return 0, nil
+	}
+	
+	lines := strings.Split(trimmed, "\n")
 	count := 0
 	for _, line := range lines {
 		if strings.TrimSpace(line) != "" {
