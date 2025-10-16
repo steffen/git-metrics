@@ -110,3 +110,142 @@ func TestGetGitDirectory(t *testing.T) {
 func mockRunGitCommand(_ bool, _ ...string) ([]byte, error) {
 	return []byte("git version 2.35.1"), nil
 }
+
+func TestGetBranchCount(t *testing.T) {
+	tests := []struct {
+		name      string
+		setupFunc func() string
+		cleanup   func(string)
+		wantMin   int
+		wantErr   bool
+	}{
+		{
+			name: "Repository with at least one branch",
+			setupFunc: func() string {
+				// Create a temporary directory and initialize a git repo
+				tempDir, _ := os.MkdirTemp("", "git-branch-test")
+				cmd := exec.Command("git", "init", tempDir)
+				cmd.Run()
+				// Set a user name and email for the test repo
+				exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run()
+				exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run()
+				// Create an initial commit to ensure there's a branch
+				exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run()
+				return tempDir
+			},
+			cleanup: func(path string) {
+				os.RemoveAll(path)
+			},
+			wantMin: 1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var originalDir string
+			if tt.setupFunc != nil {
+				originalDir, _ = os.Getwd()
+				path := tt.setupFunc()
+				os.Chdir(path)
+				if tt.cleanup != nil {
+					defer func() {
+						os.Chdir(originalDir)
+						tt.cleanup(path)
+					}()
+				}
+			}
+
+			count, err := GetBranchCount()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetBranchCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && count < tt.wantMin {
+				t.Errorf("GetBranchCount() = %v, want at least %v", count, tt.wantMin)
+			}
+		})
+	}
+}
+
+func TestGetTagCount(t *testing.T) {
+	tests := []struct {
+		name      string
+		setupFunc func() string
+		cleanup   func(string)
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "Repository with no tags",
+			setupFunc: func() string {
+				// Create a temporary directory and initialize a git repo
+				tempDir, _ := os.MkdirTemp("", "git-tag-test")
+				cmd := exec.Command("git", "init", tempDir)
+				cmd.Run()
+				// Set a user name and email for the test repo
+				exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run()
+				exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run()
+				// Create an initial commit
+				exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run()
+				return tempDir
+			},
+			cleanup: func(path string) {
+				os.RemoveAll(path)
+			},
+			wantCount: 0,
+			wantErr:   false,
+		},
+		{
+			name: "Repository with tags",
+			setupFunc: func() string {
+				// Create a temporary directory and initialize a git repo
+				tempDir, _ := os.MkdirTemp("", "git-tag-test-2")
+				cmd := exec.Command("git", "init", tempDir)
+				cmd.Run()
+				// Set a user name and email for the test repo
+				exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run()
+				exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run()
+				// Create an initial commit
+				exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run()
+				// Create a tag
+				exec.Command("git", "-C", tempDir, "tag", "v1.0.0").Run()
+				exec.Command("git", "-C", tempDir, "tag", "v2.0.0").Run()
+				return tempDir
+			},
+			cleanup: func(path string) {
+				os.RemoveAll(path)
+			},
+			wantCount: 2,
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var originalDir string
+			if tt.setupFunc != nil {
+				originalDir, _ = os.Getwd()
+				path := tt.setupFunc()
+				os.Chdir(path)
+				if tt.cleanup != nil {
+					defer func() {
+						os.Chdir(originalDir)
+						tt.cleanup(path)
+					}()
+				}
+			}
+
+			count, err := GetTagCount()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetTagCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && count != tt.wantCount {
+				t.Errorf("GetTagCount() = %v, want %v", count, tt.wantCount)
+			}
+		})
+	}
+}

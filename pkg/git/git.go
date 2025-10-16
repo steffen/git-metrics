@@ -646,3 +646,39 @@ func calculatePercentile(sortedData []int, percentile int) int {
 func isLeapYear(year int) bool {
 	return year%4 == 0 && (year%100 != 0 || year%400 == 0)
 }
+
+// GetBranchCount returns the total number of branches in the repository
+func GetBranchCount() (int, error) {
+	output, err := RunGitCommand(false, "branch", "-a")
+	if err != nil {
+		return 0, err
+	}
+	
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	count := 0
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			count++
+		}
+	}
+	
+	return count, nil
+}
+
+// GetTagCount returns the total number of tags in the repository
+func GetTagCount() (int, error) {
+	output, err := RunGitCommand(false, "tag")
+	if err != nil {
+		return 0, err
+	}
+	
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	count := 0
+	for _, line := range lines {
+		if strings.TrimSpace(line) != "" {
+			count++
+		}
+	}
+	
+	return count, nil
+}
