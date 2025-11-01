@@ -80,7 +80,7 @@ jobs:
           echo "Building with version: $VERSION"
 
       - name: Set up Go
-        uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6.0.0
         with:
           go-version-file: './go.mod'
 
@@ -114,7 +114,7 @@ jobs:
         run: ./script/run-integration-tests
 
       - name: Upload binaries
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: binaries
           retention-days: 1
@@ -137,7 +137,7 @@ jobs:
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Download binaries
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v 5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v 6.0.0
         with:
           name: binaries
           path: ${{ env.DIST_PATH }}
@@ -210,7 +210,7 @@ jobs:
           fi
 
       - name: Download binaries
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v 5.0.0
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v 6.0.0
         with:
           name: binaries
           path: ${{ env.DIST_PATH }}
@@ -267,7 +267,7 @@ jobs:
             ${{ env.BINARY_NAME }}-*.zip
 
       - name: Create Release
-        uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
         with:
           tag_name: ${{ steps.version.outputs.tag_name }}
           name: ${{ github.event.inputs.release_name || steps.version.outputs.new_version }}
