@@ -137,22 +137,34 @@ func TestMailmapSupport(t *testing.T) {
 	}
 
 	// Configure git user for commits
-	exec.Command("git", "config", "user.email", "test@example.com").Run()
-	exec.Command("git", "config", "user.name", "Test User").Run()
+	if err := exec.Command("git", "config", "user.email", "test@example.com").Run(); err != nil {
+		t.Fatalf("Failed to configure git user email: %v", err)
+	}
+	if err := exec.Command("git", "config", "user.name", "Test User").Run(); err != nil {
+		t.Fatalf("Failed to configure git user name: %v", err)
+	}
 
 	// Create a commit with one author name/email
 	if err := os.WriteFile("file1.txt", []byte("content1"), 0644); err != nil {
 		t.Fatalf("Failed to create file1.txt: %v", err)
 	}
-	exec.Command("git", "add", "file1.txt").Run()
-	exec.Command("git", "-c", "user.name=John Doe", "-c", "user.email=john@example.com", "commit", "-m", "First commit").Run()
+	if err := exec.Command("git", "add", "file1.txt").Run(); err != nil {
+		t.Fatalf("Failed to add file1.txt: %v", err)
+	}
+	if err := exec.Command("git", "-c", "user.name=John Doe", "-c", "user.email=john@example.com", "commit", "-m", "First commit").Run(); err != nil {
+		t.Fatalf("Failed to create first commit: %v", err)
+	}
 
 	// Create another commit with a different name/email for the same person
 	if err := os.WriteFile("file2.txt", []byte("content2"), 0644); err != nil {
 		t.Fatalf("Failed to create file2.txt: %v", err)
 	}
-	exec.Command("git", "add", "file2.txt").Run()
-	exec.Command("git", "-c", "user.name=J. Doe", "-c", "user.email=jdoe@example.com", "commit", "-m", "Second commit").Run()
+	if err := exec.Command("git", "add", "file2.txt").Run(); err != nil {
+		t.Fatalf("Failed to add file2.txt: %v", err)
+	}
+	if err := exec.Command("git", "-c", "user.name=J. Doe", "-c", "user.email=jdoe@example.com", "commit", "-m", "Second commit").Run(); err != nil {
+		t.Fatalf("Failed to create second commit: %v", err)
+	}
 
 	// Test without .mailmap - should see two different authors
 	contributors, err := GetContributors()
