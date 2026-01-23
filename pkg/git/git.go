@@ -3,10 +3,10 @@ package git
 import (
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -137,12 +137,48 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	currentStatistics := models.GrowthStatistics{Year: year}
 	startTime := time.Now()
 
-	// Build shell command with before and after dates.
-	commandString := fmt.Sprintf("git rev-list --objects --all --before %d-01-01 --after %d-12-31 | git cat-file --batch-check='%%(objecttype) %%(objectname) %%(objectsize) %%(objectsize:disk) %%(rest)'", year+1, year-1)
-	command := exec.Command(ShellToUse(), "-c", commandString)
-	output, err := command.Output()
+	// Run git rev-list to get objects
+	revListCommand := exec.Command("git", "rev-list", "--objects", "--all",
+		fmt.Sprintf("--before=%d-01-01", year+1),
+		fmt.Sprintf("--after=%d-12-31", year-1))
+
+	// Run git cat-file to get object details
+	catFileCommand := exec.Command("git", "cat-file", "--batch-check=%(objecttype) %(objectname) %(objectsize) %(objectsize:disk) %(rest)")
+
+	// Connect rev-list stdout to cat-file stdin using a pipe
+	revListStdout, err := revListCommand.StdoutPipe()
 	if err != nil {
-		return currentStatistics, err
+		return currentStatistics, fmt.Errorf("failed to create rev-list stdout pipe: %w", err)
+	}
+	catFileCommand.Stdin = revListStdout
+
+	// Capture cat-file output
+	catFileStdout, err := catFileCommand.StdoutPipe()
+	if err != nil {
+		return currentStatistics, fmt.Errorf("failed to create cat-file stdout pipe: %w", err)
+	}
+
+	// Start both commands
+	if err := revListCommand.Start(); err != nil {
+		return currentStatistics, fmt.Errorf("failed to start rev-list: %w", err)
+	}
+	if err := catFileCommand.Start(); err != nil {
+		revListCommand.Process.Kill()
+		return currentStatistics, fmt.Errorf("failed to start cat-file: %w", err)
+	}
+
+	// Read output from cat-file
+	output, err := io.ReadAll(catFileStdout)
+	if err != nil {
+		revListCommand.Process.Kill()
+		catFileCommand.Process.Kill()
+		return currentStatistics, fmt.Errorf("failed to read cat-file output: %w", err)
+	}
+
+	// Wait for both commands to complete
+	revListCommand.Wait()
+	if err := catFileCommand.Wait(); err != nil {
+		return currentStatistics, fmt.Errorf("cat-file command failed: %w", err)
 	}
 
 	// Prepare a map to collect blob files (keyed by file path).
@@ -245,12 +281,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	return currentStatistics, nil
 }
 
-func ShellToUse() string {
-	if runtime.GOOS == "windows" {
-		return "bash"
-	}
-	return "sh"
-}
+
 
 // GetContributors returns all commit authors and committers with dates from git history
 func GetContributors() ([]string, error) {
