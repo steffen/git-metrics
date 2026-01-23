@@ -1,6 +1,7 @@
 package git
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -145,6 +146,11 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	// Run git cat-file to get object details
 	catFileCommand := exec.Command("git", "cat-file", "--batch-check=%(objecttype) %(objectname) %(objectsize) %(objectsize:disk) %(rest)")
 
+	// Capture stderr from both commands for debugging
+	var revListStderr, catFileStderr bytes.Buffer
+	revListCommand.Stderr = &revListStderr
+	catFileCommand.Stderr = &catFileStderr
+
 	// Connect rev-list stdout to cat-file stdin using a pipe
 	revListStdout, err := revListCommand.StdoutPipe()
 	if err != nil {
@@ -164,20 +170,48 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	}
 	if err := catFileCommand.Start(); err != nil {
 		revListCommand.Process.Kill()
+		revListCommand.Wait()
 		return currentStatistics, fmt.Errorf("failed to start cat-file: %w", err)
 	}
 
-	// Read output from cat-file
-	output, err := io.ReadAll(catFileStdout)
-	if err != nil {
+	// Read output from cat-file in a goroutine to avoid deadlock
+	// (if rev-list fills the pipe buffer while we're blocked reading)
+	type readResult struct {
+		output []byte
+		err    error
+	}
+	resultChannel := make(chan readResult, 1)
+	go func() {
+		output, err := io.ReadAll(catFileStdout)
+		resultChannel <- readResult{output, err}
+	}()
+
+	// Wait for the read to complete
+	result := <-resultChannel
+	if result.err != nil {
 		revListCommand.Process.Kill()
 		catFileCommand.Process.Kill()
-		return currentStatistics, fmt.Errorf("failed to read cat-file output: %w", err)
+		revListCommand.Wait()
+		catFileCommand.Wait()
+		return currentStatistics, fmt.Errorf("failed to read cat-file output: %w", result.err)
 	}
+	output := result.output
 
 	// Wait for both commands to complete
-	revListCommand.Wait()
+	if err := revListCommand.Wait(); err != nil {
+		catFileCommand.Process.Kill()
+		catFileCommand.Wait()
+		stderrMsg := strings.TrimSpace(revListStderr.String())
+		if stderrMsg != "" {
+			return currentStatistics, fmt.Errorf("rev-list command failed: %w, stderr: %s", err, stderrMsg)
+		}
+		return currentStatistics, fmt.Errorf("rev-list command failed: %w", err)
+	}
 	if err := catFileCommand.Wait(); err != nil {
+		stderrMsg := strings.TrimSpace(catFileStderr.String())
+		if stderrMsg != "" {
+			return currentStatistics, fmt.Errorf("cat-file command failed: %w, stderr: %s", err, stderrMsg)
+		}
 		return currentStatistics, fmt.Errorf("cat-file command failed: %w", err)
 	}
 
