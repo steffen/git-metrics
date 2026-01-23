@@ -161,6 +161,7 @@ func GetGrowthStats(year int, previousGrowthStatistics models.GrowthStatistics, 
 	// Capture cat-file output
 	catFileStdout, err := catFileCommand.StdoutPipe()
 	if err != nil {
+		revListStdout.Close()
 		return currentStatistics, fmt.Errorf("failed to create cat-file stdout pipe: %w", err)
 	}
 
