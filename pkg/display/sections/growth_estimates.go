@@ -44,11 +44,77 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 
 	var predictedCurrentYear models.GrowthStatistics
 
-	// If less than 2 months (60 days) into the year, use previous year data
+	// If less than 2 months (60 days) into the year, use weighted average of recent years' growth
 	if daysPassed < 60 {
-		// Simply use the previous year of the latest fetch date
-		predictedCurrentYear = previousStats
-		predictedCurrentYear.Year = currentYear
+		// Get historical years for weighted average calculation
+		twoYearsAgoStats, twoYearsAgoExists := yearlyStats[currentYear-2]
+		threeYearsAgoStats, threeYearsAgoExists := yearlyStats[currentYear-3]
+		fourYearsAgoStats, fourYearsAgoExists := yearlyStats[currentYear-4]
+
+		var weightedAuthorsDelta, weightedCommitsDelta float64
+		var weightedCompressedDelta, weightedUncompressedDelta float64
+
+		if twoYearsAgoExists && threeYearsAgoExists && fourYearsAgoExists {
+			// Full 3-year weighted average: 50% year-1, 30% year-2, 20% year-3
+			// Year-1 delta: previousStats - twoYearsAgoStats (e.g., 2025-2024)
+			// Year-2 delta: twoYearsAgoStats - threeYearsAgoStats (e.g., 2024-2023)
+			// Year-3 delta: threeYearsAgoStats - fourYearsAgoStats (e.g., 2023-2022)
+			year1AuthorsDelta := float64(previousStats.Authors - twoYearsAgoStats.Authors)
+			year1CommitsDelta := float64(previousStats.Commits - twoYearsAgoStats.Commits)
+			year1CompressedDelta := float64(previousStats.Compressed - twoYearsAgoStats.Compressed)
+			year1UncompressedDelta := float64(previousStats.Uncompressed - twoYearsAgoStats.Uncompressed)
+
+			year2AuthorsDelta := float64(twoYearsAgoStats.Authors - threeYearsAgoStats.Authors)
+			year2CommitsDelta := float64(twoYearsAgoStats.Commits - threeYearsAgoStats.Commits)
+			year2CompressedDelta := float64(twoYearsAgoStats.Compressed - threeYearsAgoStats.Compressed)
+			year2UncompressedDelta := float64(twoYearsAgoStats.Uncompressed - threeYearsAgoStats.Uncompressed)
+
+			year3AuthorsDelta := float64(threeYearsAgoStats.Authors - fourYearsAgoStats.Authors)
+			year3CommitsDelta := float64(threeYearsAgoStats.Commits - fourYearsAgoStats.Commits)
+			year3CompressedDelta := float64(threeYearsAgoStats.Compressed - fourYearsAgoStats.Compressed)
+			year3UncompressedDelta := float64(threeYearsAgoStats.Uncompressed - fourYearsAgoStats.Uncompressed)
+
+			weightedAuthorsDelta = 0.5*year1AuthorsDelta + 0.3*year2AuthorsDelta + 0.2*year3AuthorsDelta
+			weightedCommitsDelta = 0.5*year1CommitsDelta + 0.3*year2CommitsDelta + 0.2*year3CommitsDelta
+			weightedCompressedDelta = 0.5*year1CompressedDelta + 0.3*year2CompressedDelta + 0.2*year3CompressedDelta
+			weightedUncompressedDelta = 0.5*year1UncompressedDelta + 0.3*year2UncompressedDelta + 0.2*year3UncompressedDelta
+		} else if twoYearsAgoExists && threeYearsAgoExists {
+			// 2-year weighted average: 60% year-1, 40% year-2
+			year1AuthorsDelta := float64(previousStats.Authors - twoYearsAgoStats.Authors)
+			year1CommitsDelta := float64(previousStats.Commits - twoYearsAgoStats.Commits)
+			year1CompressedDelta := float64(previousStats.Compressed - twoYearsAgoStats.Compressed)
+			year1UncompressedDelta := float64(previousStats.Uncompressed - twoYearsAgoStats.Uncompressed)
+
+			year2AuthorsDelta := float64(twoYearsAgoStats.Authors - threeYearsAgoStats.Authors)
+			year2CommitsDelta := float64(twoYearsAgoStats.Commits - threeYearsAgoStats.Commits)
+			year2CompressedDelta := float64(twoYearsAgoStats.Compressed - threeYearsAgoStats.Compressed)
+			year2UncompressedDelta := float64(twoYearsAgoStats.Uncompressed - threeYearsAgoStats.Uncompressed)
+
+			weightedAuthorsDelta = 0.6*year1AuthorsDelta + 0.4*year2AuthorsDelta
+			weightedCommitsDelta = 0.6*year1CommitsDelta + 0.4*year2CommitsDelta
+			weightedCompressedDelta = 0.6*year1CompressedDelta + 0.4*year2CompressedDelta
+			weightedUncompressedDelta = 0.6*year1UncompressedDelta + 0.4*year2UncompressedDelta
+		} else if twoYearsAgoExists {
+			// Single year delta (original behavior)
+			weightedAuthorsDelta = float64(previousStats.Authors - twoYearsAgoStats.Authors)
+			weightedCommitsDelta = float64(previousStats.Commits - twoYearsAgoStats.Commits)
+			weightedCompressedDelta = float64(previousStats.Compressed - twoYearsAgoStats.Compressed)
+			weightedUncompressedDelta = float64(previousStats.Uncompressed - twoYearsAgoStats.Uncompressed)
+		} else {
+			// Fallback: use previous year totals if insufficient history
+			predictedCurrentYear = previousStats
+			predictedCurrentYear.Year = currentYear
+			estimates = append(estimates, predictedCurrentYear)
+			return estimates
+		}
+
+		predictedCurrentYear = models.GrowthStatistics{
+			Year:         currentYear,
+			Authors:      previousStats.Authors + int(weightedAuthorsDelta),
+			Commits:      previousStats.Commits + int(weightedCommitsDelta),
+			Compressed:   previousStats.Compressed + int64(weightedCompressedDelta),
+			Uncompressed: previousStats.Uncompressed + int64(weightedUncompressedDelta),
+		}
 	} else {
 		// If 2+ months into the year, predict full year by extrapolating current progress
 		commitsPerDay := float64(currentCommitsDelta) / float64(daysPassed)
@@ -267,8 +333,8 @@ func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repo
 		fmt.Printf("^ Current totals as of Git directory's last modified: %s\n", lastModified[:16])
 	}
 	if estimationYears > 0 {
-		fmt.Println("~ Estimated growth for current year based on year to date deltas (Δ) extrapolated to full year")
-		fmt.Println("* Estimated growth based on current year's estimated delta percentages (Δ%)")
+		fmt.Println("~ Estimated growth for current year (weighted average of recent years' deltas (Δ), or YTD extrapolation if >60 days)")
+		fmt.Println("* Estimated future growth based on current year's estimated delta (Δ)")
 	} else {
 		fmt.Println("Growth estimation unavailable: Requires at least 2 years of commit history")
 	}
