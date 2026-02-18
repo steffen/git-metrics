@@ -38,6 +38,17 @@ EOF
 grep -Ev -f "$pattern_file" "$input_file" > "$temp_file"
 rm -f "$pattern_file"
 
+# Normalize year references to YYYY for deterministic comparison
+sed -i.bak -E 's/^([0-9]{4})([\^~\* ]+)/YYYY\2/g' "$temp_file"
+rm -f "$temp_file.bak"
+
+# Normalize commit lines: day-of-week, year, and commit hash
+# "Most recent commit         Sat, 01 Feb 2025 (4a87f60)" -> "Most recent commit         XXX, 01 Feb YYYY (XXXXXX)"
+sed -i.bak -E 's/^(Most recent commit[[:space:]]+)[A-Za-z]{3}(, [0-9]{2} [A-Za-z]{3} )[0-9]{4}( \()[a-f0-9]+(\))/\1XXX\2YYYY\3XXXXXX\4/g' "$temp_file"
+rm -f "$temp_file.bak"
+sed -i.bak -E 's/^(First commit[[:space:]]+)[A-Za-z]{3}(, [0-9]{2} [A-Za-z]{3} )[0-9]{4}( \()[a-f0-9]+(\))/\1XXX\2YYYY\3XXXXXX\4/g' "$temp_file"
+rm -f "$temp_file.bak"
+
 # Check if the temporary file was created successfully
 if [ $? -eq 0 ]; then
   mv "$temp_file" "$input_file"
