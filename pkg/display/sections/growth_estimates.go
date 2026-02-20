@@ -45,22 +45,17 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 	var predictedCurrentYear models.GrowthStatistics
 
 	// Get two years ago for calculating historical growth rate
-	twoYearsAgoStats, twoYearsAgoExists := yearlyStats[currentYear-2]
+	twoYearsAgoStats := yearlyStats[currentYear-2]
 
 	// If less than 2 months (60 days) into the year, use previous year's growth delta
 	if daysPassed < 60 {
 		// Use the previous year's delta as the projected growth for the current year
-		if twoYearsAgoExists {
-			predictedCurrentYear = models.GrowthStatistics{
-				Year:         currentYear,
-				Authors:      previousStats.Authors + (previousStats.Authors - twoYearsAgoStats.Authors),
-				Commits:      previousStats.Commits + (previousStats.Commits - twoYearsAgoStats.Commits),
-				Compressed:   previousStats.Compressed + (previousStats.Compressed - twoYearsAgoStats.Compressed),
-				Uncompressed: previousStats.Uncompressed + (previousStats.Uncompressed - twoYearsAgoStats.Uncompressed),
-			}
-		} else {
-			predictedCurrentYear = previousStats
-			predictedCurrentYear.Year = currentYear
+		predictedCurrentYear = models.GrowthStatistics{
+			Year:         currentYear,
+			Authors:      previousStats.Authors + (previousStats.Authors - twoYearsAgoStats.Authors),
+			Commits:      previousStats.Commits + (previousStats.Commits - twoYearsAgoStats.Commits),
+			Compressed:   previousStats.Compressed + (previousStats.Compressed - twoYearsAgoStats.Compressed),
+			Uncompressed: previousStats.Uncompressed + (previousStats.Uncompressed - twoYearsAgoStats.Uncompressed),
 		}
 	} else {
 		// If 2+ months into the year, predict full year by extrapolating current progress

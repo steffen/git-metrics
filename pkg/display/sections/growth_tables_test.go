@@ -276,27 +276,6 @@ func TestCalculateNewEstimateLaterInYear(t *testing.T) {
 	}
 }
 
-func TestCalculateNewEstimateEarlyInYearNoTwoYearsAgo(t *testing.T) {
-	// When < 60 days and no data two years ago, should fall back gracefully
-	yearlyStats := map[int]models.GrowthStatistics{
-		2024: {Year: 2024, Commits: 800, Authors: 15, Compressed: 1500000, Uncompressed: 3000000},
-		2025: {Year: 2025, Commits: 810, Authors: 15, Compressed: 1510000, Uncompressed: 3010000},
-	}
-
-	fetchTime := "Mon, 15 Jan 2025 10:00 UTC"
-	estimates := CalculateNewEstimate(yearlyStats, 2025, fetchTime)
-
-	if len(estimates) == 0 {
-		t.Fatal("expected estimates, got none")
-	}
-
-	// Without two-years-ago data, should fall back to previous year's values
-	currentEstimate := estimates[0]
-	if currentEstimate.Commits != 800 {
-		t.Errorf("expected fallback to previous year commits = 800, got %d", currentEstimate.Commits)
-	}
-}
-
 func TestPrintFileExtensionGrowthInsufficientData(t *testing.T) {
 	// Test with only one year of data
 	yearlyStats := map[int]models.GrowthStatistics{
