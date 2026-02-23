@@ -208,6 +208,74 @@ func TestPrintFileExtensionGrowth(t *testing.T) {
 	}
 }
 
+func TestCalculateNewEstimateEarlyInYear(t *testing.T) {
+	// When less than 60 days into the year, the estimation should use the previous year's
+	// growth delta instead of copying previous year's values (which would result in zero growth)
+	yearlyStats := map[int]models.GrowthStatistics{
+		2023: {Year: 2023, Commits: 500, Authors: 10, Compressed: 1000000, Uncompressed: 2000000},
+		2024: {Year: 2024, Commits: 800, Authors: 15, Compressed: 1500000, Uncompressed: 3000000},
+		2025: {Year: 2025, Commits: 810, Authors: 15, Compressed: 1510000, Uncompressed: 3010000}, // small delta since early in year
+	}
+
+	// Fetch time is early in 2025 (< 60 days)
+	fetchTime := "Mon, 15 Jan 2025 10:00 UTC"
+	estimates := CalculateNewEstimate(yearlyStats, 2025, fetchTime)
+
+	if len(estimates) == 0 {
+		t.Fatal("expected estimates, got none")
+	}
+
+	// The current year estimate should use the previous year's delta (2024-2023 = 300 commits)
+	currentEstimate := estimates[0]
+	expectedCommits := 800 + (800 - 500) // previousYear + previousYearDelta = 1100
+	if currentEstimate.Commits != expectedCommits {
+		t.Errorf("expected current year commits = %d, got %d", expectedCommits, currentEstimate.Commits)
+	}
+
+	// Future years should also show non-zero growth
+	if len(estimates) < 2 {
+		t.Fatal("expected future year estimates")
+	}
+
+	for i := 1; i < len(estimates); i++ {
+		delta := estimates[i].Commits - estimates[i-1].Commits
+		if delta == 0 {
+			t.Errorf("year %d: expected non-zero commit delta, got 0", estimates[i].Year)
+		}
+	}
+}
+
+func TestCalculateNewEstimateLaterInYear(t *testing.T) {
+	// When 60+ days into the year, extrapolation should produce non-zero growth
+	yearlyStats := map[int]models.GrowthStatistics{
+		2023: {Year: 2023, Commits: 500, Authors: 10, Compressed: 1000000, Uncompressed: 2000000},
+		2024: {Year: 2024, Commits: 800, Authors: 15, Compressed: 1500000, Uncompressed: 3000000},
+		2025: {Year: 2025, Commits: 900, Authors: 16, Compressed: 1600000, Uncompressed: 3200000},
+	}
+
+	// Fetch time is mid-year 2025 (> 60 days)
+	fetchTime := "Wed, 01 Oct 2025 10:00 UTC"
+	estimates := CalculateNewEstimate(yearlyStats, 2025, fetchTime)
+
+	if len(estimates) == 0 {
+		t.Fatal("expected estimates, got none")
+	}
+
+	// Current year estimate should extrapolate current progress
+	currentEstimate := estimates[0]
+	if currentEstimate.Commits <= 800 {
+		t.Errorf("expected current year commits > 800, got %d", currentEstimate.Commits)
+	}
+
+	// Future years should show non-zero growth
+	for i := 1; i < len(estimates); i++ {
+		delta := estimates[i].Commits - estimates[i-1].Commits
+		if delta == 0 {
+			t.Errorf("year %d: expected non-zero commit delta, got 0", estimates[i].Year)
+		}
+	}
+}
+
 func TestPrintFileExtensionGrowthInsufficientData(t *testing.T) {
 	// Test with only one year of data
 	yearlyStats := map[int]models.GrowthStatistics{

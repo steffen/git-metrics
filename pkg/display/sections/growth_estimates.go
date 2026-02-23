@@ -44,11 +44,19 @@ func CalculateNewEstimate(yearlyStats map[int]models.GrowthStatistics, currentYe
 
 	var predictedCurrentYear models.GrowthStatistics
 
-	// If less than 2 months (60 days) into the year, use previous year data
+	// Get two years ago for calculating historical growth rate
+	twoYearsAgoStats := yearlyStats[currentYear-2]
+
+	// If less than 2 months (60 days) into the year, use previous year's growth delta
 	if daysPassed < 60 {
-		// Simply use the previous year of the latest fetch date
-		predictedCurrentYear = previousStats
-		predictedCurrentYear.Year = currentYear
+		// Use the previous year's delta as the projected growth for the current year
+		predictedCurrentYear = models.GrowthStatistics{
+			Year:         currentYear,
+			Authors:      previousStats.Authors + (previousStats.Authors - twoYearsAgoStats.Authors),
+			Commits:      previousStats.Commits + (previousStats.Commits - twoYearsAgoStats.Commits),
+			Compressed:   previousStats.Compressed + (previousStats.Compressed - twoYearsAgoStats.Compressed),
+			Uncompressed: previousStats.Uncompressed + (previousStats.Uncompressed - twoYearsAgoStats.Uncompressed),
+		}
 	} else {
 		// If 2+ months into the year, predict full year by extrapolating current progress
 		commitsPerDay := float64(currentCommitsDelta) / float64(daysPassed)
