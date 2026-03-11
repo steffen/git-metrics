@@ -49,6 +49,9 @@ var (
 
 	// spinnerQuitChannel is used to signal the spinner goroutine to stop
 	spinnerQuitChannel chan struct{}
+
+	// sectionSpinnerQuitChannel is used to signal the section spinner goroutine to stop
+	sectionSpinnerQuitChannel chan struct{}
 )
 
 // UpdateProgress updates the progress display
@@ -125,5 +128,39 @@ func StopProgress() {
 	// Only clear the progress line if ShowProgress is true
 	if ShowProgress {
 		fmt.Printf("\r\033[K") // Clear the progress line
+	}
+}
+
+// StartSectionSpinner starts a spinner with the given label on stdout.
+// Returns a function that stops the spinner and clears the line.
+func StartSectionSpinner(label string) func() {
+	if !ShowProgress {
+		return func() {}
+	}
+
+	sectionSpinner := NewSpinner()
+	sectionSpinnerQuitChannel = make(chan struct{})
+
+	fmt.Printf("\r%s %s", label, sectionSpinner.Next())
+
+	go func() {
+		ticker := time.NewTicker(125 * time.Millisecond)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ticker.C:
+				fmt.Printf("\r%s %s", label, sectionSpinner.Next())
+			case <-sectionSpinnerQuitChannel:
+				return
+			}
+		}
+	}()
+
+	return func() {
+		if sectionSpinnerQuitChannel != nil {
+			close(sectionSpinnerQuitChannel)
+			sectionSpinnerQuitChannel = nil
+		}
+		fmt.Printf("\r\033[K")
 	}
 }

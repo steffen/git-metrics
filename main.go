@@ -217,7 +217,9 @@ func main() {
 	progress.StopProgress() // Stop and clear progress line
 
 	// Compute cumulative unique authors per year for historic growth
+	stopAuthorsSpinner := progress.StartSectionSpinner("Calculating authors...")
 	cumulativeAuthorsByYear, totalAuthors, authorsErr := git.GetCumulativeUniqueAuthorsByYear()
+	stopAuthorsSpinner()
 	if authorsErr == nil {
 		// Inject authors into yearly statistics
 		for year, stats := range yearlyStatistics {
@@ -344,12 +346,18 @@ func main() {
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
 	// 5. Rate of changes analysis
-	if ratesByYear, branchName, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+	stopRateSpinner := progress.StartSectionSpinner("Calculating rate of changes...")
+	ratesByYear, branchName, rateErr := git.GetRateOfChanges()
+	stopRateSpinner()
+	if rateErr == nil && len(ratesByYear) > 0 {
 		sections.DisplayRateOfChanges(ratesByYear, branchName)
 	}
 
 	// 6 & 7. Authors with most commits, then Committers with most commits
-	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
+	stopContributorsSpinner := progress.StartSectionSpinner("Calculating contributors...")
+	topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, contributorsErr := git.GetTopCommitAuthors(3)
+	stopContributorsSpinner()
+	if contributorsErr == nil && len(topAuthorsByYear) > 0 {
 		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
 	}
 
