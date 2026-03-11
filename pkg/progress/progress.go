@@ -2,6 +2,7 @@ package progress
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"git-metrics/pkg/models"
@@ -31,10 +32,11 @@ func (s *Spinner) Next() string {
 
 // ProgressState tracks the current progress state
 type ProgressState struct {
-	Year         int
-	Statistics   models.GrowthStatistics
-	Active       bool
-	ProgramStart time.Time
+	Year               int
+	Statistics         models.GrowthStatistics
+	PreviousStatistics models.GrowthStatistics
+	Active             bool
+	ProgramStart       time.Time
 }
 
 var (
@@ -51,38 +53,86 @@ var (
 	spinnerQuitChannel chan struct{}
 )
 
+// formatDelta formats a delta value with a + prefix for display during progress.
+func formatDelta(delta int) string {
+	if delta == 0 {
+		return "..."
+	}
+	return fmt.Sprintf("+%s", strings.TrimSpace(utils.FormatNumber(delta)))
+}
+
+// formatSizeDelta formats a size delta value with a + prefix for display during progress.
+func formatSizeDelta(delta int64) string {
+	if delta == 0 {
+		return "..."
+	}
+	return fmt.Sprintf("+%s", strings.TrimSpace(utils.FormatSize(delta)))
+}
+
+// formatPercent formats a percentage value for display during progress.
+func formatPercent(value float64) string {
+	if value == 0 {
+		return "..."
+	}
+	return fmt.Sprintf("%d %%", int(value))
+}
+
 // UpdateProgress updates the progress display
 func UpdateProgress() {
 	if !CurrentProgress.Active || !ShowProgress {
 		return
 	}
+
+	statistics := CurrentProgress.Statistics
+	previous := CurrentProgress.PreviousStatistics
+
+	// Calculate deltas from previous year
+	commitsDelta := statistics.Commits - previous.Commits
+	uncompressedDelta := statistics.Uncompressed - previous.Uncompressed
+	compressedDelta := statistics.Compressed - previous.Compressed
+
+	// Calculate percentage of current total
+	commitsPercent := 0.0
+	if statistics.Commits > 0 {
+		commitsPercent = float64(commitsDelta) / float64(statistics.Commits) * 100
+	}
+	uncompressedPercent := 0.0
+	if statistics.Uncompressed > 0 {
+		uncompressedPercent = float64(uncompressedDelta) / float64(statistics.Uncompressed) * 100
+	}
+	compressedPercent := 0.0
+	if statistics.Compressed > 0 {
+		compressedPercent = float64(compressedDelta) / float64(statistics.Compressed) * 100
+	}
+
 	fmt.Printf("\r%-6s %14s %10s %5s %3s │%14s %12s %5s %3s │%14s %12s %5s %3s",
 		fmt.Sprintf("%d %s", CurrentProgress.Year, ProgressSpinner.Next()),
-		utils.FormatNumber(CurrentProgress.Statistics.Authors),
-		"...",
-		"...",
+		utils.FormatNumber(statistics.Commits),
+		formatDelta(commitsDelta),
+		formatPercent(commitsPercent),
 		".",
-		utils.FormatNumber(CurrentProgress.Statistics.Commits),
-		"...",
-		"...",
+		utils.FormatSize(statistics.Uncompressed),
+		formatSizeDelta(uncompressedDelta),
+		formatPercent(uncompressedPercent),
 		".",
-		utils.FormatSize(CurrentProgress.Statistics.Compressed),
-		"...",
-		"...",
+		utils.FormatSize(statistics.Compressed),
+		formatSizeDelta(compressedDelta),
+		formatPercent(compressedPercent),
 		".")
 }
 
 // StartProgress starts progress tracking
-func StartProgress(year int, statistics models.GrowthStatistics, programStart time.Time) {
+func StartProgress(year int, statistics models.GrowthStatistics, previousStatistics models.GrowthStatistics, programStart time.Time) {
 	// Stop any existing spinner goroutine before starting a new one
 	StopProgress()
 
 	// Always update the state
 	CurrentProgress = ProgressState{
-		Year:         year,
-		Statistics:   statistics,
-		Active:       true,
-		ProgramStart: programStart,
+		Year:               year,
+		Statistics:         statistics,
+		PreviousStatistics: previousStatistics,
+		Active:             true,
+		ProgramStart:       programStart,
 	}
 
 	// Only show visual progress if ShowProgress is true

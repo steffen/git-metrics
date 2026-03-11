@@ -205,13 +205,16 @@ func main() {
 	yearlyStatistics := make(map[int]models.GrowthStatistics)
 
 	// Start calculation with progress indicator (no newline before progress)
+	var beforePrevious models.GrowthStatistics
 	for year := firstCommitTime.Year(); year <= time.Now().Year(); year++ {
-		progress.StartProgress(year, previous, startTime) // Start progress updates
+		progress.StartProgress(year, previous, beforePrevious, startTime) // Start progress updates
 		if cumulativeStatistics, err := git.GetGrowthStats(year, previous, debug); err == nil {
 			totalStatistics = cumulativeStatistics
+			beforePrevious = previous
 			previous = cumulativeStatistics
 			yearlyStatistics[year] = cumulativeStatistics
 			progress.CurrentProgress.Statistics = cumulativeStatistics // Update current progress
+			progress.CurrentProgress.PreviousStatistics = beforePrevious
 		}
 	}
 	progress.StopProgress() // Stop and clear progress line
