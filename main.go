@@ -84,18 +84,15 @@ func main() {
 	fmt.Printf("Git directory              %s\n", gitDir)
 
 	// Remote URL - only show if there is one
+	stopRemoteSpinner := progress.StartSectionSpinner("Remote                     ... fetching")
 	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
 	remote := ""
 	if err == nil && len(strings.TrimSpace(string(remoteOutput))) > 0 {
-		if progress.ShowProgress {
-			fmt.Printf("Remote                     ... fetching\n")
-		}
 		remote = strings.TrimSpace(string(remoteOutput))
-		if progress.ShowProgress {
-			fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
-		} else {
-			fmt.Printf("Remote                     %s\n", remote)
-		}
+	}
+	stopRemoteSpinner()
+	if remote != "" {
+		fmt.Printf("Remote                     %s\n", remote)
 	}
 
 	// Get fetch time and show last modified only if there's no recent fetch
@@ -109,9 +106,7 @@ func main() {
 	}
 
 	// Most recent commit
-	if progress.ShowProgress {
-		fmt.Printf("Most recent commit         ... fetching\n")
-	}
+	stopLastCommitSpinner := progress.StartSectionSpinner("Most recent commit         ... fetching")
 	lastHashOutput, err := git.RunGitCommand(debug, "rev-parse", "--short", "HEAD")
 	lastCommit := UnknownValue
 	if err == nil {
@@ -123,16 +118,11 @@ func main() {
 			lastCommit = fmt.Sprintf("%s (%s)", lastDate.Format("Mon, 02 Jan 2006"), lastHash)
 		}
 	}
-	if progress.ShowProgress {
-		fmt.Printf("\033[1A\033[2KMost recent commit         %s\n", lastCommit)
-	} else {
-		fmt.Printf("Most recent commit         %s\n", lastCommit)
-	}
+	stopLastCommitSpinner()
+	fmt.Printf("Most recent commit         %s\n", lastCommit)
 
 	// First commit and age
-	if progress.ShowProgress {
-		fmt.Printf("First commit               ... fetching\n")
-	}
+	stopFirstCommitSpinner := progress.StartSectionSpinner("First commit               ... fetching")
 	firstOutput, err := git.RunGitCommand(debug, "rev-list", "--max-parents=0", "HEAD", "--format=%cD")
 	firstCommit := UnknownValue
 	ageString := UnknownValue
@@ -175,11 +165,8 @@ func main() {
 			ageString = strings.Join(parts, " ")
 		}
 	}
-	if progress.ShowProgress {
-		fmt.Printf("\033[1A\033[2KFirst commit               %s\n", firstCommit)
-	} else {
-		fmt.Printf("First commit               %s\n", firstCommit)
-	}
+	stopFirstCommitSpinner()
+	fmt.Printf("First commit               %s\n", firstCommit)
 
 	// If there are no commits, exit early
 	if firstCommit == UnknownValue {
@@ -217,7 +204,9 @@ func main() {
 	progress.StopProgress() // Stop and clear progress line
 
 	// Compute cumulative unique authors per year for historic growth
+	stopAuthorsSpinner := progress.StartSectionSpinner("Calculating authors...")
 	cumulativeAuthorsByYear, totalAuthors, authorsErr := git.GetCumulativeUniqueAuthorsByYear()
+	stopAuthorsSpinner()
 	if authorsErr == nil {
 		// Inject authors into yearly statistics
 		for year, stats := range yearlyStatistics {
@@ -311,13 +300,19 @@ func main() {
 	}
 
 	// Display unified historic and estimated growth using the new function
+	stopGrowthDisplaySpinner := progress.StartSectionSpinner("Rendering growth tables...")
 	sections.DisplayUnifiedGrowth(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch, lastModified)
+	stopGrowthDisplaySpinner()
 
 	// 1. Largest file extensions
+	stopExtensionsSpinner := progress.StartSectionSpinner("Calculating largest file extensions...")
 	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
+	stopExtensionsSpinner()
 
 	// 2. Largest file extensions on-disk size growth
+	stopExtensionGrowthSpinner := progress.StartSectionSpinner("Calculating file extension growth...")
 	sections.PrintFileExtensionGrowth(yearlyStatistics)
+	stopExtensionGrowthSpinner()
 
 	// Prepare largest files data once for sections 3 & 4
 	largestFiles := totalStatistics.LargestFiles
@@ -338,18 +333,28 @@ func main() {
 	}
 
 	// 3. Largest directories
+	stopDirectoriesSpinner := progress.StartSectionSpinner("Calculating largest directories...")
 	sections.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
+	stopDirectoriesSpinner()
 
 	// 4. Largest files
+	stopFilesSpinner := progress.StartSectionSpinner("Calculating largest files...")
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
+	stopFilesSpinner()
 
 	// 5. Rate of changes analysis
-	if ratesByYear, branchName, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+	stopRateSpinner := progress.StartSectionSpinner("Calculating rate of changes...")
+	ratesByYear, branchName, rateErr := git.GetRateOfChanges()
+	stopRateSpinner()
+	if rateErr == nil && len(ratesByYear) > 0 {
 		sections.DisplayRateOfChanges(ratesByYear, branchName)
 	}
 
 	// 6 & 7. Authors with most commits, then Committers with most commits
-	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
+	stopContributorsSpinner := progress.StartSectionSpinner("Calculating contributors...")
+	topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, contributorsErr := git.GetTopCommitAuthors(3)
+	stopContributorsSpinner()
+	if contributorsErr == nil && len(topAuthorsByYear) > 0 {
 		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
 	}
 
