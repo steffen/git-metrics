@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"git-metrics/pkg/git"
 	"git-metrics/pkg/models"
+	"git-metrics/pkg/progress"
 	"git-metrics/pkg/utils"
 	"path/filepath"
 	"sort"
@@ -101,6 +102,13 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 		ExistsInDefaultBranch bool
 		treePrefix            string // Tree formatting prefix
 	}
+
+	// Print header first
+	fmt.Println("\nLARGEST DIRECTORIES ####################################################################################################")
+	fmt.Println()
+
+	// Start spinner for heavy computation
+	stopSpinner := progress.StartSimpleSpinner()
 
 	// Calculate the total compressed size of all blobs
 	var totalBlobsCompressedSize int64
@@ -343,17 +351,17 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	// Start processing from level 1 (root level)
 	buildTree(1, "", []bool{})
 
-	// Print header
-	fmt.Println("\nLARGEST DIRECTORIES ####################################################################################################")
-	fmt.Println()
-	fmt.Println("Showing directories and files that contribute more than 1% of total on-disk size.")
-
 	var missingPathsError error = nil
 	if defaultBranchError != nil {
 		missingPathsError = defaultBranchError
 	} else if defaultBranchFilesError != nil {
 		missingPathsError = defaultBranchFilesError
 	}
+
+	// Stop spinner before printing output
+	stopSpinner()
+
+	fmt.Println("Showing directories and files that contribute more than 1% of total on-disk size.")
 
 	if missingPathsError != nil {
 		fmt.Println()

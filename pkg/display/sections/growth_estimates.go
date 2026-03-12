@@ -222,7 +222,10 @@ func PrintGrowthEstimateRow(statistics, previous models.GrowthStatistics, inform
 func DisplayUnifiedGrowth(yearlyStatistics map[int]models.GrowthStatistics, repositoryInformation models.RepositoryInformation, firstCommitTime time.Time, recentFetch string, lastModified string) {
 	currentYear := time.Now().Year()
 
-	// Table headers and footnotes are now printed before data collection in main.go
+	// Print table headers
+	fmt.Println("Year          Commits          Δ     %   ○     Object size            Δ     %   ○    On-disk size            Δ     %   ○")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
+
 	// Display historic growth data
 	var previousDelta models.GrowthStatistics
 	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {

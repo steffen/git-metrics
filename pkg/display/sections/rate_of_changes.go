@@ -14,13 +14,7 @@ func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBran
 		return
 	}
 
-	fmt.Println("\nRATE OF CHANGES ########################################################################################################")
 	fmt.Printf("\nCommits to current branch (%s)\n\n", defaultBranch)
-
-	// Table header with subcolumns
-	fmt.Println("                Commits         Active                Peak per day              Peak per hour            Peak per minute")
-	fmt.Println("Year           per year        Authors           P95    P99   P100          P95    P99   P100          P95    P99   P100")
-	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Sort years
 	var years []int
@@ -28,6 +22,11 @@ func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBran
 		years = append(years, year)
 	}
 	sort.Ints(years)
+
+	// Table header with subcolumns
+	fmt.Println("                Commits         Active                Peak per day              Peak per hour            Peak per minute")
+	fmt.Println("Year           per year        Authors           P95    P99   P100          P95    P99   P100          P95    P99   P100")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Display statistics for each year
 	for _, year := range years {

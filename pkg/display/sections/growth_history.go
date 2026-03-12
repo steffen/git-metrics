@@ -80,3 +80,59 @@ func PrintGrowthHistoryRow(statistics, _, previousStats models.GrowthStatistics,
 		utils.FormatSize(statistics.Uncompressed), objectSizeDeltaDisplay, uncompressedPercentDisplay, objectSizeLoC,
 		utils.FormatSize(statistics.Compressed), sizeDeltaDisplay, compressedPercentDisplay, diskSizeLoC)
 }
+
+// PrintGrowthHistoryRowPreview prints a preview row during processing with placeholder percentages.
+// Used during progressive output before final totals are known.
+func PrintGrowthHistoryRowPreview(statistics, previousStats models.GrowthStatistics, currentYear int) {
+	yearDisplay := strconv.Itoa(statistics.Year)
+	if statistics.Year == currentYear {
+		yearDisplay += "^"
+	}
+
+	// Helper to format signed integers with thousand separators
+	formatSigned := func(v int) string {
+		if v >= 0 {
+			return "+" + utils.FormatNumber(v)
+		}
+		return "-" + utils.FormatNumber(-v)
+	}
+
+	// Calculate deltas
+	commitsDelta := statistics.Commits - previousStats.Commits
+	compressedDelta := statistics.Compressed - previousStats.Compressed
+	uncompressedDelta := statistics.Uncompressed - previousStats.Uncompressed
+
+	commitsDeltaDisplay := formatSigned(commitsDelta)
+
+	// Size delta with explicit sign when positive
+	var sizeDeltaDisplay string
+	if compressedDelta >= 0 {
+		formatted := utils.FormatSize(compressedDelta)
+		sizeDeltaDisplay = "+" + strings.TrimLeft(formatted, " ")
+	} else {
+		formatted := utils.FormatSize(-compressedDelta)
+		sizeDeltaDisplay = "-" + strings.TrimLeft(formatted, " ")
+	}
+
+	// Object size (uncompressed) delta with explicit sign when positive
+	var objectSizeDeltaDisplay string
+	if uncompressedDelta >= 0 {
+		formatted := utils.FormatSize(uncompressedDelta)
+		objectSizeDeltaDisplay = "+" + strings.TrimLeft(formatted, " ")
+	} else {
+		formatted := utils.FormatSize(-uncompressedDelta)
+		objectSizeDeltaDisplay = "-" + strings.TrimLeft(formatted, " ")
+	}
+
+	// Get Level of Concern (LoC) symbols
+	commitsLoC := utils.GetConcernLevel("commits", int64(statistics.Commits))
+	objectSizeLoC := utils.GetConcernLevel("object-size", statistics.Uncompressed)
+	diskSizeLoC := utils.GetConcernLevel("disk-size", statistics.Compressed)
+
+	// Print with placeholder percentages (... instead of actual values)
+	fmt.Printf("%-6s %14s %10s %5s %3s │%14s %12s %5s %3s │%14s %12s %5s %3s\n",
+		yearDisplay,
+		utils.FormatNumber(statistics.Commits), commitsDeltaDisplay, "... ", commitsLoC,
+		utils.FormatSize(statistics.Uncompressed), objectSizeDeltaDisplay, "... ", objectSizeLoC,
+		utils.FormatSize(statistics.Compressed), sizeDeltaDisplay, "... ", diskSizeLoC)
+}

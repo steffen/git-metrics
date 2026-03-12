@@ -68,14 +68,15 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 		statistics = statistics[:10]
 	}
 
+	// Display results.
+	fmt.Println("\nLARGEST FILE EXTENSIONS ################################################################################################")
+	fmt.Println()
+
 	// Track totals for displayed extensions (top 10)
 	var selectedFilesCount int
 	var selectedBlobsCount int
 	var selectedCompressedSize, selectedUncompressedSize int64
 
-	// Display results.
-	fmt.Println("\nLARGEST FILE EXTENSIONS ################################################################################################")
-	fmt.Println()
 	fmt.Println("Extension                          Files                  Blobs           Object size          On-disk size            ↓")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 	for _, statistic := range statistics {
@@ -179,8 +180,6 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 
 	fmt.Println(formatExtensionGrowthHeader)
 	fmt.Println()
-	fmt.Println(formatExtensionGrowthTableHeader)
-	fmt.Println(strings.Repeat("-", 120))
 
 	// Get years and sort them
 	var years []int
@@ -206,6 +205,9 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 
 		yearlyExtensionStats[year] = extensionSizes
 	}
+
+	fmt.Println(formatExtensionGrowthTableHeader)
+	fmt.Println(strings.Repeat("-", 120))
 
 	// Display growth for each year (starting from second year)
 	for i := 1; i < len(years); i++ {

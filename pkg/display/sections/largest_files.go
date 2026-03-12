@@ -10,8 +10,6 @@ import (
 func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, totalBlobs int, totalFiles int) {
 	fmt.Println("\nLARGEST FILES ##########################################################################################################")
 	fmt.Println()
-	fmt.Println("      Blobs          On-disk size           Path")
-	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Track totals for the selected files
 	var totalSelectedBlobs int
@@ -19,6 +17,9 @@ func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, tot
 
 	// Track truncated paths for footnotes
 	var footnotes []Footnote
+
+	fmt.Println("      Blobs          On-disk size           Path")
+	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
 	// Calculate total size of all files in repository
 	for _, file := range files {
