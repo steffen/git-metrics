@@ -28,29 +28,24 @@ const (
 func main() {
 	startTime := time.Now()
 
-	// Define flags with pflag for better help formatting
+	// Flags
 	repositoryPath := pflag.StringP("repository", "r", ".", "Path to git repository")
 	showVersion := pflag.Bool("version", false, "Display version information and exit")
 	pflag.BoolVar(&debug, "debug", false, "Enable debug output")
 	noProgress := pflag.Bool("no-progress", false, "Disable progress indicators")
 	showHelp := pflag.BoolP("help", "h", false, "Display this help message")
-
 	pflag.Parse()
 
-	// Show help and exit if help flag is set
 	if *showHelp {
 		pflag.Usage()
 		os.Exit(0)
 	}
-
-	// Show version and exit if version flag is set
 	if *showVersion {
 		fmt.Printf("git-metrics version %s\n", utils.GetGitMetricsVersion())
 		os.Exit(0)
 	}
 
-	// Set progress visibility based on --no-progress flag and output destination
-	// Automatically disable progress when output is piped to a file or redirected
+	// Progress visibility (disabled if redirected)
 	progress.ShowProgress = !*noProgress && utils.IsTerminal(os.Stdout)
 
 	if !requirements.CheckRequirements() {
@@ -58,13 +53,12 @@ func main() {
 		os.Exit(9)
 	}
 
-	// Get Git directory and change to repository directory
+	// Validate repository
 	gitDir, err := git.GetGitDirectory(*repositoryPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
-
 	if err := os.Chdir(*repositoryPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: could not change to repository directory: %v\n", err)
 		os.Exit(1)
@@ -75,7 +69,7 @@ func main() {
 	fmt.Println("\nREPOSITORY #############################################################################################################")
 	fmt.Println()
 
-	// Get Git directory last modified time
+	// Git directory last modified
 	lastModified := UnknownValue
 	if info, err := os.Stat(gitDir); err == nil {
 		lastModified = info.ModTime().Format("Mon, 02 Jan 2006 15:04 MST")
@@ -83,28 +77,29 @@ func main() {
 
 	fmt.Printf("Git directory              %s\n", gitDir)
 
-	// Remote URL - only show if there is one
+	// Remote
 	remoteOutput, err := git.RunGitCommand(debug, "remote", "get-url", "origin")
 	remote := ""
-	if err == nil && len(strings.TrimSpace(string(remoteOutput))) > 0 {
-		if progress.ShowProgress {
-			fmt.Printf("Remote                     ... fetching\n")
-		}
-		remote = strings.TrimSpace(string(remoteOutput))
-		if progress.ShowProgress {
-			fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
-		} else {
-			fmt.Printf("Remote                     %s\n", remote)
+	if err == nil {
+		trimmed := strings.TrimSpace(string(remoteOutput))
+		if trimmed != "" {
+			if progress.ShowProgress {
+				fmt.Printf("Remote                     ... fetching\n")
+			}
+			remote = trimmed
+			if progress.ShowProgress {
+				fmt.Printf("\033[1A\033[2KRemote                     %s\n", remote)
+			} else {
+				fmt.Printf("Remote                     %s\n", remote)
+			}
 		}
 	}
 
-	// Get fetch time and show last modified only if there's no recent fetch
+	// Fetch time
 	recentFetch := git.GetLastFetchTime(gitDir)
 	if recentFetch == "" {
 		fmt.Printf("Last modified              %s\n", lastModified)
-	}
-
-	if recentFetch != "" {
+	} else {
 		fmt.Printf("Most recent fetch          %s\n", recentFetch)
 	}
 
@@ -112,15 +107,14 @@ func main() {
 	if progress.ShowProgress {
 		fmt.Printf("Most recent commit         ... fetching\n")
 	}
-	lastHashOutput, err := git.RunGitCommand(debug, "rev-parse", "--short", "HEAD")
 	lastCommit := UnknownValue
-	if err == nil {
-		lastHash := strings.TrimSpace(string(lastHashOutput))
-		dateCommand := exec.Command("git", "show", "-s", "--format=%cD", lastHash)
-		commandOutput, err := dateCommand.Output()
-		if err == nil {
-			lastDate, _ := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", strings.TrimSpace(string(commandOutput)))
-			lastCommit = fmt.Sprintf("%s (%s)", lastDate.Format("Mon, 02 Jan 2006"), lastHash)
+	if out, err := git.RunGitCommand(debug, "rev-parse", "--short", "HEAD"); err == nil {
+		hash := strings.TrimSpace(string(out))
+		dateCmd := exec.Command("git", "show", "-s", "--format=%cD", hash)
+		if dcOut, derr := dateCmd.Output(); derr == nil {
+			if d, perr := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", strings.TrimSpace(string(dcOut))); perr == nil {
+				lastCommit = fmt.Sprintf("%s (%s)", d.Format("Mon, 02 Jan 2006"), hash)
+			}
 		}
 	}
 	if progress.ShowProgress {
@@ -129,34 +123,31 @@ func main() {
 		fmt.Printf("Most recent commit         %s\n", lastCommit)
 	}
 
-	// First commit and age
+	// First commit & age
 	if progress.ShowProgress {
 		fmt.Printf("First commit               ... fetching\n")
 	}
-	firstOutput, err := git.RunGitCommand(debug, "rev-list", "--max-parents=0", "HEAD", "--format=%cD")
 	firstCommit := UnknownValue
 	ageString := UnknownValue
 	var firstCommitTime time.Time
-	if err == nil {
-		lines := strings.Split(strings.TrimSpace(string(firstOutput)), "\n")
-		type commit struct {
+	if out, err := git.RunGitCommand(debug, "rev-list", "--max-parents=0", "HEAD", "--format=%cD"); err == nil {
+		lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+		type cinfo struct {
 			hash string
 			date time.Time
 		}
-		var commits []commit
-		for i := 0; i < len(lines); i += 2 {
-			if i+1 >= len(lines) {
-				break
+		var commits []cinfo
+		for i := 0; i+1 < len(lines); i += 2 {
+			hash := strings.TrimPrefix(lines[i], "commit ")
+			if len(hash) >= 6 {
+				hash = hash[:6]
 			}
-			hash := strings.TrimPrefix(lines[i], "commit ")[:6]
-			if date, err := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", strings.TrimSpace(lines[i+1])); err == nil {
-				commits = append(commits, commit{hash: hash, date: date})
+			if d, perr := time.Parse("Mon, 2 Jan 2006 15:04:05 -0700", strings.TrimSpace(lines[i+1])); perr == nil {
+				commits = append(commits, cinfo{hash: hash, date: d})
 			}
 		}
 		if len(commits) > 0 {
-			sort.Slice(commits, func(i, j int) bool {
-				return commits[i].date.Before(commits[j].date)
-			})
+			sort.Slice(commits, func(i, j int) bool { return commits[i].date.Before(commits[j].date) })
 			first := commits[0]
 			firstCommitTime = first.date
 			firstCommit = fmt.Sprintf("%s (%s)", first.date.Format("Mon, 02 Jan 2006"), first.hash)
@@ -180,55 +171,47 @@ func main() {
 	} else {
 		fmt.Printf("First commit               %s\n", firstCommit)
 	}
-
-	// If there are no commits, exit early
 	if firstCommit == UnknownValue {
 		fmt.Println("\n\nNo commits found in the repository.")
 		os.Exit(2)
 	}
-
 	fmt.Printf("Age                        %s\n", ageString)
 
-	// Display the section header before data collection
+	// Historic & estimated growth header
 	fmt.Println()
 	fmt.Println("HISTORIC & ESTIMATED GROWTH ############################################################################################")
 	fmt.Println()
-
-	// Print table headers before data collection (Year widened to 6 for ^* marker)
 	fmt.Println("Year          Commits          Δ     %   ○     Object size            Δ     %   ○    On-disk size            Δ     %   ○")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
 
-	// Calculate growth stats and totals
 	var previous models.GrowthStatistics
 	var totalStatistics models.GrowthStatistics
-
 	yearlyStatistics := make(map[int]models.GrowthStatistics)
 
-	// Start calculation with progress indicator (no newline before progress)
 	for year := firstCommitTime.Year(); year <= time.Now().Year(); year++ {
-		progress.StartProgress(year, previous, startTime) // Start progress updates
-		if cumulativeStatistics, err := git.GetGrowthStats(year, previous, debug); err == nil {
-			totalStatistics = cumulativeStatistics
-			previous = cumulativeStatistics
-			yearlyStatistics[year] = cumulativeStatistics
-			progress.CurrentProgress.Statistics = cumulativeStatistics // Update current progress
+		progress.StartProgress(year, previous, startTime)
+		if stats, err := git.GetGrowthStats(year, previous, debug); err == nil {
+			totalStatistics = stats
+			previous = stats
+			yearlyStatistics[year] = stats
+			progress.CurrentProgress.Statistics = stats
 		}
 	}
-	progress.StopProgress() // Stop and clear progress line
+	progress.StopProgress()
 
-	// Compute cumulative unique authors per year for historic growth
-	cumulativeAuthorsByYear, totalAuthors, authorsErr := git.GetCumulativeUniqueAuthorsByYear()
-	if authorsErr == nil {
-		// Inject authors into yearly statistics
+	// Cumulative authors
+	if cumulativeAuthorsByYear, totalAuthors, err := git.GetCumulativeUniqueAuthorsByYear(); err == nil {
 		for year, stats := range yearlyStatistics {
-			if authorsCount, ok := cumulativeAuthorsByYear[year]; ok {
-				stats.Authors = authorsCount
+			if authors, ok := cumulativeAuthorsByYear[year]; ok {
+				stats.Authors = authors
 				yearlyStatistics[year] = stats
 			}
 		}
+		// Add repository info later after percentages computed
+		_ = totalAuthors
 	}
 
-	// Save repository information with totals (including authors)
+	// Repository info (authors total set later via cumulative data loop)
 	repositoryInformation := models.RepositoryInformation{
 		Remote:           remote,
 		LastCommit:       lastCommit,
@@ -236,22 +219,29 @@ func main() {
 		Age:              ageString,
 		FirstDate:        firstCommitTime,
 		TotalCommits:     totalStatistics.Commits,
-		TotalAuthors:     totalAuthors,
+		TotalAuthors:     0, // will adjust below if we can derive
 		TotalTrees:       totalStatistics.Trees,
 		TotalBlobs:       totalStatistics.Blobs,
 		CompressedSize:   totalStatistics.Compressed,
 		UncompressedSize: totalStatistics.Uncompressed,
 	}
 
-	// Calculate and store delta, percentage, and delta percentage values
+	// Determine total unique authors from last year with data
+	if len(yearlyStatistics) > 0 {
+		maxYear := 0
+		for y := range yearlyStatistics {
+			if y > maxYear {
+				maxYear = y
+			}
+		}
+		repositoryInformation.TotalAuthors = yearlyStatistics[maxYear].Authors
+	}
+
 	currentYear := time.Now().Year()
 	var previousCumulative models.GrowthStatistics
 	var previousDelta models.GrowthStatistics
-
-	// Process each year to calculate and store all derived values
 	for year := repositoryInformation.FirstDate.Year(); year <= currentYear; year++ {
 		if cumulative, ok := yearlyStatistics[year]; ok {
-			// Calculate delta values (year-over-year changes)
 			cumulative.AuthorsDelta = cumulative.Authors - previousCumulative.Authors
 			cumulative.CommitsDelta = cumulative.Commits - previousCumulative.Commits
 			cumulative.TreesDelta = cumulative.Trees - previousCumulative.Trees
@@ -259,7 +249,6 @@ func main() {
 			cumulative.CompressedDelta = cumulative.Compressed - previousCumulative.Compressed
 			cumulative.UncompressedDelta = cumulative.Uncompressed - previousCumulative.Uncompressed
 
-			// Calculate percentage of total
 			if repositoryInformation.TotalAuthors > 0 {
 				cumulative.AuthorsPercent = float64(cumulative.AuthorsDelta) / float64(repositoryInformation.TotalAuthors) * 100
 			}
@@ -279,47 +268,37 @@ func main() {
 				cumulative.UncompressedPercent = float64(cumulative.UncompressedDelta) / float64(repositoryInformation.UncompressedSize) * 100
 			}
 
-			// Calculate delta percentage changes (Δ%)
-			if previousDelta.Year != 0 { // Skip first year
+			if previousDelta.Year != 0 {
 				if previousDelta.AuthorsDelta > 0 {
-					cumulative.AuthorsDeltaPercent = float64(cumulative.AuthorsDelta-previousDelta.AuthorsDelta) / float64(previousDelta.AuthorsDelta) * 100
+					cumulative.AuthorsDeltaPercent = diffPercent(cumulative.AuthorsDelta, previousDelta.AuthorsDelta)
 				}
 				if previousDelta.CommitsDelta > 0 {
-					cumulative.CommitsDeltaPercent = float64(cumulative.CommitsDelta-previousDelta.CommitsDelta) / float64(previousDelta.CommitsDelta) * 100
+					cumulative.CommitsDeltaPercent = diffPercent(cumulative.CommitsDelta, previousDelta.CommitsDelta)
 				}
 				if previousDelta.TreesDelta > 0 {
-					cumulative.TreesDeltaPercent = float64(cumulative.TreesDelta-previousDelta.TreesDelta) / float64(previousDelta.TreesDelta) * 100
+					cumulative.TreesDeltaPercent = diffPercent(cumulative.TreesDelta, previousDelta.TreesDelta)
 				}
 				if previousDelta.BlobsDelta > 0 {
-					cumulative.BlobsDeltaPercent = float64(cumulative.BlobsDelta-previousDelta.BlobsDelta) / float64(previousDelta.BlobsDelta) * 100
+					cumulative.BlobsDeltaPercent = diffPercent(cumulative.BlobsDelta, previousDelta.BlobsDelta)
 				}
 				if previousDelta.CompressedDelta > 0 {
-					cumulative.CompressedDeltaPercent = float64(cumulative.CompressedDelta-previousDelta.CompressedDelta) / float64(previousDelta.CompressedDelta) * 100
+					cumulative.CompressedDeltaPercent = diffPercent64(cumulative.CompressedDelta, previousDelta.CompressedDelta)
 				}
 				if previousDelta.UncompressedDelta > 0 {
-					cumulative.UncompressedDeltaPercent = float64(cumulative.UncompressedDelta-previousDelta.UncompressedDelta) / float64(previousDelta.UncompressedDelta) * 100
+					cumulative.UncompressedDeltaPercent = diffPercent64(cumulative.UncompressedDelta, previousDelta.UncompressedDelta)
 				}
 			}
-
-			// Store the updated statistics back in the map
 			yearlyStatistics[year] = cumulative
-
-			// Update for next iteration
 			previousCumulative = cumulative
 			previousDelta = cumulative
 		}
 	}
 
-	// Display unified historic and estimated growth using the new function
 	sections.DisplayUnifiedGrowth(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch, lastModified)
 
-	// 1. Largest file extensions
 	sections.PrintTopFileExtensions(previous.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
-
-	// 2. Largest file extensions on-disk size growth
 	sections.PrintFileExtensionGrowth(yearlyStatistics)
 
-	// Prepare largest files data once for sections 3 & 4
 	largestFiles := totalStatistics.LargestFiles
 	sort.Slice(largestFiles, func(i, j int) bool {
 		if largestFiles[i].CompressedSize != largestFiles[j].CompressedSize {
@@ -327,37 +306,48 @@ func main() {
 		}
 		return largestFiles[i].Path < largestFiles[j].Path
 	})
-
 	var totalFilesCompressedSize int64
-	for _, file := range largestFiles {
-		totalFilesCompressedSize += file.CompressedSize
+	for _, f := range largestFiles {
+		totalFilesCompressedSize += f.CompressedSize
 	}
-
 	if len(largestFiles) > 10 {
 		largestFiles = largestFiles[:10]
 	}
-
-	// 3. Largest directories
 	sections.PrintLargestDirectories(totalStatistics.LargestFiles, repositoryInformation.TotalBlobs, repositoryInformation.CompressedSize)
-
-	// 4. Largest files
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
-	// 5. Rate of changes analysis
-	if ratesByYear, branchName, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+	// Rate of changes (provides commit hashes for checkout growth)
+	ratesByYear, branchName, ratesErr := git.GetRateOfChanges()
+	if ratesErr == nil && len(ratesByYear) > 0 {
 		sections.DisplayRateOfChanges(ratesByYear, branchName)
 	}
 
-	// 6 & 7. Authors with most commits, then Committers with most commits
+	// Contributors (authors & committers)
 	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
 		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
 	}
 
-	// Get memory statistics for final output
-	var memoryStatistics runtime.MemStats
-	runtime.ReadMemStats(&memoryStatistics)
+	// Checkout growth (reuse ratesByYear commit hashes)
+	checkoutStatistics := make(map[int]models.CheckoutGrowthStatistics)
+	if len(ratesByYear) > 0 { // only if we have rate data
+		for year := firstCommitTime.Year(); year <= time.Now().Year(); year++ {
+			commitHash := ""
+			if rs, ok := ratesByYear[year]; ok {
+				commitHash = rs.YearEndCommitHash
+			}
+			if stats, err := git.GetCheckoutGrowthStats(year, commitHash, debug); err == nil {
+				checkoutStatistics[year] = stats
+			}
+		}
+	}
+	sections.DisplayCheckoutGrowth(checkoutStatistics)
 
-	fmt.Printf("\nFinished in %s with a memory footprint of %s.\n",
-		utils.FormatDuration(time.Since(startTime)),
-		strings.TrimSpace(utils.FormatSize(int64(memoryStatistics.Sys))))
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	fmt.Printf("\nFinished in %s with a memory footprint of %s.\n", utils.FormatDuration(time.Since(startTime)), strings.TrimSpace(utils.FormatSize(int64(mem.Sys))))
+}
+
+func diffPercent(newVal, oldVal int) float64 { return float64(newVal-oldVal) / float64(oldVal) * 100 }
+func diffPercent64(newVal, oldVal int64) float64 {
+	return float64(newVal-oldVal) / float64(oldVal) * 100
 }

@@ -252,6 +252,32 @@ func ShellToUse() string {
 	return "sh"
 }
 
+// GetYearEndCommit returns the commit hash at (just before) the start of the next year
+// for the repository's default branch. This represents the snapshot of the default
+// branch as of the end of the requested year. If there is no commit prior to the
+// boundary (e.g. repository did not exist yet), an empty string is returned.
+func GetYearEndCommit(year int, debug bool) (string, error) {
+	if year < 1900 || year > 3000 {
+		return "", fmt.Errorf("invalid year %d: must be between 1900 and 3000", year)
+	}
+
+	defaultBranch, err := GetDefaultBranch()
+	if err != nil {
+		return "", fmt.Errorf("could not determine default branch: %v", err)
+	}
+
+	boundary := fmt.Sprintf("%d-01-01", year+1)
+	cmd := exec.Command("git", "rev-list", "-1", "--before", boundary, defaultBranch)
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+
+	hash := strings.TrimSpace(string(out))
+	utils.DebugPrint(debug, "Year %d end commit on %s: %s", year, defaultBranch, hash)
+	return hash, nil
+}
+
 // GetContributors returns all commit authors and committers with dates from git history
 func GetContributors() ([]string, error) {
 	// Execute the git command to get all contributors with their commit dates
@@ -272,6 +298,7 @@ type contributorEntry struct {
 
 // commitInfo stores information about a commit for rate calculations
 type commitInfo struct {
+	hash      string
 	timestamp time.Time
 	isMerge   bool
 	isWorkday bool
@@ -432,7 +459,7 @@ func GetCumulativeUniqueAuthorsByYear() (map[int]int, int, error) {
 
 // GetRateOfChanges calculates commit rate statistics for the current branch by year
 func GetRateOfChanges() (map[int]models.RateStatistics, string, error) {
-	// Get current branch name instead of remote default branch
+	// Determine current branch (we want stats for whatever is checked out)
 	cmd := exec.Command("git", "branch", "--show-current")
 	branchOutput, err := cmd.Output()
 	if err != nil {
@@ -443,8 +470,8 @@ func GetRateOfChanges() (map[int]models.RateStatistics, string, error) {
 		return nil, "", fmt.Errorf("no current branch found")
 	}
 
-	// Get all commits from current branch with timestamps, merge info, and authors
-	command := exec.Command("git", "log", currentBranch, "--format=%ct|%P|%an", "--reverse")
+	// Get all commits (chronological) with hash, timestamp, parents, author
+	command := exec.Command("git", "log", currentBranch, "--format=%H|%ct|%P|%an", "--reverse")
 	output, err := command.Output()
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to get commit log: %v", err)
@@ -452,6 +479,94 @@ func GetRateOfChanges() (map[int]models.RateStatistics, string, error) {
 
 	rateStats, err := calculateRateStatistics(string(output))
 	return rateStats, currentBranch, err
+}
+
+// GetCheckoutGrowthStats calculates checkout growth statistics for a given year
+func GetCheckoutGrowthStats(year int, commitHash string, debug bool) (models.CheckoutGrowthStatistics, error) {
+	utils.DebugPrint(debug, "Calculating checkout growth stats (default branch snapshot) for year %d", year)
+	statistics := models.CheckoutGrowthStatistics{Year: year}
+
+	if strings.TrimSpace(commitHash) == "" {
+		utils.DebugPrint(debug, "No year-end commit hash provided for %d; returning empty stats", year)
+		return statistics, nil
+	}
+
+	// Resolve repository root to ensure consistent path context even when called from subdirectories
+	repoRootCmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	repoRootOut, err := repoRootCmd.Output()
+	if err != nil {
+		return statistics, fmt.Errorf("failed to determine repository root: %v", err)
+	}
+	repoRoot := strings.TrimSpace(string(repoRootOut))
+
+	// git ls-tree -r --long <commit>
+	cmd := exec.Command("git", "ls-tree", "-r", "--long", commitHash)
+	cmd.Dir = repoRoot
+	output, err := cmd.Output()
+	if err != nil {
+		return statistics, err
+	}
+
+	directories := make(map[string]struct{})
+	var fileCount int
+	var totalSize int64
+	maxPathDepth := 0
+	maxPathLength := 0
+
+	lines := strings.Split(strings.TrimSpace(string(output)), "\n")
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		fields := strings.Fields(line)
+		// Expected at least: mode type objectHash size path...
+		if len(fields) < 5 {
+			continue
+		}
+		objectType := fields[1]
+		if objectType != "blob" {
+			continue
+		}
+		sizeStr := fields[3]
+		filePath := strings.Join(fields[4:], " ")
+		filePath = strings.TrimSpace(filePath)
+		if filePath == "" {
+			continue
+		}
+		if size, err := strconv.ParseInt(sizeStr, 10, 64); err == nil {
+			totalSize += size
+		} else {
+			utils.DebugPrint(debug, "Warning: could not parse size for file %s: %v", filePath, err)
+		}
+
+		fileCount++
+		if l := len(filePath); l > maxPathLength {
+			maxPathLength = l
+		}
+		pathParts := strings.Split(filePath, "/")
+		depth := len(pathParts) - 1
+		if depth > maxPathDepth {
+			maxPathDepth = depth
+		}
+		current := ""
+		for i := 0; i < len(pathParts)-1; i++ {
+			if current == "" {
+				current = pathParts[i]
+			} else {
+				current = current + "/" + pathParts[i]
+			}
+			directories[current] = struct{}{}
+		}
+	}
+
+	statistics.NumberDirectories = len(directories)
+	statistics.MaxPathDepth = maxPathDepth
+	statistics.MaxPathLength = maxPathLength
+	statistics.NumberFiles = fileCount
+	statistics.TotalSizeFiles = totalSize
+
+	utils.DebugPrint(debug, "Finished calculating checkout growth stats for year %d (commit %s)", year, commitHash)
+	return statistics, nil
 }
 
 // calculateRateStatistics processes git log output and calculates rate statistics
@@ -471,24 +586,21 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 		}
 
 		parts := strings.Split(line, "|")
-		if len(parts) != 3 {
+		if len(parts) < 4 { // hash|timestamp|parents|author (parents may be empty string)
 			continue
 		}
 
-		// Parse timestamp
-		timestampStr := parts[0]
+		hash := parts[0]
+		timestampStr := parts[1]
 		timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
 		if err != nil {
 			continue
 		}
 		commitTime := time.Unix(timestamp, 0)
 
-		// Check if it's a merge commit (has multiple parents)
-		parents := strings.TrimSpace(parts[1])
+		parents := parts[2]
 		isMerge := strings.Contains(parents, " ")
-
-		// Get author name
-		author := strings.TrimSpace(parts[2])
+		author := strings.TrimSpace(parts[3])
 
 		// Check if it's a workday (Monday-Friday)
 		weekday := commitTime.Weekday()
@@ -496,6 +608,7 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 
 		year := commitTime.Year()
 		commitsByYear[year] = append(commitsByYear[year], commitInfo{
+			hash:      hash,
 			timestamp: commitTime,
 			isMerge:   isMerge,
 			isWorkday: isWorkday,
@@ -514,12 +627,14 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 			PercentageOfTotal: float64(len(commits)) / float64(totalCommits) * 100,
 		}
 
-		// Calculate merge statistics and count unique authors
+		if len(commits) > 0 {
+			stats.YearEndCommitHash = commits[len(commits)-1].hash // chronological order from --reverse
+		}
+
 		uniqueAuthors := make(map[string]bool)
 		for _, commit := range commits {
-			// Count unique authors
 			uniqueAuthors[commit.author] = true
-			
+			// Merge vs direct
 			if commit.isMerge {
 				stats.MergeCommits++
 			} else {
@@ -533,7 +648,6 @@ func calculateRateStatistics(gitLogOutput string) (map[int]models.RateStatistics
 			}
 		}
 
-		// Set the number of active authors
 		stats.ActiveAuthors = len(uniqueAuthors)
 
 		if stats.TotalCommits > 0 {

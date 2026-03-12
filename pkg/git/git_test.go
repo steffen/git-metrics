@@ -9,14 +9,9 @@ import (
 
 func TestGetGitVersion(t *testing.T) {
 	version := GetGitVersion()
-
-	// We can't predict the exact version, but we can check that it's not empty
-	// and follows a typical format like "2.35.1" or similar
 	if version == "" || version == "Unknown" {
-		t.Errorf("GetGitVersion() returned %q, expected a non-empty git version", version)
+		t.Fatalf("GetGitVersion() returned %q, expected a non-empty git version", version)
 	}
-
-	// Basic format check - shouldn't contain "git version" prefix since that's stripped
 	if strings.Contains(version, "git version") {
 		t.Errorf("GetGitVersion() = %q, should not contain 'git version' prefix", version)
 	}
@@ -30,53 +25,15 @@ func TestGetGitDirectory(t *testing.T) {
 		cleanupFunc func(string)
 		wantErr     bool
 	}{
-		{
-			name:    "Non-existent path",
-			path:    "/path/does/not/exist",
-			wantErr: true,
-		},
-		{
-			name: "Path exists but not a git repository",
-			setupFunc: func() string {
-				// Create a temporary directory
-				tempDir, _ := os.MkdirTemp("", "not-git-repo")
-				return tempDir
-			},
-			cleanupFunc: func(path string) {
-				os.RemoveAll(path)
-			},
-			wantErr: true,
-		},
-		{
-			name: "Valid git repository",
-			setupFunc: func() string {
-				// Create a temporary directory and initialize a git repo in it
-				tempDir, _ := os.MkdirTemp("", "git-repo")
-				cmd := exec.Command("git", "init", tempDir)
-				cmd.Run()
-				return tempDir
-			},
-			cleanupFunc: func(path string) {
-				os.RemoveAll(path)
-			},
-			wantErr: false,
-		},
-		{
-			name: "Valid bare repository",
-			setupFunc: func() string {
-				// Create a temporary directory and initialize a bare repo in it
-				tempDir, _ := os.MkdirTemp("", "git-repo-bare")
-				cmd := exec.Command("git", "init", "--bare", tempDir)
-				cmd.Run()
-				return tempDir
-			},
-			cleanupFunc: func(path string) {
-				os.RemoveAll(path)
-			},
-			wantErr: false,
-		},
+		{name: "Non-existent path", path: "/path/does/not/exist", wantErr: true},
+		{name: "Path exists but not a git repository", setupFunc: func() string { d, _ := os.MkdirTemp("", "not-git-repo"); return d }, cleanupFunc: func(p string) { os.RemoveAll(p) }, wantErr: true},
+		{name: "Valid git repository", setupFunc: func() string { d, _ := os.MkdirTemp("", "git-repo"); exec.Command("git", "init", d).Run(); return d }, cleanupFunc: func(p string) { os.RemoveAll(p) }, wantErr: false},
+		{name: "Valid bare repository", setupFunc: func() string {
+			d, _ := os.MkdirTemp("", "git-repo-bare")
+			exec.Command("git", "init", "--bare", d).Run()
+			return d
+		}, cleanupFunc: func(p string) { os.RemoveAll(p) }, wantErr: false},
 	}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var path string
@@ -86,18 +43,14 @@ func TestGetGitDirectory(t *testing.T) {
 					tt.path = path
 				}
 			}
-
 			if tt.cleanupFunc != nil && path != "" {
 				defer tt.cleanupFunc(path)
 			}
-
 			gitDir, err := GetGitDirectory(tt.path)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetGitDirectory() error = %v, wantErr %v", err, tt.wantErr)
 			}
-
 			if err == nil {
-				// If no error, verify that the path exists and is a git directory
 				if _, err := os.Stat(gitDir); err != nil {
 					t.Errorf("GetGitDirectory() returned path %v that does not exist", gitDir)
 				}
@@ -106,7 +59,25 @@ func TestGetGitDirectory(t *testing.T) {
 	}
 }
 
-// Mock for testing
-func mockRunGitCommand(_ bool, _ ...string) ([]byte, error) {
-	return []byte("git version 2.35.1"), nil
+func TestGetCheckoutGrowthStats(t *testing.T) {
+	rates, _, err := GetRateOfChanges()
+	if err != nil {
+		t.Fatalf("GetRateOfChanges() error: %v", err)
+	}
+	if len(rates) == 0 {
+		t.Skip("no commits available for rate statistics; skipping checkout growth test")
+	}
+	for year, rateStats := range rates {
+		stats, cgErr := GetCheckoutGrowthStats(year, rateStats.YearEndCommitHash, false)
+		if cgErr != nil {
+			t.Fatalf("GetCheckoutGrowthStats() returned error: %v", cgErr)
+		}
+		if stats.Year != year {
+			t.Errorf("expected Year to be %d, got %d", year, stats.Year)
+		}
+		if stats.NumberFiles < 0 || stats.NumberDirectories < 0 || stats.MaxPathDepth < 0 || stats.MaxPathLength < 0 || stats.TotalSizeFiles < 0 {
+			t.Errorf("invalid stats for year %d: %+v", year, stats)
+		}
+		break // only need one year for basic validation
+	}
 }
