@@ -129,6 +129,16 @@ func main() {
 		fmt.Printf("Most recent commit         %s\n", lastCommit)
 	}
 
+	// Branches and tags count
+	branchCount, branchErr := git.GetBranchCount()
+	tagCount, tagErr := git.GetTagCount()
+	if branchErr == nil {
+		fmt.Printf("Branches                   %d\n", branchCount)
+	}
+	if tagErr == nil {
+		fmt.Printf("Tags                       %d\n", tagCount)
+	}
+
 	// First commit and age
 	if progress.ShowProgress {
 		fmt.Printf("First commit               ... fetching\n")
