@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"git-metrics/pkg/git"
 	"git-metrics/pkg/models"
+	"git-metrics/pkg/progress"
 	"git-metrics/pkg/utils"
 	"path/filepath"
 	"sort"
@@ -91,6 +92,9 @@ func CreatePathFootnote(path string, maxDisplayLength int, currentFootnoteCount 
 
 // PrintLargestDirectories prints directories and files that are >= 1% of total on-disk size, up to 10 levels deep
 func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, totalCompressedSize int64) {
+	fmt.Println("\nLARGEST DIRECTORIES ####################################################################################################")
+	progress.StartSectionSpinner()
+
 	type entry struct {
 		Path                  string
 		FullPath              string // Full path from root
@@ -344,7 +348,7 @@ func PrintLargestDirectories(files []models.FileInformation, totalBlobs int, tot
 	buildTree(1, "", []bool{})
 
 	// Print header
-	fmt.Println("\nLARGEST DIRECTORIES ####################################################################################################")
+	progress.StopSectionSpinner()
 	fmt.Println()
 	fmt.Println("Showing directories and files that contribute more than 1% of total on-disk size.")
 

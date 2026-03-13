@@ -51,19 +51,32 @@ func truncateContributorName(name string) string {
 	return string(runes[:maxNameLength-3]) + "..."
 }
 
+// PrintAuthorsSectionTitle prints the section title banner for authors with most commits.
+func PrintAuthorsSectionTitle() {
+	fmt.Println(formatAuthorsHeader)
+}
+
+// PrintCommittersSectionTitle prints the section title banner for committers with most commits.
+func PrintCommittersSectionTitle() {
+	fmt.Println(formatCommittersHeader)
+}
+
 // DisplayContributorsWithMostCommits displays the top commit authors and committers by number of commits per year
 func DisplayContributorsWithMostCommits(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int,
 	committersByYear map[int][][3]string, totalCommittersByYear map[int]int, allTimeAuthors map[string]int, allTimeCommitters map[string]int) {
 
 	// Display Authors Section
-	displayAuthorsSection(authorsByYear, totalAuthorsByYear, totalCommitsByYear, allTimeAuthors)
+	PrintAuthorsSectionTitle()
+	DisplayAuthorsSection(authorsByYear, totalAuthorsByYear, totalCommitsByYear, allTimeAuthors)
 
 	// Display Committers Section
-	displayCommittersSection(committersByYear, totalCommittersByYear, totalCommitsByYear, allTimeCommitters)
+	PrintCommittersSectionTitle()
+	DisplayCommittersSection(committersByYear, totalCommittersByYear, totalCommitsByYear, allTimeCommitters)
 }
 
-func displayAuthorsSection(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int, allTimeAuthors map[string]int) {
-	fmt.Println(formatAuthorsHeader)
+// DisplayAuthorsSection displays the authors with most commits per year.
+// The section title banner must be printed by the caller before calling this function.
+func DisplayAuthorsSection(authorsByYear map[int][][3]string, totalAuthorsByYear map[int]int, totalCommitsByYear map[int]int, allTimeAuthors map[string]int) {
 	fmt.Println()
 	fmt.Println(formatAuthorsTableHeader)
 	fmt.Println(formatAuthorsDivider)
@@ -102,8 +115,9 @@ func displayAuthorsSection(authorsByYear map[int][][3]string, totalAuthorsByYear
 	}
 }
 
-func displayCommittersSection(committersByYear map[int][][3]string, totalCommittersByYear map[int]int, totalCommitsByYear map[int]int, allTimeCommitters map[string]int) {
-	fmt.Println(formatCommittersHeader)
+// DisplayCommittersSection displays the committers with most commits per year.
+// The section title banner must be printed by the caller before calling this function.
+func DisplayCommittersSection(committersByYear map[int][][3]string, totalCommittersByYear map[int]int, totalCommitsByYear map[int]int, allTimeCommitters map[string]int) {
 	fmt.Println()
 	fmt.Println(formatCommittersTableHeader)
 	fmt.Println(formatCommittersDivider)

@@ -218,6 +218,9 @@ func main() {
 	}
 	progress.StopProgress() // Stop and clear progress line
 
+	// Start section spinner while computing author data and growth statistics
+	progress.StartSectionSpinner()
+
 	// Compute cumulative unique authors per year for historic growth
 	cumulativeAuthorsByYear, totalAuthors, authorsErr := git.GetCumulativeUniqueAuthorsByYear()
 	if authorsErr == nil {
@@ -313,6 +316,7 @@ func main() {
 	}
 
 	// Display unified historic and estimated growth using the new function
+	progress.StopSectionSpinner()
 	sections.DisplayUnifiedGrowth(yearlyStatistics, repositoryInformation, firstCommitTime, recentFetch, lastModified)
 
 	// 1. Largest file extensions
@@ -346,13 +350,27 @@ func main() {
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
 	// 5. Rate of changes analysis
-	if ratesByYear, branchName, err := git.GetRateOfChanges(); err == nil && len(ratesByYear) > 0 {
+	sections.PrintRateOfChangesSectionTitle()
+	progress.StartSectionSpinner()
+	ratesByYear, branchName, rateError := git.GetRateOfChanges()
+	progress.StopSectionSpinner()
+	if rateError == nil && len(ratesByYear) > 0 {
 		sections.DisplayRateOfChanges(ratesByYear, branchName)
 	}
 
-	// 6 & 7. Authors with most commits, then Committers with most commits
-	if topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, err := git.GetTopCommitAuthors(3); err == nil && len(topAuthorsByYear) > 0 {
-		sections.DisplayContributorsWithMostCommits(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters)
+	// 6. Authors with most commits
+	sections.PrintAuthorsSectionTitle()
+	progress.StartSectionSpinner()
+	topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, contributorsError := git.GetTopCommitAuthors(3)
+	progress.StopSectionSpinner()
+	if contributorsError == nil && len(topAuthorsByYear) > 0 {
+		sections.DisplayAuthorsSection(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, allTimeAuthors)
+
+		// 7. Committers with most commits
+		sections.PrintCommittersSectionTitle()
+		progress.StartSectionSpinner()
+		progress.StopSectionSpinner()
+		sections.DisplayCommittersSection(topCommittersByYear, totalCommittersByYear, totalCommitsByYear, allTimeCommitters)
 	}
 
 	// Get memory statistics for final output
