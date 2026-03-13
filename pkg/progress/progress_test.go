@@ -30,7 +30,7 @@ func TestShowProgressFlag(t *testing.T) {
 	ShowProgress = false
 
 	// When ShowProgress is false, these functions should return without errors
-	StartProgress(2023, models.GrowthStatistics{}, time.Now())
+	StartProgress(2023, models.GrowthStatistics{}, models.GrowthStatistics{}, time.Now())
 	UpdateProgress()
 	StopProgress()
 
@@ -39,7 +39,7 @@ func TestShowProgressFlag(t *testing.T) {
 
 	// These should execute without error but we can't easily verify console output
 	// in unit tests without capturing stdout
-	StartProgress(2023, models.GrowthStatistics{}, time.Now())
+	StartProgress(2023, models.GrowthStatistics{}, models.GrowthStatistics{}, time.Now())
 	time.Sleep(10 * time.Millisecond) // Small delay
 	StopProgress()
 }
@@ -65,7 +65,7 @@ func TestProgressState(t *testing.T) {
 	}
 	startTime := time.Now()
 
-	StartProgress(testYear, testStats, startTime)
+	StartProgress(testYear, testStats, models.GrowthStatistics{}, startTime)
 
 	if CurrentProgress.Year != testYear {
 		t.Errorf("Expected Year to be %d, got %d", testYear, CurrentProgress.Year)
