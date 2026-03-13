@@ -255,7 +255,8 @@ func ShellToUse() string {
 // GetContributors returns all commit authors and committers with dates from git history
 func GetContributors() ([]string, error) {
 	// Execute the git command to get all contributors with their commit dates
-	command := exec.Command("git", "log", "--all", "--format=%an|%cn|%cd", "--date=format:%Y")
+	// Using %aN and %cN format specifiers to respect .mailmap files for consistent author/committer names
+	command := exec.Command("git", "log", "--all", "--format=%aN|%cN|%cd", "--date=format:%Y")
 	output, err := command.Output()
 	if err != nil {
 		return nil, err
@@ -444,7 +445,8 @@ func GetRateOfChanges() (map[int]models.RateStatistics, string, error) {
 	}
 
 	// Get all commits from current branch with timestamps, merge info, and authors
-	command := exec.Command("git", "log", currentBranch, "--format=%ct|%P|%an", "--reverse")
+	// Using %aN format specifier to respect .mailmap files for consistent author names
+	command := exec.Command("git", "log", currentBranch, "--format=%ct|%P|%aN", "--reverse")
 	output, err := command.Output()
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to get commit log: %v", err)

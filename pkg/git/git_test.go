@@ -110,3 +110,114 @@ func TestGetGitDirectory(t *testing.T) {
 func mockRunGitCommand(_ bool, _ ...string) ([]byte, error) {
 	return []byte("git version 2.35.1"), nil
 }
+
+func TestMailmapSupport(t *testing.T) {
+	// Create a temporary directory for the test repository
+	tempDir, err := os.MkdirTemp("", "git-repo-mailmap-test")
+	if err != nil {
+		t.Fatalf("Failed to create temp directory: %v", err)
+	}
+	defer os.RemoveAll(tempDir)
+
+	// Save current directory
+	originalDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current directory: %v", err)
+	}
+	defer os.Chdir(originalDir)
+
+	// Change to temp directory
+	if err := os.Chdir(tempDir); err != nil {
+		t.Fatalf("Failed to change to temp directory: %v", err)
+	}
+
+	// Initialize git repository
+	if err := exec.Command("git", "init").Run(); err != nil {
+		t.Fatalf("Failed to initialize git repository: %v", err)
+	}
+
+	// Configure git user for commits
+	if err := exec.Command("git", "config", "user.email", "test@example.com").Run(); err != nil {
+		t.Fatalf("Failed to configure git user email: %v", err)
+	}
+	if err := exec.Command("git", "config", "user.name", "Test User").Run(); err != nil {
+		t.Fatalf("Failed to configure git user name: %v", err)
+	}
+
+	// Create a commit with one author name/email
+	if err := os.WriteFile("file1.txt", []byte("content1"), 0644); err != nil {
+		t.Fatalf("Failed to create file1.txt: %v", err)
+	}
+	if err := exec.Command("git", "add", "file1.txt").Run(); err != nil {
+		t.Fatalf("Failed to add file1.txt: %v", err)
+	}
+	if err := exec.Command("git", "-c", "user.name=John Doe", "-c", "user.email=john@example.com", "commit", "-m", "First commit").Run(); err != nil {
+		t.Fatalf("Failed to create first commit: %v", err)
+	}
+
+	// Create another commit with a different name/email for the same person
+	if err := os.WriteFile("file2.txt", []byte("content2"), 0644); err != nil {
+		t.Fatalf("Failed to create file2.txt: %v", err)
+	}
+	if err := exec.Command("git", "add", "file2.txt").Run(); err != nil {
+		t.Fatalf("Failed to add file2.txt: %v", err)
+	}
+	if err := exec.Command("git", "-c", "user.name=J. Doe", "-c", "user.email=jdoe@example.com", "commit", "-m", "Second commit").Run(); err != nil {
+		t.Fatalf("Failed to create second commit: %v", err)
+	}
+
+	// Test without .mailmap - should see two different authors
+	contributors, err := GetContributors()
+	if err != nil {
+		t.Fatalf("GetContributors() failed: %v", err)
+	}
+
+	// Count unique authors from the output
+	authorsWithoutMailmap := make(map[string]bool)
+	for _, line := range contributors {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		parts := strings.Split(line, "|")
+		if len(parts) >= 1 {
+			authorsWithoutMailmap[parts[0]] = true
+		}
+	}
+
+	// Create .mailmap file to map both identities to one
+	mailmapContent := "John Doe <john@example.com> J. Doe <jdoe@example.com>\n"
+	if err := os.WriteFile(".mailmap", []byte(mailmapContent), 0644); err != nil {
+		t.Fatalf("Failed to create .mailmap: %v", err)
+	}
+
+	// Test with .mailmap - should see only one author
+	contributors, err = GetContributors()
+	if err != nil {
+		t.Fatalf("GetContributors() with mailmap failed: %v", err)
+	}
+
+	// Count unique authors with mailmap
+	authorsWithMailmap := make(map[string]bool)
+	for _, line := range contributors {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		parts := strings.Split(line, "|")
+		if len(parts) >= 1 {
+			authorsWithMailmap[parts[0]] = true
+		}
+	}
+
+	// With mailmap, we should have only 1 unique author (John Doe)
+	// Without checking this would fail if git doesn't respect --use-mailmap
+	if len(authorsWithMailmap) != 1 {
+		t.Errorf("Expected 1 unique author with mailmap, got %d: %v", len(authorsWithMailmap), authorsWithMailmap)
+	}
+
+	// Verify the consolidated name is "John Doe"
+	if !authorsWithMailmap["John Doe"] {
+		t.Errorf("Expected author 'John Doe' to be present, got: %v", authorsWithMailmap)
+	}
+}
