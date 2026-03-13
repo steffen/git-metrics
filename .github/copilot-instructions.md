@@ -21,7 +21,7 @@
 - **Title**: Use a concise imperative sentence describing *what* the commit does (e.g., `Fix reader buffer to prevent token too long errors`, not `Fixed stuff` or `Update reader.go`).
 - **Description**: Explain *why* the change is needed and *what* it does at a high level — not a line-by-line diff summary.
 - Separate title from description with a blank line.
-- Keep the title under 72 characters.
+- In this project, keep the commit title under 72 characters (our chosen limit) and wrap body lines at 72 characters.
 - Reference related issues or PRs when applicable (e.g., `Fixes #76`).
 - Prefer atomic commits — one logical change per commit; use `git add -p` or stage files selectively when multiple unrelated changes are in the working tree.
 
@@ -38,7 +38,7 @@
 ## Code Style
 
 - Use tabs for indentation in Go files.
-- Empty lines should not contain indentation characters.
+- In Go files, empty lines should not contain indentation characters.
 
 ## Go Idioms
 
