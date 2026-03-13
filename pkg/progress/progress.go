@@ -2,8 +2,8 @@ package progress
 
 import (
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 	"time"
 
 	"git-metrics/pkg/models"
@@ -77,14 +77,6 @@ func formatSizeDelta(delta int64) string {
 	return fmt.Sprintf("+%s", strings.TrimSpace(utils.FormatSize(delta)))
 }
 
-// formatPercent formats a percentage value for display during progress.
-func formatPercent(value float64) string {
-	if value == 0 {
-		return "..."
-	}
-	return fmt.Sprintf("%d %%", int(value))
-}
-
 // getTerminalWidth returns the current terminal width.
 // Falls back to 120 columns if the width cannot be determined.
 func getTerminalWidth() int {
@@ -143,33 +135,19 @@ func UpdateProgress() {
 	uncompressedDelta := statistics.Uncompressed - previous.Uncompressed
 	compressedDelta := statistics.Compressed - previous.Compressed
 
-	// Calculate percentage of current total
-	commitsPercent := 0.0
-	if statistics.Commits > 0 {
-		commitsPercent = float64(commitsDelta) / float64(statistics.Commits) * 100
-	}
-	uncompressedPercent := 0.0
-	if statistics.Uncompressed > 0 {
-		uncompressedPercent = float64(uncompressedDelta) / float64(statistics.Uncompressed) * 100
-	}
-	compressedPercent := 0.0
-	if statistics.Compressed > 0 {
-		compressedPercent = float64(compressedDelta) / float64(statistics.Compressed) * 100
-	}
-
 	progressLine := fmt.Sprintf("%-6s %14s %10s %5s %3s │%14s %12s %5s %3s │%14s %12s %5s %3s",
 		fmt.Sprintf("%d %s", CurrentProgress.Year, ProgressSpinner.Next()),
 		utils.FormatNumber(statistics.Commits),
 		formatDelta(commitsDelta),
-		formatPercent(commitsPercent),
+		"...",
 		".",
 		utils.FormatSize(statistics.Uncompressed),
 		formatSizeDelta(uncompressedDelta),
-		formatPercent(uncompressedPercent),
+		"...",
 		".",
 		utils.FormatSize(statistics.Compressed),
 		formatSizeDelta(compressedDelta),
-		formatPercent(compressedPercent),
+		"...",
 		".")
 
 	terminalWidth := getTerminalWidth()
