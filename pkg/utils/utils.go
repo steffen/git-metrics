@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/term"
 )
 
 // GetConcernLevel returns the Level of Concern symbol based on the metric type and value
@@ -345,3 +348,79 @@ func IsTerminal(file *os.File) bool {
 	}
 	return false
 }
+
+// GetTerminalInformation returns information about the terminal client.
+// It detects the terminal program, version, TERM type, shell, and terminal
+// dimensions to help diagnose rendering issues when users share reports.
+func GetTerminalInformation() string {
+	// Detect terminal program from environment variables
+	terminalProgram := os.Getenv("TERM_PROGRAM")
+	terminalVersion := os.Getenv("TERM_PROGRAM_VERSION")
+
+	// Fall back to LC_TERMINAL (set by some terminals over SSH)
+	if terminalProgram == "" {
+		terminalProgram = os.Getenv("LC_TERMINAL")
+		terminalVersion = os.Getenv("LC_TERMINAL_VERSION")
+	}
+
+	// Detect Windows Terminal
+	if terminalProgram == "" && os.Getenv("WT_SESSION") != "" {
+		terminalProgram = "Windows Terminal"
+	}
+
+	// Build the primary identifier (program name and version)
+	var primaryIdentifier string
+	if terminalProgram != "" {
+		if terminalVersion != "" {
+			primaryIdentifier = fmt.Sprintf("%s %s", terminalProgram, terminalVersion)
+		} else {
+			primaryIdentifier = terminalProgram
+		}
+	}
+
+	// Collect detail parts for parenthetical info
+	var details []string
+
+	// Add TERM type
+	termType := os.Getenv("TERM")
+	if termType != "" {
+		details = append(details, termType)
+	}
+
+	// Add color support level
+	colorTerm := os.Getenv("COLORTERM")
+	if colorTerm != "" {
+		details = append(details, colorTerm)
+	}
+
+	// Add shell name
+	shell := os.Getenv("SHELL")
+	if shell != "" {
+		details = append(details, filepath.Base(shell))
+	}
+
+	// Add terminal dimensions if available
+	width, height, err := term.GetSize(int(os.Stdout.Fd()))
+	if err == nil && width > 0 && height > 0 {
+		details = append(details, fmt.Sprintf("%d×%d", width, height))
+	}
+
+	// Build final string
+	detailString := ""
+	if len(details) > 0 {
+		detailString = fmt.Sprintf("(%s)", strings.Join(details, ", "))
+	}
+
+	if primaryIdentifier != "" && detailString != "" {
+		return fmt.Sprintf("%s %s", primaryIdentifier, detailString)
+	}
+	if primaryIdentifier != "" {
+		return primaryIdentifier
+	}
+	if detailString != "" {
+		return detailString
+	}
+
+	return "Unknown"
+}
+

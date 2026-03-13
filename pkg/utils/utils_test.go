@@ -2,6 +2,7 @@ package utils
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"time"
 )
@@ -366,3 +367,42 @@ func TestIsTerminal(t *testing.T) {
 		t.Error("Mocked stderr incorrectly identified as a terminal")
 	}
 }
+
+func TestGetTerminalInformationReturnsNonEmpty(t *testing.T) {
+	// GetTerminalInformation should always return a non-empty string
+	result := GetTerminalInformation()
+	if result == "" {
+		t.Error("Expected non-empty terminal information")
+	}
+}
+
+func TestGetTerminalInformationWithTermProgram(t *testing.T) {
+	t.Setenv("TERM_PROGRAM", "TestTerminal")
+	t.Setenv("TERM_PROGRAM_VERSION", "1.2.3")
+
+	result := GetTerminalInformation()
+	if !strings.Contains(result, "TestTerminal") {
+		t.Errorf("Expected terminal information to contain 'TestTerminal', got: %s", result)
+	}
+	if !strings.Contains(result, "1.2.3") {
+		t.Errorf("Expected terminal information to contain '1.2.3', got: %s", result)
+	}
+}
+
+func TestGetTerminalInformationFallsBackToUnknown(t *testing.T) {
+	// Clear all terminal-related environment variables
+	t.Setenv("TERM_PROGRAM", "")
+	t.Setenv("TERM_PROGRAM_VERSION", "")
+	t.Setenv("LC_TERMINAL", "")
+	t.Setenv("LC_TERMINAL_VERSION", "")
+	t.Setenv("WT_SESSION", "")
+	t.Setenv("TERM", "")
+	t.Setenv("COLORTERM", "")
+	t.Setenv("SHELL", "")
+
+	result := GetTerminalInformation()
+	if result != "Unknown" {
+		t.Errorf("Expected 'Unknown' when all terminal env vars are unset, got: %s", result)
+	}
+}
+

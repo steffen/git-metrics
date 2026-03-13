@@ -28,6 +28,7 @@ pattern_file="$(mktemp)"
 cat > "$pattern_file" <<EOF
 ^Start time
 ^Machine
+^Terminal
 ^Git version
 ^Git directory
 ^Last modified
