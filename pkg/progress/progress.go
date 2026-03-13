@@ -293,6 +293,9 @@ func StartSectionSpinner() {
 		return
 	}
 
+	// Blank line between section title and spinner
+	fmt.Println()
+
 	quitChannel := make(chan struct{})
 	doneChannel := make(chan struct{})
 
@@ -337,6 +340,9 @@ func StopSectionSpinner() {
 	if quitChannel != nil {
 		close(quitChannel)
 		<-doneChannel
+		// Move cursor up one line to compensate for the blank line printed
+		// in StartSectionSpinner, keeping the body output position unchanged.
+		fmt.Printf("\033[1A")
 	}
 }
 
