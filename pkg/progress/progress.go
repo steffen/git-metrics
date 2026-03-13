@@ -61,6 +61,7 @@ var (
 	// possible terminal resize, so we can move the cursor up and clear them all.
 	previousProgressLength int
 )
+
 // formatDelta formats a delta value with a + prefix for display during progress.
 func formatDelta(delta int) string {
 	if delta == 0 {
@@ -135,20 +136,24 @@ func UpdateProgress() {
 	uncompressedDelta := statistics.Uncompressed - previous.Uncompressed
 	compressedDelta := statistics.Compressed - previous.Compressed
 
+	commitsConcernLevel := utils.GetConcernLevel("commits", int64(statistics.Commits))
+	objectSizeConcernLevel := utils.GetConcernLevel("object-size", statistics.Uncompressed)
+	onDiskSizeConcernLevel := utils.GetConcernLevel("disk-size", statistics.Compressed)
+
 	progressLine := fmt.Sprintf("%-6s %14s %10s %5s %3s │%14s %12s %5s %3s │%14s %12s %5s %3s",
 		fmt.Sprintf("%d %s", CurrentProgress.Year, ProgressSpinner.Next()),
 		utils.FormatNumber(statistics.Commits),
 		formatDelta(commitsDelta),
 		"...",
-		".",
+		commitsConcernLevel,
 		utils.FormatSize(statistics.Uncompressed),
 		formatSizeDelta(uncompressedDelta),
 		"...",
-		".",
+		objectSizeConcernLevel,
 		utils.FormatSize(statistics.Compressed),
 		formatSizeDelta(compressedDelta),
 		"...",
-		".")
+		onDiskSizeConcernLevel)
 
 	terminalWidth := getTerminalWidth()
 
