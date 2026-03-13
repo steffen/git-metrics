@@ -8,13 +8,17 @@ import (
 	"git-metrics/pkg/utils"
 )
 
+// PrintRateOfChangesSectionTitle prints the section title banner for rate of changes.
+func PrintRateOfChangesSectionTitle() {
+	fmt.Println("\nRATE OF CHANGES ########################################################################################################")
+}
+
 // DisplayRateOfChanges displays commit rate statistics for the current branch
 func DisplayRateOfChanges(ratesByYear map[int]models.RateStatistics, defaultBranch string) {
 	if len(ratesByYear) == 0 {
 		return
 	}
 
-	fmt.Println("\nRATE OF CHANGES ########################################################################################################")
 	fmt.Printf("\nCommits to current branch (%s)\n\n", defaultBranch)
 
 	// Table header with subcolumns

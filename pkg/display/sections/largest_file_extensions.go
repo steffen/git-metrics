@@ -3,6 +3,7 @@ package sections
 import (
 	"fmt"
 	"git-metrics/pkg/models"
+	"git-metrics/pkg/progress"
 	"git-metrics/pkg/utils"
 	"path/filepath"
 	"sort"
@@ -12,6 +13,9 @@ import (
 
 // PrintTopFileExtensions prints the top file extensions by size
 func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, totalSize int64) {
+	fmt.Println("\nLARGEST FILE EXTENSIONS ################################################################################################")
+	progress.StartSectionSpinner()
+
 	extensionStatistics := make(map[string]struct {
 		compressedSize   int64
 		uncompressedSize int64
@@ -74,7 +78,7 @@ func PrintTopFileExtensions(blobs []models.FileInformation, totalBlobs int, tota
 	var selectedCompressedSize, selectedUncompressedSize int64
 
 	// Display results.
-	fmt.Println("\nLARGEST FILE EXTENSIONS ################################################################################################")
+	progress.StopSectionSpinner()
 	fmt.Println()
 	fmt.Println("Extension                          Files                  Blobs           Object size          On-disk size            ↓")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")
@@ -178,9 +182,7 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 	}
 
 	fmt.Println(formatExtensionGrowthHeader)
-	fmt.Println()
-	fmt.Println(formatExtensionGrowthTableHeader)
-	fmt.Println(strings.Repeat("-", 120))
+	progress.StartSectionSpinner()
 
 	// Get years and sort them
 	var years []int
@@ -206,6 +208,12 @@ func PrintFileExtensionGrowth(yearlyStatistics map[int]models.GrowthStatistics) 
 
 		yearlyExtensionStats[year] = extensionSizes
 	}
+
+	progress.StopSectionSpinner()
+
+	fmt.Println()
+	fmt.Println(formatExtensionGrowthTableHeader)
+	fmt.Println(strings.Repeat("-", 120))
 
 	// Display growth for each year (starting from second year)
 	for i := 1; i < len(years); i++ {

@@ -97,3 +97,62 @@ func TestProgressState(t *testing.T) {
 		t.Error("Expected Active to be false after StopProgress, got true")
 	}
 }
+
+func TestSectionSpinnerWithProgressDisabled(t *testing.T) {
+	originalShowProgress := ShowProgress
+	defer func() {
+		ShowProgress = originalShowProgress
+	}()
+
+	ShowProgress = false
+
+	// When ShowProgress is false, spinner should not start a goroutine
+	StartSectionSpinner()
+	StopSectionSpinner()
+
+	// Calling stop without a prior start should be a no-op
+	StopSectionSpinner()
+}
+
+func TestSectionSpinnerWithProgressEnabled(t *testing.T) {
+	originalShowProgress := ShowProgress
+	defer func() {
+		ShowProgress = originalShowProgress
+	}()
+
+	ShowProgress = true
+
+	// Start and stop should execute without error
+	StartSectionSpinner()
+	StopSectionSpinner()
+}
+
+func TestSectionSpinnerDoubleStartStops(t *testing.T) {
+	originalShowProgress := ShowProgress
+	defer func() {
+		ShowProgress = originalShowProgress
+	}()
+
+	ShowProgress = true
+
+	// Starting a new spinner should stop the previous one
+	StartSectionSpinner()
+	StartSectionSpinner()
+	StopSectionSpinner()
+}
+
+func TestSectionSpinnerDoubleStopIsNoOp(t *testing.T) {
+	originalShowProgress := ShowProgress
+	defer func() {
+		ShowProgress = originalShowProgress
+	}()
+
+	ShowProgress = true
+
+	StartSectionSpinner()
+	StopSectionSpinner()
+
+	// Second stop should be a safe no-op
+	StopSectionSpinner()
+}
+

@@ -64,6 +64,12 @@ var (
 	// us calculate how many physical rows the previous write occupies after a
 	// possible terminal resize, so we can move the cursor up and clear them all.
 	previousProgressLength int
+
+	// sectionSpinnerQuitChannel signals the section spinner goroutine to stop
+	sectionSpinnerQuitChannel chan struct{}
+
+	// sectionSpinnerDoneChannel signals that the section spinner goroutine has finished
+	sectionSpinnerDoneChannel chan struct{}
 )
 
 // formatDelta formats a delta value with a + prefix for display during progress.
@@ -275,3 +281,70 @@ func StopProgress() {
 		fmt.Printf("\033[K")
 	}
 }
+
+// StartSectionSpinner starts a simple spinner animation below the current line.
+// It first prints a blank line for visual separation, then starts a goroutine
+// that renders a rotating spinner character on the following line. This is used
+// to indicate work in progress between a section title and its body output.
+// The spinner and the blank line are cleared when StopSectionSpinner is called,
+// leaving the cursor at the same position as before StartSectionSpinner was called.
+func StartSectionSpinner() {
+	StopSectionSpinner()
+
+	if !ShowProgress {
+		return
+	}
+
+	// Blank line between section title and spinner
+	fmt.Println()
+
+	quitChannel := make(chan struct{})
+	doneChannel := make(chan struct{})
+
+	progressStateMutex.Lock()
+	sectionSpinnerQuitChannel = quitChannel
+	sectionSpinnerDoneChannel = doneChannel
+	progressStateMutex.Unlock()
+
+	spinner := NewSpinner()
+
+	go func() {
+		defer close(doneChannel)
+		ticker := time.NewTicker(125 * time.Millisecond)
+		defer ticker.Stop()
+
+		// Show spinner immediately
+		fmt.Printf("\r%s", spinner.Next())
+
+		for {
+			select {
+			case <-ticker.C:
+				fmt.Printf("\r%s", spinner.Next())
+			case <-quitChannel:
+				fmt.Printf("\r\033[K")
+				return
+			}
+		}
+	}()
+}
+
+// StopSectionSpinner stops the section spinner and clears its output.
+// It blocks until the spinner goroutine has finished to ensure the line
+// is fully cleared before any subsequent output is printed.
+func StopSectionSpinner() {
+	progressStateMutex.Lock()
+	quitChannel := sectionSpinnerQuitChannel
+	doneChannel := sectionSpinnerDoneChannel
+	sectionSpinnerQuitChannel = nil
+	sectionSpinnerDoneChannel = nil
+	progressStateMutex.Unlock()
+
+	if quitChannel != nil {
+		close(quitChannel)
+		<-doneChannel
+		// Move cursor up one line to compensate for the blank line printed
+		// in StartSectionSpinner, keeping the body output position unchanged.
+		fmt.Printf("\033[1A")
+	}
+}
+
