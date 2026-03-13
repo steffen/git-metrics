@@ -350,26 +350,23 @@ func main() {
 	sections.PrintLargestFiles(largestFiles, totalFilesCompressedSize, repositoryInformation.TotalBlobs, len(previous.LargestFiles))
 
 	// 5. Rate of changes analysis
-	sections.PrintRateOfChangesSectionTitle()
 	progress.StartSectionSpinner()
 	ratesByYear, branchName, rateError := git.GetRateOfChanges()
 	progress.StopSectionSpinner()
 	if rateError == nil && len(ratesByYear) > 0 {
+		sections.PrintRateOfChangesSectionTitle()
 		sections.DisplayRateOfChanges(ratesByYear, branchName)
 	}
 
-	// 6. Authors with most commits
-	sections.PrintAuthorsSectionTitle()
+	// 6 & 7. Authors and committers with most commits
 	progress.StartSectionSpinner()
 	topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, topCommittersByYear, totalCommittersByYear, allTimeAuthors, allTimeCommitters, contributorsError := git.GetTopCommitAuthors(3)
 	progress.StopSectionSpinner()
 	if contributorsError == nil && len(topAuthorsByYear) > 0 {
+		sections.PrintAuthorsSectionTitle()
 		sections.DisplayAuthorsSection(topAuthorsByYear, totalAuthorsByYear, totalCommitsByYear, allTimeAuthors)
 
-		// 7. Committers with most commits
 		sections.PrintCommittersSectionTitle()
-		progress.StartSectionSpinner()
-		progress.StopSectionSpinner()
 		sections.DisplayCommittersSection(topCommittersByYear, totalCommittersByYear, totalCommitsByYear, allTimeCommitters)
 	}
 

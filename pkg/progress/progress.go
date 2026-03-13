@@ -282,10 +282,12 @@ func StopProgress() {
 	}
 }
 
-// StartSectionSpinner starts a simple spinner animation on the current line.
-// It prints a rotating character at the start of the line, used to indicate
-// work in progress between a section title and its body output. The spinner
-// is cleared when StopSectionSpinner is called.
+// StartSectionSpinner starts a simple spinner animation below the current line.
+// It first prints a blank line for visual separation, then starts a goroutine
+// that renders a rotating spinner character on the following line. This is used
+// to indicate work in progress between a section title and its body output.
+// The spinner and the blank line are cleared when StopSectionSpinner is called,
+// leaving the cursor at the same position as before StartSectionSpinner was called.
 func StartSectionSpinner() {
 	StopSectionSpinner()
 

@@ -3,15 +3,12 @@ package sections
 import (
 	"fmt"
 	"git-metrics/pkg/models"
-	"git-metrics/pkg/progress"
 	"git-metrics/pkg/utils"
 )
 
 // PrintLargestFiles prints information about the largest files
 func PrintLargestFiles(files []models.FileInformation, totalFilesSize int64, totalBlobs int, totalFiles int) {
 	fmt.Println("\nLARGEST FILES ##########################################################################################################")
-	progress.StartSectionSpinner()
-	progress.StopSectionSpinner()
 	fmt.Println()
 	fmt.Println("      Blobs          On-disk size           Path")
 	fmt.Println("------------------------------------------------------------------------------------------------------------------------")

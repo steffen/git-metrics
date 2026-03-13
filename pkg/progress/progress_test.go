@@ -124,7 +124,6 @@ func TestSectionSpinnerWithProgressEnabled(t *testing.T) {
 
 	// Start and stop should execute without error
 	StartSectionSpinner()
-	time.Sleep(10 * time.Millisecond)
 	StopSectionSpinner()
 }
 
@@ -138,9 +137,7 @@ func TestSectionSpinnerDoubleStartStops(t *testing.T) {
 
 	// Starting a new spinner should stop the previous one
 	StartSectionSpinner()
-	time.Sleep(10 * time.Millisecond)
 	StartSectionSpinner()
-	time.Sleep(10 * time.Millisecond)
 	StopSectionSpinner()
 }
 
@@ -153,7 +150,6 @@ func TestSectionSpinnerDoubleStopIsNoOp(t *testing.T) {
 	ShowProgress = true
 
 	StartSectionSpinner()
-	time.Sleep(10 * time.Millisecond)
 	StopSectionSpinner()
 
 	// Second stop should be a safe no-op
