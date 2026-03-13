@@ -64,6 +64,12 @@ var (
 	// us calculate how many physical rows the previous write occupies after a
 	// possible terminal resize, so we can move the cursor up and clear them all.
 	previousProgressLength int
+
+	// sectionSpinnerQuitChannel signals the section spinner goroutine to stop
+	sectionSpinnerQuitChannel chan struct{}
+
+	// sectionSpinnerDoneChannel signals that the section spinner goroutine has finished
+	sectionSpinnerDoneChannel chan struct{}
 )
 
 // formatDelta formats a delta value with a + prefix for display during progress.
@@ -275,3 +281,62 @@ func StopProgress() {
 		fmt.Printf("\033[K")
 	}
 }
+
+// StartSectionSpinner starts a simple spinner animation on the current line.
+// It prints a rotating character at the start of the line, used to indicate
+// work in progress between a section title and its body output. The spinner
+// is cleared when StopSectionSpinner is called.
+func StartSectionSpinner() {
+	StopSectionSpinner()
+
+	if !ShowProgress {
+		return
+	}
+
+	quitChannel := make(chan struct{})
+	doneChannel := make(chan struct{})
+
+	progressStateMutex.Lock()
+	sectionSpinnerQuitChannel = quitChannel
+	sectionSpinnerDoneChannel = doneChannel
+	progressStateMutex.Unlock()
+
+	spinner := NewSpinner()
+
+	go func() {
+		defer close(doneChannel)
+		ticker := time.NewTicker(125 * time.Millisecond)
+		defer ticker.Stop()
+
+		// Show spinner immediately
+		fmt.Printf("\r%s", spinner.Next())
+
+		for {
+			select {
+			case <-ticker.C:
+				fmt.Printf("\r%s", spinner.Next())
+			case <-quitChannel:
+				fmt.Printf("\r\033[K")
+				return
+			}
+		}
+	}()
+}
+
+// StopSectionSpinner stops the section spinner and clears its output.
+// It blocks until the spinner goroutine has finished to ensure the line
+// is fully cleared before any subsequent output is printed.
+func StopSectionSpinner() {
+	progressStateMutex.Lock()
+	quitChannel := sectionSpinnerQuitChannel
+	doneChannel := sectionSpinnerDoneChannel
+	sectionSpinnerQuitChannel = nil
+	sectionSpinnerDoneChannel = nil
+	progressStateMutex.Unlock()
+
+	if quitChannel != nil {
+		close(quitChannel)
+		<-doneChannel
+	}
+}
+
