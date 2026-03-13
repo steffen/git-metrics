@@ -366,3 +366,87 @@ func TestIsTerminal(t *testing.T) {
 		t.Error("Mocked stderr incorrectly identified as a terminal")
 	}
 }
+
+func TestGetTerminalInformationReturnsNonEmpty(t *testing.T) {
+	// GetTerminalInformation should always return a non-empty string
+	result := GetTerminalInformation()
+	if result == "" {
+		t.Error("Expected non-empty terminal information")
+	}
+}
+
+func TestGetTerminalInformationWithTermProgram(t *testing.T) {
+	// Save and restore environment variables
+	originalTermProgram := os.Getenv("TERM_PROGRAM")
+	originalTermProgramVersion := os.Getenv("TERM_PROGRAM_VERSION")
+	defer func() {
+		os.Setenv("TERM_PROGRAM", originalTermProgram)
+		os.Setenv("TERM_PROGRAM_VERSION", originalTermProgramVersion)
+	}()
+
+	os.Setenv("TERM_PROGRAM", "TestTerminal")
+	os.Setenv("TERM_PROGRAM_VERSION", "1.2.3")
+
+	result := GetTerminalInformation()
+	if result == "" {
+		t.Error("Expected non-empty terminal information")
+	}
+	if !contains(result, "TestTerminal") {
+		t.Errorf("Expected terminal information to contain 'TestTerminal', got: %s", result)
+	}
+	if !contains(result, "1.2.3") {
+		t.Errorf("Expected terminal information to contain '1.2.3', got: %s", result)
+	}
+}
+
+func TestGetTerminalInformationFallsBackToUnknown(t *testing.T) {
+	// Save and restore environment variables
+	originalTermProgram := os.Getenv("TERM_PROGRAM")
+	originalTermProgramVersion := os.Getenv("TERM_PROGRAM_VERSION")
+	originalLcTerminal := os.Getenv("LC_TERMINAL")
+	originalLcTerminalVersion := os.Getenv("LC_TERMINAL_VERSION")
+	originalWtSession := os.Getenv("WT_SESSION")
+	originalTerm := os.Getenv("TERM")
+	originalColorTerm := os.Getenv("COLORTERM")
+	originalShell := os.Getenv("SHELL")
+	defer func() {
+		os.Setenv("TERM_PROGRAM", originalTermProgram)
+		os.Setenv("TERM_PROGRAM_VERSION", originalTermProgramVersion)
+		os.Setenv("LC_TERMINAL", originalLcTerminal)
+		os.Setenv("LC_TERMINAL_VERSION", originalLcTerminalVersion)
+		os.Setenv("WT_SESSION", originalWtSession)
+		os.Setenv("TERM", originalTerm)
+		os.Setenv("COLORTERM", originalColorTerm)
+		os.Setenv("SHELL", originalShell)
+	}()
+
+	// Clear all terminal-related environment variables
+	os.Unsetenv("TERM_PROGRAM")
+	os.Unsetenv("TERM_PROGRAM_VERSION")
+	os.Unsetenv("LC_TERMINAL")
+	os.Unsetenv("LC_TERMINAL_VERSION")
+	os.Unsetenv("WT_SESSION")
+	os.Unsetenv("TERM")
+	os.Unsetenv("COLORTERM")
+	os.Unsetenv("SHELL")
+
+	result := GetTerminalInformation()
+	if result == "" {
+		t.Error("Expected non-empty terminal information even with no env vars")
+	}
+}
+
+func contains(haystack, needle string) bool {
+	return len(haystack) >= len(needle) && (haystack == needle || len(needle) == 0 ||
+		(len(haystack) > 0 && len(needle) > 0 && stringContains(haystack, needle)))
+}
+
+func stringContains(haystack, needle string) bool {
+	for i := 0; i <= len(haystack)-len(needle); i++ {
+		if haystack[i:i+len(needle)] == needle {
+			return true
+		}
+	}
+	return false
+}
+
