@@ -213,8 +213,7 @@ func main() {
 			beforePrevious = previous
 			previous = cumulativeStatistics
 			yearlyStatistics[year] = cumulativeStatistics
-			progress.CurrentProgress.Statistics = cumulativeStatistics // Update current progress
-			progress.CurrentProgress.PreviousStatistics = beforePrevious
+			progress.SetCurrentProgressStatistics(cumulativeStatistics, beforePrevious)
 		}
 	}
 	progress.StopProgress() // Stop and clear progress line

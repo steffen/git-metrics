@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"git-metrics/pkg/models"
@@ -43,6 +44,9 @@ type ProgressState struct {
 }
 
 var (
+	// progressStateMutex protects concurrent access to progress state.
+	progressStateMutex sync.RWMutex
+
 	// CurrentProgress holds the current progress state
 	CurrentProgress ProgressState
 
@@ -92,13 +96,14 @@ func getTerminalWidth() int {
 // row that the previous progress write may occupy at the current terminal
 // width. This handles the case where the terminal was resized after the
 // last write, causing the line to wrap to more rows than originally intended.
-func clearPreviousProgressLines(terminalWidth int) {
-	if previousProgressLength == 0 || terminalWidth <= 0 {
+
+func clearPreviousProgressLines(progressLineLength int, terminalWidth int) {
+	if progressLineLength == 0 || terminalWidth <= 0 {
 		return
 	}
 
 	// Calculate how many physical rows the previous write occupies now.
-	physicalRows := (previousProgressLength + terminalWidth - 1) / terminalWidth
+	physicalRows := (progressLineLength + terminalWidth - 1) / terminalWidth
 
 	// Move cursor up for each extra wrapped row.
 	if physicalRows > 1 {
@@ -122,14 +127,36 @@ func clearPreviousProgressLines(terminalWidth int) {
 	fmt.Printf("\r")
 }
 
+func getCurrentProgressSnapshot() ProgressState {
+	progressStateMutex.RLock()
+	defer progressStateMutex.RUnlock()
+	return CurrentProgress
+}
+
+func isCurrentProgressActive() bool {
+	progressStateMutex.RLock()
+	defer progressStateMutex.RUnlock()
+	return CurrentProgress.Active
+}
+
+// SetCurrentProgressStatistics updates the current and previous cumulative
+// statistics used by the progress renderer.
+func SetCurrentProgressStatistics(currentStatistics models.GrowthStatistics, previousStatistics models.GrowthStatistics) {
+	progressStateMutex.Lock()
+	defer progressStateMutex.Unlock()
+	CurrentProgress.Statistics = currentStatistics
+	CurrentProgress.PreviousStatistics = previousStatistics
+}
+
 // UpdateProgress updates the progress display
 func UpdateProgress() {
-	if !CurrentProgress.Active || !ShowProgress {
+	snapshot := getCurrentProgressSnapshot()
+	if !snapshot.Active || !ShowProgress {
 		return
 	}
 
-	statistics := CurrentProgress.Statistics
-	previous := CurrentProgress.PreviousStatistics
+	statistics := snapshot.Statistics
+	previous := snapshot.PreviousStatistics
 
 	// Calculate deltas from previous year
 	commitsDelta := statistics.Commits - previous.Commits
@@ -141,7 +168,7 @@ func UpdateProgress() {
 	onDiskSizeConcernLevel := utils.GetConcernLevel("disk-size", statistics.Compressed)
 
 	progressLine := fmt.Sprintf("%-6s %14s %10s %5s %3s │%14s %12s %5s %3s │%14s %12s %5s %3s",
-		fmt.Sprintf("%d %s", CurrentProgress.Year, ProgressSpinner.Next()),
+		fmt.Sprintf("%d %s", snapshot.Year, ProgressSpinner.Next()),
 		utils.FormatNumber(statistics.Commits),
 		formatDelta(commitsDelta),
 		"...",
@@ -157,8 +184,12 @@ func UpdateProgress() {
 
 	terminalWidth := getTerminalWidth()
 
+	progressStateMutex.RLock()
+	currentProgressLineLength := previousProgressLength
+	progressStateMutex.RUnlock()
+
 	// Clear any wrapped rows from the previous progress write.
-	clearPreviousProgressLines(terminalWidth)
+	clearPreviousProgressLines(currentProgressLineLength, terminalWidth)
 
 	// Truncate the new line to fit within the current terminal width.
 	if len(progressLine) > terminalWidth {
@@ -168,7 +199,9 @@ func UpdateProgress() {
 	fmt.Printf("%s\033[K", progressLine)
 
 	// Remember how long this write was so the next update can clean it up.
+	progressStateMutex.Lock()
 	previousProgressLength = len(progressLine)
+	progressStateMutex.Unlock()
 }
 
 // StartProgress starts progress tracking
@@ -177,6 +210,7 @@ func StartProgress(year int, statistics models.GrowthStatistics, previousStatist
 	StopProgress()
 
 	// Always update the state
+	progressStateMutex.Lock()
 	CurrentProgress = ProgressState{
 		Year:               year,
 		Statistics:         statistics,
@@ -184,11 +218,15 @@ func StartProgress(year int, statistics models.GrowthStatistics, previousStatist
 		Active:             true,
 		ProgramStart:       programStart,
 	}
+	progressStateMutex.Unlock()
 
 	// Only show visual progress if ShowProgress is true
 	if ShowProgress {
 		// Create a new quit channel
-		spinnerQuitChannel = make(chan struct{})
+		quitChannel := make(chan struct{})
+		progressStateMutex.Lock()
+		spinnerQuitChannel = quitChannel
+		progressStateMutex.Unlock()
 
 		// Show initial progress immediately
 		UpdateProgress()
@@ -200,10 +238,10 @@ func StartProgress(year int, statistics models.GrowthStatistics, previousStatist
 			for {
 				select {
 				case <-ticker.C:
-					if CurrentProgress.Active {
+					if isCurrentProgressActive() {
 						UpdateProgress()
 					}
-				case <-spinnerQuitChannel:
+				case <-quitChannel:
 					return
 				}
 			}
@@ -213,20 +251,27 @@ func StartProgress(year int, statistics models.GrowthStatistics, previousStatist
 
 // StopProgress stops progress tracking
 func StopProgress() {
+	var quitChannel chan struct{}
+	var currentProgressLineLength int
+
 	// Always update the state
+	progressStateMutex.Lock()
 	CurrentProgress.Active = false
+	quitChannel = spinnerQuitChannel
+	spinnerQuitChannel = nil
+	currentProgressLineLength = previousProgressLength
+	previousProgressLength = 0
+	progressStateMutex.Unlock()
 
 	// Signal the spinner goroutine to stop if it's running
-	if spinnerQuitChannel != nil {
-		close(spinnerQuitChannel)
-		spinnerQuitChannel = nil
+	if quitChannel != nil {
+		close(quitChannel)
 	}
 
 	// Only clear the progress line if ShowProgress is true
 	if ShowProgress {
 		terminalWidth := getTerminalWidth()
-		clearPreviousProgressLines(terminalWidth)
+		clearPreviousProgressLines(currentProgressLineLength, terminalWidth)
 		fmt.Printf("\033[K")
-		previousProgressLength = 0
 	}
 }
