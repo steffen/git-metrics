@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Go
-        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
         with:
           go-version-file: './go.mod'
 
@@ -50,7 +50,7 @@ jobs:
           go build -ldflags "-X git-metrics/pkg/utils.GitMetricsVersion=${VERSION}" -o "${BINARY_NAME}"
 
       - name: Upload git-metrics binary
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: git-metrics-binary
           path: ${{ env.BINARY_NAME }}
@@ -76,7 +76,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
       - name: Download git-metrics binary
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: git-metrics-binary
 
@@ -84,7 +84,7 @@ jobs:
         run: chmod +x git-metrics
 
       - name: Setup repository cache
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
         with:
           path: repos/${{ matrix.repository.name }}
           key: ${{ matrix.repository.cache-key }}-${{ github.run_id }}
@@ -124,7 +124,7 @@ jobs:
           echo "==> Generated $OUTPUT_DIR/$REPO_NAME.txt"
 
       - name: Upload output artifact
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: output-${{ matrix.repository.name }}
           path: examples/outputs/${{ matrix.repository.name }}.txt
@@ -140,7 +140,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download all output artifacts
-        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           pattern: output-*
           merge-multiple: true
@@ -187,7 +187,7 @@ jobs:
 
       - name: Create Pull Request
         if: steps.commit.outputs.has_changes == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3
         with:
           script: |
             const { owner, repo } = context.repo;
