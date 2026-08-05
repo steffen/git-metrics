@@ -110,3 +110,184 @@ func TestGetGitDirectory(t *testing.T) {
 func mockRunGitCommand(_ bool, _ ...string) ([]byte, error) {
 	return []byte("git version 2.35.1"), nil
 }
+
+func TestGetBranchCount(t *testing.T) {
+	tests := []struct {
+		name      string
+		setupFunc func() string
+		cleanup   func(string)
+		wantMin   int
+		wantErr   bool
+	}{
+		{
+			name: "Repository with at least one branch",
+			setupFunc: func() string {
+				// Create a temporary directory and initialize a git repo
+				tempDir, err := os.MkdirTemp("", "git-branch-test")
+				if err != nil {
+					t.Fatalf("Failed to create temp directory: %v", err)
+				}
+				if err := exec.Command("git", "init", tempDir).Run(); err != nil {
+					t.Fatalf("Failed to initialize git repo: %v", err)
+				}
+				// Set a user name and email for the test repo
+				if err := exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run(); err != nil {
+					t.Fatalf("Failed to set git user.name: %v", err)
+				}
+				if err := exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run(); err != nil {
+					t.Fatalf("Failed to set git user.email: %v", err)
+				}
+				// Create an initial commit to ensure there's a branch
+				if err := exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run(); err != nil {
+					t.Fatalf("Failed to create initial commit: %v", err)
+				}
+				return tempDir
+			},
+			cleanup: func(path string) {
+				os.RemoveAll(path)
+			},
+			wantMin: 1,
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var originalDir string
+			if tt.setupFunc != nil {
+				var err error
+				originalDir, err = os.Getwd()
+				if err != nil {
+					t.Fatalf("Failed to get current directory: %v", err)
+				}
+				path := tt.setupFunc()
+				os.Chdir(path)
+				if tt.cleanup != nil {
+					defer func() {
+						os.Chdir(originalDir)
+						tt.cleanup(path)
+					}()
+				}
+			}
+
+			count, err := GetBranchCount()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetBranchCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && count < tt.wantMin {
+				t.Errorf("GetBranchCount() = %v, want at least %v", count, tt.wantMin)
+			}
+		})
+	}
+}
+
+func TestGetTagCount(t *testing.T) {
+	tests := []struct {
+		name      string
+		setupFunc func() string
+		cleanup   func(string)
+		wantCount int
+		wantErr   bool
+	}{
+		{
+			name: "Repository with no tags",
+			setupFunc: func() string {
+				// Create a temporary directory and initialize a git repo
+				tempDir, err := os.MkdirTemp("", "git-tag-test")
+				if err != nil {
+					t.Fatalf("Failed to create temp directory: %v", err)
+				}
+				if err := exec.Command("git", "init", tempDir).Run(); err != nil {
+					t.Fatalf("Failed to initialize git repo: %v", err)
+				}
+				// Set a user name and email for the test repo
+				if err := exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run(); err != nil {
+					t.Fatalf("Failed to set git user.name: %v", err)
+				}
+				if err := exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run(); err != nil {
+					t.Fatalf("Failed to set git user.email: %v", err)
+				}
+				// Create an initial commit
+				if err := exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run(); err != nil {
+					t.Fatalf("Failed to create initial commit: %v", err)
+				}
+				return tempDir
+			},
+			cleanup: func(path string) {
+				os.RemoveAll(path)
+			},
+			wantCount: 0,
+			wantErr:   false,
+		},
+		{
+			name: "Repository with tags",
+			setupFunc: func() string {
+				// Create a temporary directory and initialize a git repo
+				tempDir, err := os.MkdirTemp("", "git-tag-test-2")
+				if err != nil {
+					t.Fatalf("Failed to create temp directory: %v", err)
+				}
+				if err := exec.Command("git", "init", tempDir).Run(); err != nil {
+					t.Fatalf("Failed to initialize git repo: %v", err)
+				}
+				// Set a user name and email for the test repo
+				if err := exec.Command("git", "-C", tempDir, "config", "user.name", "Test User").Run(); err != nil {
+					t.Fatalf("Failed to set git user.name: %v", err)
+				}
+				if err := exec.Command("git", "-C", tempDir, "config", "user.email", "test@example.com").Run(); err != nil {
+					t.Fatalf("Failed to set git user.email: %v", err)
+				}
+				// Create an initial commit
+				if err := exec.Command("git", "-C", tempDir, "commit", "--allow-empty", "-m", "Initial commit").Run(); err != nil {
+					t.Fatalf("Failed to create initial commit: %v", err)
+				}
+				// Create tags
+				if err := exec.Command("git", "-C", tempDir, "tag", "v1.0.0").Run(); err != nil {
+					t.Fatalf("Failed to create tag v1.0.0: %v", err)
+				}
+				if err := exec.Command("git", "-C", tempDir, "tag", "v2.0.0").Run(); err != nil {
+					t.Fatalf("Failed to create tag v2.0.0: %v", err)
+				}
+				return tempDir
+			},
+			cleanup: func(path string) {
+				os.RemoveAll(path)
+			},
+			wantCount: 2,
+			wantErr:   false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var originalDir string
+			if tt.setupFunc != nil {
+				var err error
+				originalDir, err = os.Getwd()
+				if err != nil {
+					t.Fatalf("Failed to get current directory: %v", err)
+				}
+				path := tt.setupFunc()
+				os.Chdir(path)
+				if tt.cleanup != nil {
+					defer func() {
+						os.Chdir(originalDir)
+						tt.cleanup(path)
+					}()
+				}
+			}
+
+			count, err := GetTagCount()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("GetTagCount() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if !tt.wantErr && count != tt.wantCount {
+				t.Errorf("GetTagCount() = %v, want %v", count, tt.wantCount)
+			}
+		})
+	}
+}
